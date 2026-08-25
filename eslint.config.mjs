@@ -5,7 +5,14 @@ import nextTypeScript from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTypeScript,
-  globalIgnores([".next/**", ".open-next/**", "coverage/**", "cloudflare-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    ".open-next/**",
+    ".wrangler/**",
+    "supabase/.temp/**",
+    "coverage/**",
+    "cloudflare-env.d.ts",
+  ]),
   {
     files: ["src/**/*.{ts,tsx}"],
     rules: {
