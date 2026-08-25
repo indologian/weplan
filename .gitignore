@@ -1,0 +1,14 @@
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+.next/
+out/
+
+# Editor and OS metadata
+.DS_Store
+Thumbs.db
+*.log
