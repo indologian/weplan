@@ -9,7 +9,7 @@
 >
 > **Priority model:**
 >
-> ``` text
+> ```text
 > File 06 → WHAT / WHEN / milestone
 > File 07 → DB/domain implementation reference
 > File 01–05 → canonical rules sesuai ownership
@@ -19,13 +19,13 @@
 > Jika terjadi konflik antardokumen, gunakan ownership matrix File 01.
 > Jangan menyelesaikan konflik dengan menebak.
 
-------------------------------------------------------------------------
+---
 
 ## 1. Dokumen yang Wajib Tersedia untuk Agent
 
 Agent harus mempunyai akses ke seluruh:
 
-``` text
+```text
 01 - arsitektur-dan-konvensi.md
 02 - panduan-keamanan.md
 03 - panduan-ui-ux.md
@@ -39,26 +39,28 @@ Agent harus mempunyai akses ke seluruh:
 File 06 dan 07 adalah entry point implementasi, bukan pengganti File
 01--05.
 
-------------------------------------------------------------------------
+---
 
 ## 2. Document Authority
 
-  Area                                                 Authority
-  ---------------------------------------------------- -----------
-  Domain/business/database/runtime/lifecycle/payment   File 01
-  Security checklist/hardening/evidence                File 02
-  Platform UI/UX/design tokens/interaction/copy        File 03
-  Failure/race/recovery/capacity edge cases            File 04
-  Wedding renderer/theme visual                        File 05
-  Milestone/order/launch scope                         File 06
-  Database/domain implementation reference             File 07
-  Agent operating procedure                            File 08
+Area Authority
+
+---
+
+Domain/business/database/runtime/lifecycle/payment File 01
+Security checklist/hardening/evidence File 02
+Platform UI/UX/design tokens/interaction/copy File 03
+Failure/race/recovery/capacity edge cases File 04
+Wedding renderer/theme visual File 05
+Milestone/order/launch scope File 06
+Database/domain implementation reference File 07
+Agent operating procedure File 08
 
 Agent tidak boleh membuat authority baru di source code comments,
 ticket, README, atau implementation notes yang bertentangan dengan tabel
 ini.
 
-------------------------------------------------------------------------
+---
 
 ## 3. Golden Rules untuk AI Agent
 
@@ -83,13 +85,13 @@ ini.
 15. Jangan menyatakan work package selesai sebelum acceptance criteria
     dan test evidence terpenuhi.
 
-------------------------------------------------------------------------
+---
 
 ## 4. Execution Loop
 
 Untuk setiap milestone/work package, agent mengikuti urutan:
 
-``` text
+```text
 READ
  ↓
 PLAN
@@ -107,15 +109,14 @@ STOP FOR REVIEW
 
 ### READ
 
-Agent membaca: 1. milestone File 06; 2. contract File 07 yang terkait;
-3. section File 01--05 yang dirujuk; 4. existing code/migration/test
+Agent membaca: 1. milestone File 06; 2. contract File 07 yang terkait; 3. section File 01--05 yang dirujuk; 4. existing code/migration/test
 yang akan disentuh.
 
 ### PLAN
 
 Sebelum edit, agent menghasilkan ringkasan singkat:
 
-``` text
+```text
 Work package:
 Goal:
 Canonical references:
@@ -152,7 +153,7 @@ unresolved issue; - deviation; - next recommended work package.
 Agent tidak otomatis melanjutkan milestone berikutnya kecuali user
 secara eksplisit memberi izin autonomous execution.
 
-------------------------------------------------------------------------
+---
 
 ## 5. Scope Control
 
@@ -172,7 +173,7 @@ Jangan dikerjakan hanya karena tercantum dalam arsitektur.
 
 Contoh:
 
-``` text
+```text
 4 launch themes       → implement
 12 themes sekaligus   → jangan
 
@@ -183,27 +184,27 @@ outbox reliability    → implement saat side effect terkait aktif
 large export workflow → defer bila capability belum aktif
 ```
 
-------------------------------------------------------------------------
+---
 
 ## 6. Repository Reconnaissance
 
 Sebelum milestone pertama atau ketika menerima repository existing,
 agent harus memeriksa:
 
--   package manager + lockfile;
--   Next.js/React/TypeScript versions;
--   source tree;
--   migrations;
--   Supabase config;
--   Cloudflare/OpenNext config;
--   environment schema;
--   current RLS/GRANT;
--   test framework;
--   CI;
--   existing dependencies;
--   duplicate app roots;
--   server/client boundary;
--   existing TODO/temporary bypass.
+- package manager + lockfile;
+- Next.js/React/TypeScript versions;
+- source tree;
+- migrations;
+- Supabase config;
+- Cloudflare/OpenNext config;
+- environment schema;
+- current RLS/GRANT;
+- test framework;
+- CI;
+- existing dependencies;
+- duplicate app roots;
+- server/client boundary;
+- existing TODO/temporary bypass.
 
 Agent tidak boleh mengasumsikan repository kosong.
 
@@ -218,13 +219,13 @@ Jika implementation code bertentangan dengan specification, agent harus
 melaporkan conflict sebelum menjadikan existing behavior sebagai
 authority.
 
-------------------------------------------------------------------------
+---
 
 ## 7. Dependency Policy
 
 Sebelum menambah package, agent harus menjawab:
 
-``` text
+```text
 Apakah kebutuhan dapat diselesaikan oleh:
 1. platform/browser API?
 2. React/Next.js?
@@ -252,18 +253,18 @@ yang pernah benar masih berlaku.
 
 Capability yang termasuk aturan ini minimal:
 
--   Next.js / React;
--   Cloudflare Workers, Wrangler, dan OpenNext adapter yang dipakai;
--   Supabase, termasuk Auth, SSR, Storage, CLI, dan database tooling;
--   Tailwind CSS;
--   shadcn/ui;
--   Midtrans;
--   dependency/provider lain yang API, CLI, compatibility matrix, atau
-    setup-nya dapat berubah.
+- Next.js / React;
+- Cloudflare Workers, Wrangler, dan OpenNext adapter yang dipakai;
+- Supabase, termasuk Auth, SSR, Storage, CLI, dan database tooling;
+- Tailwind CSS;
+- shadcn/ui;
+- Midtrans;
+- dependency/provider lain yang API, CLI, compatibility matrix, atau
+  setup-nya dapat berubah.
 
 Urutan verifikasi:
 
-``` text
+```text
 Inspect repository + lockfile
         ↓
 Identify existing/pinned version and runtime target
@@ -292,7 +293,7 @@ Aturan khusus:
     arsitektur File 01.
 3.  **Versi:** `latest` boleh dipakai untuk discovery, tetapi dependency
     production harus dipin melalui manifest/lockfile sesuai policy File
-    1.  
+    1.
 4.  **Compatibility:** jangan upgrade satu dependency secara terisolasi
     bila framework/runtime/provider mempunyai compatibility matrix.
 5.  **Breaking change:** jika dokumentasi terbaru mengharuskan perubahan
@@ -309,7 +310,7 @@ Aturan khusus:
 
 Pada M0, sebelum memasang atau mengubah Next.js, agent wajib:
 
-``` text
+```text
 Check package manager + lockfile
         ↓
 Check whether Next.js already exists
@@ -335,7 +336,7 @@ minimal dan mengikuti reconnaissance §6. Jika repository kosong,
 bootstrap harus menghasilkan struktur yang kompatibel dengan File 01 dan
 acceptance criteria M0 File 06.
 
-------------------------------------------------------------------------
+---
 
 ## 8. Database Change Procedure
 
@@ -359,7 +360,7 @@ mutate `storage.objects`; - broad admin RLS untuk convenience; - expose
 credential table ke client; - menaruh relational security fact di JSONB
 hanya untuk menghindari schema.
 
-------------------------------------------------------------------------
+---
 
 ## 9. Security Execution Procedure
 
@@ -367,7 +368,7 @@ File 02 requirement ID digunakan sebagai evidence mapping.
 
 Setiap security-sensitive work package harus menghasilkan:
 
-``` text
+```text
 Requirement ID
 Implementation location
 Automated test
@@ -377,7 +378,7 @@ Status
 
 Contoh:
 
-``` text
+```text
 SEC-F07-xx
 src/modules/payment/...
 tests/integration/payment-webhook...
@@ -387,7 +388,7 @@ PASS
 Jika control belum dapat diuji otomatis, agent harus menyatakan manual
 verification yang dibutuhkan; jangan menandainya PASS tanpa evidence.
 
-------------------------------------------------------------------------
+---
 
 ## 10. Payment Procedure
 
@@ -407,13 +408,13 @@ intent same key; - ambiguous timeout; - invalid signature; - provider
 mismatch; - duplicate webhook; - out-of-order webhook; - funded
 transition; - readiness failure after funded; - cancellation race.
 
-------------------------------------------------------------------------
+---
 
 ## 11. Editor Procedure
 
 Agent wajib mempertahankan:
 
-``` text
+```text
 RHF client form state
         ↓
 save generation
@@ -432,24 +433,24 @@ state terbaru.
 
 Test two-tab/stale-response merupakan acceptance requirement.
 
-------------------------------------------------------------------------
+---
 
 ## 12. Public Guest & Privacy Procedure
 
 Untuk guest/public surface:
 
--   anonymous tidak raw-query `guests`;
--   response whitelist eksplisit;
--   name/UUID/`to=` bukan credential;
--   private invitation selalu authorization-first;
--   signed/stable media serving mengikuti File 01;
--   public cache tidak menyimpan personalized/private content;
--   raw IP dipseudonimkan sebelum persistence;
--   Turnstile adaptif;
--   rate limiter distributed;
--   attacker tidak boleh memperoleh global hard-lock primitive.
+- anonymous tidak raw-query `guests`;
+- response whitelist eksplisit;
+- name/UUID/`to=` bukan credential;
+- private invitation selalu authorization-first;
+- signed/stable media serving mengikuti File 01;
+- public cache tidak menyimpan personalized/private content;
+- raw IP dipseudonimkan sebelum persistence;
+- Turnstile adaptif;
+- rate limiter distributed;
+- attacker tidak boleh memperoleh global hard-lock primitive.
 
-------------------------------------------------------------------------
+---
 
 ## 13. Renderer Procedure
 
@@ -467,7 +468,7 @@ untuk membuat preview terlihat memenuhi allowance; - menjadikan seluruh
 wedding page Client Component hanya karena beberapa section memakai
 GSAP.
 
-------------------------------------------------------------------------
+---
 
 ## 14. Testing Pyramid
 
@@ -487,7 +488,7 @@ authorization.
 
 Critical journey:
 
-``` text
+```text
 signup/login
 → create invitation
 → edit
@@ -504,34 +505,34 @@ Tambahkan private invitation journey dan failure journey penting.
 Agent tidak boleh mengganti integration test penting dengan mock-only
 test.
 
-------------------------------------------------------------------------
+---
 
 ## 15. Browser & UI Verification
 
 Untuk UI work package, agent memverifikasi:
 
--   mobile first;
--   keyboard navigation;
--   focus;
--   dialog accessibility;
--   loading/error/empty state;
--   destructive action behavior;
--   safe-area;
--   responsive desktop;
--   reduced motion;
--   no console error;
--   no hydration error.
+- mobile first;
+- keyboard navigation;
+- focus;
+- dialog accessibility;
+- loading/error/empty state;
+- destructive action behavior;
+- safe-area;
+- responsive desktop;
+- reduced motion;
+- no console error;
+- no hydration error.
 
 Renderer launch theme juga diverifikasi pada: - Safari iOS; - Chrome
 Android low-end; - common in-app browser; - desktop constrained stage.
 
-------------------------------------------------------------------------
+---
 
 ## 16. Observability Requirement
 
 Feature kritis harus memiliki observability yang cukup untuk menjawab:
 
-``` text
+```text
 Apa yang gagal?
 Untuk resource mana?
 Kapan?
@@ -546,19 +547,19 @@ Dilarang log: - raw PIN; - raw guest/edit token; - raw private-session
 secret; - provider credential; - raw IP; - unnecessary guest PII; - Snap
 secret/redirect credential.
 
-------------------------------------------------------------------------
+---
 
 ## 17. Agent Decision Policy
 
 ### Agent boleh memutuskan sendiri
 
--   nama internal helper;
--   file decomposition yang mengikuti source-tree convention;
--   refactor lokal non-semantic;
--   test organization;
--   SQL query optimization yang tidak mengubah behavior;
--   accessible markup implementation;
--   implementation detail yang sudah memiliki satu canonical outcome.
+- nama internal helper;
+- file decomposition yang mengikuti source-tree convention;
+- refactor lokal non-semantic;
+- test organization;
+- SQL query optimization yang tidak mengubah behavior;
+- accessible markup implementation;
+- implementation detail yang sudah memiliki satu canonical outcome.
 
 ### Agent harus meminta keputusan
 
@@ -569,13 +570,13 @@ semantics; - data retention; - privacy behavior; - new paid
 dependency; - provider replacement; - new schema authority; - breaking
 API/public behavior; - scope launch yang berubah.
 
-------------------------------------------------------------------------
+---
 
 ## 18. Handling Specification Conflict
 
 Jika agent menemukan konflik:
 
-``` text
+```text
 STOP
 ↓
 identify conflicting statements
@@ -589,7 +590,7 @@ if same authority remains ambiguous → ask user
 
 Report format:
 
-``` text
+```text
 SPEC CONFLICT
 
 Area:
@@ -603,7 +604,7 @@ Decision required: yes/no
 
 Jangan diam-diam memilih versi yang paling mudah diimplementasikan.
 
-------------------------------------------------------------------------
+---
 
 ## 19. Handling Existing-Code Conflict
 
@@ -611,7 +612,7 @@ Jika code existing tidak sesuai spec:
 
 Agent harus mengklasifikasikan:
 
-``` text
+```text
 BUG
 TECH DEBT
 LEGACY IMPLEMENTATION
@@ -624,7 +625,7 @@ dalam scope work package dan menambahkan regression test.
 
 Jika berpotensi intentional deviation, laporkan sebelum perubahan besar.
 
-------------------------------------------------------------------------
+---
 
 ## 20. Migration Safety
 
@@ -637,7 +638,7 @@ bila deploy bertahap; - application deployment order.
 Gunakan expand → migrate/backfill → switch → contract bila perubahan
 membutuhkan zero/low-downtime compatibility.
 
-------------------------------------------------------------------------
+---
 
 ## 21. Commit / Work Package Boundary
 
@@ -646,7 +647,7 @@ sendiri.
 
 Contoh:
 
-``` text
+```text
 WP-M1-01 profile provisioning
 WP-M1-02 invitation schema + RLS
 WP-M2-01 content DTO + validation
@@ -660,13 +661,13 @@ WP-M4-02 webhook funded transition
 Jangan mencampur payment refactor, UI redesign, media migration, dan
 unrelated dependency upgrade dalam satu work package.
 
-------------------------------------------------------------------------
+---
 
 ## 22. Required Completion Report
 
 Setelah setiap work package, agent memberikan:
 
-``` text
+```text
 WORK PACKAGE COMPLETE
 
 Scope:
@@ -690,7 +691,7 @@ Jika test gagal, status bukan COMPLETE.
 Selain completion report di percakapan, setiap work package wajib memiliki
 record persisten di root repository:
 
-``` text
+```text
 IMPLEMENTATION-RECORD.md
 ```
 
@@ -717,13 +718,13 @@ Aturan penulisan record:
 - agent wajib membaca entry terbaru saat repository reconnaissance agar tidak
   mengulang pekerjaan yang sudah selesai atau mengabaikan known limitation.
 
-------------------------------------------------------------------------
+---
 
 # 23. Prompt Template --- Start Project
 
 Gunakan prompt berikut kepada coding agent:
 
-``` text
+```text
 Anda mengimplementasikan project weplan.
 
 Baca seluruh File 01–08 sebelum membuat keputusan arsitektur.
@@ -750,11 +751,11 @@ Jangan lanjut ke M1 sebelum M0 selesai, seluruh acceptance criteria relevan dive
 Jangan membuat business rule baru. Jika specification ambigu atau konflik pada authority yang sama, berhenti dan tanyakan.
 ```
 
-------------------------------------------------------------------------
+---
 
 # 24. Prompt Template --- Continue Milestone
 
-``` text
+```text
 Lanjutkan implementasi weplan ke [MILESTONE / WORK PACKAGE].
 
 Gunakan File 06 untuk scope dan acceptance criteria.
@@ -771,11 +772,11 @@ Berikan completion report sesuai File 08 §22.
 Berhenti setelah work package selesai.
 ```
 
-------------------------------------------------------------------------
+---
 
 # 25. Prompt Template --- Fix Bug
 
-``` text
+```text
 Investigasi bug berikut pada project weplan:
 
 [BUG]
@@ -794,11 +795,11 @@ Jangan langsung patch gejala.
 Jangan melemahkan validation, authorization, RLS, CSP, idempotency, atau concurrency guard untuk membuat bug hilang.
 ```
 
-------------------------------------------------------------------------
+---
 
 # 26. Prompt Template --- Database Work
 
-``` text
+```text
 Kerjakan database work package berikut:
 
 [WORK PACKAGE]
@@ -819,11 +820,11 @@ Jangan expose credential/internal table ke browser.
 Berikan migration + test evidence pada completion report.
 ```
 
-------------------------------------------------------------------------
+---
 
 # 27. Prompt Template --- Security Audit
 
-``` text
+```text
 Audit implementation milestone [MILESTONE] terhadap File 02.
 
 Untuk setiap SEC requirement yang relevan:
@@ -838,13 +839,13 @@ Cross-check P0/P1 failure mode terkait di File 04.
 Jangan menandai PASS hanya berdasarkan code inspection jika requirement membutuhkan runtime/integration verification.
 ```
 
-------------------------------------------------------------------------
+---
 
 # 28. Prompt Template --- Autonomous Mode
 
 Autonomous mode boleh digunakan hanya jika user memang menginginkannya.
 
-``` text
+```text
 Kerjakan [MILESTONE] secara autonomous per work package.
 
 Anda boleh berpindah ke work package berikutnya dalam milestone yang sama hanya jika:
@@ -864,13 +865,106 @@ Berhenti segera jika:
 Jangan otomatis berpindah ke milestone berikutnya.
 ```
 
-------------------------------------------------------------------------
+---
 
-## 29. Recommended Human Review Checkpoints
+## 29. Prompt Template --- TARGET_WORK_PACKAGE
+
+Anda melanjutkan implementasi project weplan.
+
+Repository:
+https://github.com/indologian/weplan
+Branch: main
+
+TARGET_WORK_PACKAGE:
+[RECONNAISSANCE_ONLY atau nama work package yang saya setujui]
+
+Sebelum mengambil keputusan atau mengubah file:
+
+1. Pastikan branch `main` terbaru dan periksa:
+   - git status
+   - git log terbaru
+   - existing source code, migrations, tests, dan CI configuration
+
+2. Baca SELURUH dokumen berikut:
+   - 01 - arsitektur-dan-konvensi.md
+   - 02 - panduan-keamanan.md
+   - 03 - panduan-ui-ux.md
+   - 04 - enterprise-security-and-edge-cases.md
+   - 05 - guide-undangan-pernikahan.md
+   - 06 - mvp-implementation-plan.md
+   - 07 - database-and-domain-contract-reference.md
+   - 08 - ai-agent-execution-guide.md
+   - IMPLEMENTATION-RECORD.md
+
+3. Gunakan authority berikut:
+   - File 06 sebagai roadmap dan scope authority.
+   - File 07 sebagai database/domain implementation reference.
+   - File 01–05 sebagai canonical authority sesuai ownership matrix.
+   - File 08 sebagai execution procedure.
+   - IMPLEMENTATION-RECORD.md hanya sebagai execution evidence, bukan
+     specification authority.
+
+4. Status handoff yang tercatat:
+   - M0 COMPLETE.
+   - M1 COMPLETE.
+   - WP-DOC-01 COMPLETE.
+   - Compatibility exception legacy Edge `src/middleware.ts` telah disetujui
+     hanya untuk session refresh dan coarse auth gate selama OpenNext belum
+     mendukung Node Middleware.
+   - Business authorization tetap wajib dilakukan server-side.
+   - M2 belum boleh dikerjakan tanpa target/approval eksplisit.
+
+5. Jangan mempercayai ringkasan handoff secara buta. Cocokkan record dengan:
+   - source code aktual;
+   - migration dan test aktual;
+   - git history;
+   - CI evidence yang ditautkan dalam IMPLEMENTATION-RECORD.md.
+
+6. Jangan:
+   - mengulang M0 atau M1 yang sudah selesai;
+   - mengimplementasikan seluruh milestone sekaligus;
+   - membuat business rule baru;
+   - mengubah authority document tanpa keputusan eksplisit;
+   - menghapus atau menulis ulang record lama;
+   - melanjutkan ke work package setelah target tanpa persetujuan.
+
+Sebelum coding, laporkan:
+
+1. goal target work package;
+2. canonical references;
+3. existing implementation yang relevan;
+4. gap terhadap acceptance criteria;
+5. work packages kecil;
+6. test dan verification yang diperlukan;
+7. ambiguity atau conflict yang ditemukan.
+
+Jika TARGET_WORK_PACKAGE adalah RECONNAISSANCE_ONLY:
+
+- jangan coding;
+- rekomendasikan satu work package berikutnya;
+- tunggu persetujuan saya.
+
+Jika target work package sudah ditentukan:
+
+- implementasikan target tersebut saja;
+- jalankan seluruh acceptance criteria relevan;
+- jangan menyatakan COMPLETE jika ada test yang gagal;
+- jangan lanjut ke work package berikutnya.
+
+Setelah selesai:
+
+1. berikan completion report sesuai File 08 §22;
+2. append entry baru ke IMPLEMENTATION-RECORD.md sesuai File 08 §22.1;
+3. cantumkan files, migrations, tests, security evidence, limitations,
+   deviations, commit, dan CI evidence;
+4. jangan menulis secret atau data sensitif ke record;
+5. berhenti dan tunggu persetujuan berikutnya.
+
+## 30. Recommended Human Review Checkpoints
 
 Human review sangat disarankan setelah:
 
-``` text
+```text
 M0 → runtime/tooling baseline
 M1 → schema/RLS/auth
 M2 → editor concurrency
@@ -885,9 +979,9 @@ M8 → launch decision
 Review M1, M4, M5, dan M8 tidak sebaiknya dilewati karena masing-masing
 menyentuh data isolation, uang, privacy, dan production risk.
 
-------------------------------------------------------------------------
+---
 
-## 30. Final Launch Instruction
+## 31. Final Launch Instruction
 
 AI agent tidak mempunyai authority untuk menyatakan production launch
 aman hanya karena build/test lokal pass.
