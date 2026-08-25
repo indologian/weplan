@@ -212,3 +212,75 @@ Compatibility exception disetujui pada 26 Agustus 2026: gunakan legacy Edge `mid
 ### Next work package
 
 M2 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-26 — WP-DOC-01 Persistent Implementation Record
+
+Status: **COMPLETE**
+
+### Goal
+
+Membuat record persisten untuk pekerjaan yang sudah selesai dan mengunci prosedur agar work package berikutnya selalu menulis execution evidence ke repository.
+
+### Canonical references
+
+- Instruksi eksplisit user pada 26 Agustus 2026.
+- File 08 §22 Required Completion Report.
+
+### Existing implementation before work
+
+Evidence tersebar di source files, migration README, Git history, GitHub Actions, dan completion report percakapan. Belum ada satu ledger persisten yang merangkum seluruh proses.
+
+### Implemented
+
+- Membuat root `IMPLEMENTATION-RECORD.md` sebagai append-only execution ledger.
+- Merekonstruksi record M0 dan M1 beserta acceptance, security, test, commit, dan CI evidence.
+- Menambahkan File 08 §22.1 yang mewajibkan persistent record setelah completion verification.
+- Menambahkan link ledger dan execution references pada root README.
+
+### Files changed
+
+- `IMPLEMENTATION-RECORD.md`
+- `08 - ai-agent-execution-guide.md`
+- `README.md`
+
+### Migrations
+
+Tidak ada.
+
+### Tests and verification
+
+- `git diff --check`: passed sebelum commit.
+- Required file/link target existence checks: passed.
+- Required ledger headings, statuses, dan File 08 §22.1 presence checks: passed.
+
+### Security requirement evidence
+
+Ledger hanya berisi metadata implementasi dan tautan evidence; tidak ada secret, token, credential, PII, atau raw production payload yang ditulis.
+
+### Edge cases verified
+
+- Aturan menyatakan record tidak boleh mengalahkan File 01–08 atau membuat business rule baru.
+- Failed/blocked work tidak boleh dicatat sebagai `COMPLETE`.
+- Koreksi entry lama harus berupa addendum agar history tidak hilang.
+
+### Manual verification required
+
+Tidak ada.
+
+### Known limitations
+
+Commit yang menambahkan entry ini sendiri tidak dapat direferensikan secara self-referential; implementation commit di bawah menjadi traceability utama untuk perubahan ledger dan aturan.
+
+### Spec deviations
+
+Tidak ada.
+
+### Traceability
+
+- Implementation commit: [`48d5bc4`](https://github.com/indologian/weplan/commit/48d5bc4)
+
+### Next work package
+
+M2 hanya boleh dimulai setelah persetujuan eksplisit user.
