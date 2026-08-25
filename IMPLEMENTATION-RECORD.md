@@ -213,8 +213,6 @@ Compatibility exception disetujui pada 26 Agustus 2026: gunakan legacy Edge `mid
 
 M2 hanya boleh dimulai setelah persetujuan eksplisit user.
 
----
-
 ## 2026-08-26 — WP-DOC-01 Persistent Implementation Record
 
 Status: **COMPLETE**
@@ -280,6 +278,75 @@ Tidak ada.
 ### Traceability
 
 - Implementation commit: [`48d5bc4`](https://github.com/indologian/weplan/commit/48d5bc4)
+
+### Next work package
+
+M2 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-26 — WP-DOC-02 Agent Bootstrap Instructions
+
+Status: **COMPLETE**
+
+### Goal
+
+Membuat bootstrap instruction yang otomatis ditemukan coding agent baru agar agent membaca authority, implementation history, dan repository evidence sebelum melanjutkan pekerjaan.
+
+### Canonical references
+
+- Instruksi eksplisit user pada 26 Agustus 2026.
+- File 08 §22 dan §22.1.
+
+### Existing implementation before work
+
+File 01–08 dan `IMPLEMENTATION-RECORD.md` telah memuat authority serta execution evidence, tetapi belum ada root `AGENTS.md` sebagai entry point otomatis bagi coding agent baru.
+
+### Implemented
+
+- Membuat root `AGENTS.md`.
+- Menentukan required reading, authority order, repository reconnaissance, scope control, completion criteria, dan persistent record requirement.
+- Menjaga `AGENTS.md` sebagai pointer prosedural tanpa menduplikasi atau membuat business rule.
+
+### Files changed
+
+- `AGENTS.md`
+- `IMPLEMENTATION-RECORD.md`
+
+### Migrations
+
+Tidak ada.
+
+### Tests and verification
+
+- `git diff --check`: passed.
+- Required section dan authority pointer presence checks: passed.
+
+### Security requirement evidence
+
+Bootstrap melarang penyimpanan secret, token, credential, PII, dan raw production payload dalam implementation record.
+
+### Edge cases verified
+
+- Conflict pada authority yang sama wajib dihentikan untuk keputusan user.
+- Completed work tidak boleh diulang tanpa regression evidence atau instruksi user.
+- Agent tidak boleh bergerak ke work package berikutnya tanpa approval.
+
+### Manual verification required
+
+Tidak ada.
+
+### Known limitations
+
+Agent platform yang tidak mendukung auto-discovery `AGENTS.md` tetap harus menerima handoff prompt secara eksplisit.
+
+### Spec deviations
+
+Tidak ada.
+
+### Traceability
+
+- Implementation commit: [`a36265c`](https://github.com/indologian/weplan/commit/a36265c)
 
 ### Next work package
 
