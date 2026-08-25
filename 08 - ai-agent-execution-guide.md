@@ -207,6 +207,13 @@ agent harus memeriksa:
 
 Agent tidak boleh mengasumsikan repository kosong.
 
+Setelah reconnaissance dan sebelum melakukan instalasi/upgrade/config
+yang version-sensitive, agent menjalankan **Official Documentation
+Verification** §7.1. Repository memberi fakta tentang kondisi saat ini;
+dokumentasi resmi memberi fakta tentang cara yang saat ini didukung.
+Keduanya harus diperiksa sebelum agent mengubah dependency atau runtime
+configuration.
+
 Jika implementation code bertentangan dengan specification, agent harus
 melaporkan conflict sebelum menjadikan existing behavior sebagai
 authority.
@@ -233,6 +240,100 @@ React state/context untuk local UI state; - Sonner untuk toast; - shadcn
 primitive untuk dialog; - GSAP untuk theme motion yang memang
 membutuhkan; - satu map provider aktif; - tidak ada analytics SaaS/AI
 API/state manager/carousel engine kedua tanpa keputusan arsitektur baru.
+
+### 7.1 Official Documentation Verification
+
+Untuk framework, runtime, provider, CLI, SDK, atau dependency eksternal
+yang dapat berubah, agent **wajib memverifikasi dokumentasi resmi
+terbaru sebelum instalasi, upgrade, konfigurasi, atau penggunaan API
+yang version-sensitive**. Agent tidak boleh mengandalkan training
+knowledge, snippet lama, blog pihak ketiga, atau asumsi bahwa command
+yang pernah benar masih berlaku.
+
+Capability yang termasuk aturan ini minimal:
+
+-   Next.js / React;
+-   Cloudflare Workers, Wrangler, dan OpenNext adapter yang dipakai;
+-   Supabase, termasuk Auth, SSR, Storage, CLI, dan database tooling;
+-   Tailwind CSS;
+-   shadcn/ui;
+-   Midtrans;
+-   dependency/provider lain yang API, CLI, compatibility matrix, atau
+    setup-nya dapat berubah.
+
+Urutan verifikasi:
+
+``` text
+Inspect repository + lockfile
+        ↓
+Identify existing/pinned version and runtime target
+        ↓
+Read current official documentation
+        ↓
+Check compatibility / migration notes
+        ↓
+Choose version intentionally
+        ↓
+Pin dependency + commit lockfile
+        ↓
+Implement using documented current pattern
+        ↓
+Run typecheck / lint / test / build
+        ↓
+Run production-like verification when relevant
+```
+
+Aturan khusus:
+
+1.  **Existing repository:** jangan menjalankan scaffolding/install
+    command yang dapat menimpa konfigurasi sebelum memahami repository.
+2.  **Repository baru:** gunakan bootstrap/install path yang saat itu
+    direkomendasikan dokumentasi resmi dan cocok dengan keputusan
+    arsitektur File 01.
+3.  **Versi:** `latest` boleh dipakai untuk discovery, tetapi dependency
+    production harus dipin melalui manifest/lockfile sesuai policy File
+    1.  
+4.  **Compatibility:** jangan upgrade satu dependency secara terisolasi
+    bila framework/runtime/provider mempunyai compatibility matrix.
+5.  **Breaking change:** jika dokumentasi terbaru mengharuskan perubahan
+    yang bertentangan dengan SSoT File 01--07, **STOP FOR REVIEW**.
+    Jangan diam-diam mengubah arsitektur atau menurunkan security
+    invariant.
+6.  **Source priority:** dokumentasi resmi dan release/migration notes
+    resmi menang atas tutorial, blog, forum, atau generated snippet.
+7.  **Evidence:** pada REPORT, catat versi yang dipilih dan dokumentasi
+    resmi yang menjadi dasar bila keputusan instalasi/configuration
+    bersifat version-sensitive.
+
+### 7.2 Next.js Bootstrap Gate
+
+Pada M0, sebelum memasang atau mengubah Next.js, agent wajib:
+
+``` text
+Check package manager + lockfile
+        ↓
+Check whether Next.js already exists
+        ↓
+Check current Next.js / React / TypeScript versions
+        ↓
+Verify official Next.js documentation
+        ↓
+Confirm App Router + src/ compatibility
+        ↓
+Install/upgrade only if required
+        ↓
+Pin versions and preserve lockfile integrity
+        ↓
+Verify dev + typecheck + lint + test + build
+        ↓
+Verify Cloudflare/OpenNext production-like target
+```
+
+Agent tidak boleh mengasumsikan bahwa repository harus dibuat ulang
+dengan `create-next-app`. Jika repository sudah ada, perubahan harus
+minimal dan mengikuti reconnaissance §6. Jika repository kosong,
+bootstrap harus menghasilkan struktur yang kompatibel dengan File 01 dan
+acceptance criteria M0 File 06.
 
 ------------------------------------------------------------------------
 

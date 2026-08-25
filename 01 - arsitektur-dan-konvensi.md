@@ -204,7 +204,7 @@ Kontrak implementasi:
 - `open-next.config.ts` menjadi konfigurasi adapter/caching.
 - `compatibility_date` harus direview saat upgrade; baseline proyek baru adalah **>= 2026-08-04**, sehingga Node.js compatibility modern tersedia secara default. Jangan menganggap semua Node API/native addon kompatibel hanya karena `nodejs_compat` tersedia.
 - Integrasi test wajib dijalankan melalui `opennextjs-cloudflare preview`, bukan hanya `next dev`.
-- Next.js **Proxy** (`proxy.ts`, terminologi Next.js 16+) harus tetap Web/edge-compatible untuk target Cloudflare/OpenNext; jangan menjadikan Node-specific API/native addon sebagai dependency pada boundary ini.
+- Baseline Next.js 16+ tetap **Proxy** (`proxy.ts`). Selama OpenNext Cloudflare belum mendukung Node Middleware, compatibility exception yang disetujui pada 26 Agustus 2026 memakai legacy **Edge Middleware** (`middleware.ts`) hanya untuk refresh session dan coarse auth gate. Boundary ini harus Web/edge-compatible, tidak boleh memakai Node-specific API/native addon, dan harus dikembalikan ke `proxy.ts` setelah dukungan adapter tersedia serta lolos regression test.
 - **Cloudflare Free plan** adalah baseline deployment MVP, tetapi bukan correctness contract. Monitor request/CPU/queue/workflow usage; saat mendekati batas, throttle/tunda pekerjaan non-kritis dan beri alert. Upgrade berbayar hanya keputusan bisnis eksplisit, bukan fallback otomatis.
 - User invitation media tetap berasal dari derived variants di private Supabase Storage; **Cloudflare Images tidak menjadi dependency wajib**. Jika `next/image` digunakan, loader/optimization harus dipilih agar signed/private media tidak bergantung pada layanan image berbayar.
 - R2 boleh dipakai sebagai cache OpenNext/ISR bila diperlukan, tetapi bukan source of truth dan tidak menggantikan private Supabase Storage.
@@ -447,7 +447,7 @@ Aturan penting:
 
 - source code aplikasi berada di `src/`;
 - `public/` **wajib di root project**, bukan `src/public/`;
-- Next.js 16+ Proxy berada di **`src/proxy.ts`**, sejajar dengan `src/app/`;
+- Untuk target OpenNext saat ini, compatibility exception Edge Middleware berada di **`src/middleware.ts`**, sejajar dengan `src/app/`; baseline kembali ke `src/proxy.ts` setelah adapter mendukung Node Middleware;
 - `src/app/` = routing + route composition, bukan business service layer;
 - route-specific UI boleh colocate di `_components/`/`_lib/`;
 - Route Handler hanya dibuat ketika benar-benar membutuhkan HTTP endpoint;
@@ -457,7 +457,7 @@ Aturan penting:
 weplan/
 │
 ├── src/
-│   ├── proxy.ts                       # Next.js 16+ Proxy; coarse auth/session gate
+│   ├── middleware.ts                  # Temporary Edge compatibility gate for OpenNext
 │   │
 │   ├── app/
 │   │   ├── layout.tsx                 # Root layout + Sonner; tanpa next-themes global
@@ -608,7 +608,7 @@ weplan/
 │   │   │   ├── supabase/
 │   │   │   │   ├── server-client.ts
 │   │   │   │   ├── browser-client.ts
-│   │   │   │   ├── proxy-client.ts
+│   │   │   │   ├── middleware-client.ts
 │   │   │   │   ├── service-client.ts
 │   │   │   │   └── types.ts
 │   │   │   └── env.ts
@@ -651,7 +651,7 @@ weplan/
 
 1. **Pilih satu:** `src/app/` dipakai; root `app/` dilarang ada bersamaan.
 2. **`public/` berada di root** karena itulah konvensi Next.js untuk static assets.
-3. **`src/proxy.ts`** sejajar dengan `src/app/` pada Next.js 16+.
+3. **`src/middleware.ts`** sejajar dengan `src/app/` selama compatibility exception OpenNext berlaku; file ini hanya coarse auth/session gate dan tidak mengubah kewajiban authorization server-side.
 4. **Tidak ada root `loading.tsx` default** kecuali benar-benar dibutuhkan untuk seluruh app; loading ditempatkan pada route-group/segment yang membutuhkan.
 5. **`global-error.tsx`** disediakan selain `error.tsx`.
 6. **`(marketing)`** dipakai menggantikan `(public)` agar tidak rancu dengan root `public/`.
@@ -718,6 +718,8 @@ Keputusan struktur ini diverifikasi terhadap dokumentasi resmi Next.js App Route
 - Server Actions / Backend-for-Frontend guidance: `https://nextjs.org/docs/app/guides/backend-for-frontend`
 - Data Security / `server-only`: `https://nextjs.org/docs/app/guides/data-security`
 - Next.js 16 Proxy: `https://nextjs.org/docs/app/api-reference/file-conventions/proxy`
+- Next.js 16 upgrade (`middleware` Edge compatibility): `https://nextjs.org/docs/app/guides/upgrading/version-16`
+- OpenNext Cloudflare supported features: `https://opennext.js.org/cloudflare`
 
 ## 4. Desain Database (Supabase PostgreSQL)
 
@@ -2364,7 +2366,7 @@ Ada **3 session-context client** plus **1 privileged server-only client** di `sh
 
 - **`server-client.ts`** — Digunakan di Server Components dan Server Actions. Menggunakan `@supabase/ssr` dengan cookie handling dan public Supabase URL/publishable key dari validated env; secret key (`sb_secret_...`) tidak pernah dipakai sebagai user-session client.
 - **`browser-client.ts`** — Digunakan di Client Components. Menggunakan `@supabase/ssr` untuk sinkronisasi cookie.
-- **`proxy-client.ts`** — Digunakan di `proxy.ts` untuk refresh token dan coarse route gate.
+- **`middleware-client.ts`** — Compatibility client yang digunakan di `middleware.ts` untuk refresh token dan coarse route gate selama OpenNext belum mendukung Node Middleware.
 - **`service-client.ts`** — Memakai Supabase secret key (`sb_secret_...`; legacy `service_role` key hanya untuk project lama) dan **hanya** boleh di-import trusted Server Action/Route Handler/worker yang sudah melakukan authentication + explicit ownership/scope check. Tidak pernah masuk Client Component, shared browser bundle, atau preview tidak tepercaya.
 
 **Penting:** Gunakan factory yang sesuai; jangan membuat Supabase client ad-hoc. Read owner biasa dapat memakai server client + RLS. Mutation yang tidak diberi direct client policy menggunakan service client/repository server-side setelah whitelist + ownership check. Critical multi-table transition tetap melalui satu atomic PostgreSQL RPC/transaction.
@@ -2446,18 +2448,18 @@ return invitation_id + slug + content_version
 
 ---
 
-### 6.3 Protected Routes via Proxy
+### 6.3 Protected Routes via Edge Middleware Compatibility Gate
 
-Baseline Next.js 16+ memakai `src/proxy.ts`. Proxy menangani refresh cookie session dan coarse route gate; **authorization bisnis/role tetap diulang di Server Component/Server Action/Route Handler**. Untuk identity verification server, jangan mempercayai `getSession()` sebagai authorization source; gunakan verified claims (`getClaims()`) atau fresh `getUser()` ketika benar-benar membutuhkan user record terbaru.
+Baseline Next.js 16+ adalah `src/proxy.ts`, tetapi Proxy tersebut memakai Node.js runtime yang belum didukung OpenNext Cloudflare. Compatibility exception yang disetujui memakai legacy Edge `src/middleware.ts` selama keterbatasan adapter itu berlaku. Middleware hanya menangani refresh cookie session dan coarse route gate; **authorization bisnis/role tetap diulang di Server Component/Server Action/Route Handler**. Untuk identity verification server, jangan mempercayai `getSession()` sebagai authorization source; gunakan verified claims (`getClaims()`) atau fresh `getUser()` ketika benar-benar membutuhkan user record terbaru.
 
 ```typescript
-// src/proxy.ts — contoh ringkas; detail cookie setAll berada di shared/lib/supabase/proxy-client.ts
+// src/middleware.ts — temporary Edge compatibility exception untuk OpenNext
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { createProxyClient } from '@/shared/lib/supabase/proxy-client';
+import { createSupabaseMiddlewareClient } from '@/shared/lib/supabase/middleware-client';
 
-export async function proxy(request: NextRequest) {
-  const { supabase, response } = createProxyClient(request);
+export async function middleware(request: NextRequest) {
+  const { supabase, getResponse } = createSupabaseMiddlewareClient(request);
   const { data: claimsData, error } = await supabase.auth.getClaims();
   const isAuthenticated = !error && Boolean(claimsData?.claims?.sub);
 
@@ -2474,8 +2476,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // /admin tetap wajib server-side current-role check; Proxy bukan final authorization.
-  return response;
+  // /admin tetap wajib server-side current-role check; Middleware bukan final authorization.
+  return getResponse();
 }
 
 export const config = {
