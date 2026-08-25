@@ -685,6 +685,38 @@ Recommended next work package:
 
 Jika test gagal, status bukan COMPLETE.
 
+### 22.1 Persistent Implementation Record
+
+Selain completion report di percakapan, setiap work package wajib memiliki
+record persisten di root repository:
+
+``` text
+IMPLEMENTATION-RECORD.md
+```
+
+Aturan penulisan record:
+
+- entry ditambahkan setelah seluruh acceptance criteria dan verification
+  relevan lulus, sebelum handoff atau work package berikutnya dimulai;
+- record bersifat **append-only**; jangan menghapus atau menulis ulang history
+  lama. Jika ada koreksi, tambahkan addendum yang merujuk entry sebelumnya;
+- status `COMPLETE` hanya boleh ditulis jika completion report juga sah. Work
+  package yang gagal atau tertahan dicatat sebagai `INCOMPLETE`/`BLOCKED`
+  beserta evidence dan blocker;
+- setiap entry minimal memuat tanggal, work package/milestone, goal, canonical
+  references, existing implementation, implemented scope, files, migrations,
+  tests, security evidence, edge cases, manual verification, limitations,
+  spec deviations, commit, CI/deployment evidence, dan next work package;
+- command/result boleh diringkas, tetapi outcome harus dapat ditelusuri ke
+  test file, commit SHA, atau CI/deployment URL bila tersedia;
+- jangan menyimpan secret, token, credential, PII, raw production payload,
+  atau log sensitif;
+- implementation record adalah execution evidence, bukan specification
+  authority. Record tidak boleh membuat business rule baru atau mengalahkan
+  File 01–08;
+- agent wajib membaca entry terbaru saat repository reconnaissance agar tidak
+  mengulang pekerjaan yang sudah selesai atau mengabaikan known limitation.
+
 ------------------------------------------------------------------------
 
 # 23. Prompt Template --- Start Project
