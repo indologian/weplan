@@ -1279,3 +1279,199 @@ Tidak ada deviasi. Semua theme mengikuti archetype File 05 §3.
 ### Next work package
 
 M4 — Payment, Entitlement & Publish. Bisa dikerjakan paralel dengan M3 remaining work (GSAP motion integration). M4 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-27 — M3 Renderer, Preview & Launch Themes — Final Completion
+
+Status: **COMPLETE**
+
+### Traceability
+
+- Phase 1+2 commit: `e2e6856`
+- Phase 3 commit: `a0ad671`
+- Files: 69+ files in `src/modules/theme/`, `src/app/(wedding)/`, preview route
+- Tests: 71 passing
+- CI evidence: pending
+
+---
+
+## 2026-08-27 — M4 Payment, Entitlement & Publish
+
+Status: **COMPLETE**
+
+### Goal
+
+Membangun commercial flow yang deterministic dan idempotent: payment tables, Midtrans Snap adapter, state machine, webhook handler, funded-success, cancel, dan publish flow.
+
+### Canonical references
+
+- File 06 §M4 (roadmap + acceptance criteria)
+- File 01 §7 (payment/entitlement), §4.12 (payment tables DDL)
+- File 02 Fase 7 (payment security)
+- File 04 §3-4/6 (payment edge cases)
+
+### Existing implementation before work
+
+Belum ada payment code, migration, atau env vars. Database memiliki `invitations.entitlement_tier_id` dan `entitlement_snapshot` tetapi belum ada tabel `transactions`, `payment_attempts`, atau `payment_provider_events`.
+
+### Work packages
+
+1. WP-M4-01: Payment tables migration (3 tables + 3 triggers + RLS + indexes)
+2. WP-M4-02: Env vars + Midtrans client adapter (create snap, get status, cancel, verify signature)
+3. WP-M4-03: Payment state machine + create checkout flow (idempotent)
+4. WP-M4-04: Webhook handler (`/api/webhooks/midtrans`) + signature verification + dedupe
+5. WP-M4-05: Funded-success transition + entitlement merge + invitation update
+6. WP-M4-06: Cancel payment flow (state transition, provider cancel, reconciliation fallback)
+7. WP-M4-07: Publish flow (paid draft → published, ownership + lifecycle + readiness check)
+8. WP-M4-08: Payment types tests (13) + state machine tests (12)
+
+### Implemented
+
+- **Payment tables migration**: `transactions`, `payment_attempts`, `payment_provider_events` dengan full DDL, CHECK constraints, indexes, dan unique constraints sesuai File 01 §4.12
+- **Triggers**: `guard_transaction_commercial_facts` (immutable commercial facts), `assert_transaction_subject_consistency` (user_id owns invitation_id), `guard_payment_provider_event_update` (immutable provider facts)
+- **RLS**: owner SELECT on transactions, service_role for mutations, no browser INSERT/UPDATE/DELETE
+- **Midtrans client adapter**: typed REST wrapper (create snap, get status, cancel snap session, cancel transaction, verify notification signature dengan constant-time comparison)
+- **Payment state machine**: 11 states dengan valid transitions, `assertValidTransition`, `InvalidStateTransitionError`
+- **Create checkout**: idempotent (client_request_id + idempotency_fingerprint), tier pricing dari database, snap token generation, 3-hour expiry
+- **Webhook handler**: signature verification → Status API → state machine → funded-success → entitlement merge → invitation update
+- **Cancel flow**: state transition → provider cancel API → reconciliation fallback → cancelled state
+- **Publish flow**: ownership + lifecycle + readiness validation → status='published'
+
+### Files changed/created
+
+- `supabase/migrations/20260827010000_payment_tables.sql`
+- `src/modules/payment/types.ts`
+- `src/modules/payment/state-machine.ts`
+- `src/modules/payment/server/actions.ts`
+- `src/modules/payment/provider/midtrans/client.ts`
+- `src/app/api/webhooks/midtrans/route.ts`
+- `src/shared/lib/env/server.ts` (updated)
+- `.env.example` (updated)
+- `tests/unit/payment-types.test.ts`
+- `tests/unit/payment-state-machine.test.ts`
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors, warnings only).
+- Vitest: 15 files, 104 tests passed.
+- Next.js production build: passed.
+- Route `ƒ /api/webhooks/midtrans` visible.
+
+### Security evidence
+
+- Webhook signature verified dengan constant-time comparison sebelum processing.
+- Duplicate/out-of-order webhook aman via `event_fingerprint` dedupe.
+- Commercial facts immutable via database trigger.
+- Funded-success hanya diberikan setelah Status API verification.
+- Entitlement merge menggunakan monotonik rules (MAX untuk numeric, OR untuk positive, AND untuk negative).
+
+### Acceptance criteria
+
+- [x] Client tidak menentukan amount/tier entitlement
+- [x] Duplicate create tidak membuat transaksi ganda
+- [x] Webhook handler + signature verification
+- [x] Funded-success memberi entitlement tepat satu kali (idempotent)
+- [x] Cancel payment flow
+- [x] Publish flow (paid draft → published)
+
+### Known limitations
+
+- Ambiguous create timeout recovery belum diuji secara end-to-end.
+- Reconciliation cron belum diimplementasikan (M7 territory).
+- Refund/chargeback workflow belum diimplementasikan (deferred capability).
+
+### Traceability
+
+- Commits: `076e0d3` (Phase 1), `b31377c` (Phase 2)
+- CI evidence: pending
+
+### Next work package
+
+M5 — Public Invitation, Privacy, Guest Identity & RSVP.
+
+---
+
+## 2026-08-27 — M5 Public Invitation, Privacy, Guest Identity & RSVP — Phase 1
+
+Status: **INCOMPLETE** (Phase 1 dari 3)
+
+### Goal
+
+Membangun guest identity, PIN gate, private session, dan RSVP submission sehingga invitation published dapat dibuka tamu tanpa membocorkan private data.
+
+### Canonical references
+
+- File 06 §M5 (roadmap + acceptance criteria)
+- File 01 §8 (guest/PIN/RSVP/anti-bot), §4.6 (guest tables DDL)
+- File 02 Fase 3-6 (guest/PIN/rate-limit security)
+- File 04 §7/13 (guest/privacy edge cases)
+
+### Existing implementation before work
+
+Belum ada `src/modules/guest/`, tidak ada guest tables, tidak ada PIN session, tidak ada RSVP submission handler. PIN hashing via Edge Function sudah ada. Public invitation resolver sudah ada. RSVP config columns (`rsvp_mode`, `guestbook_moderation`) sudah ada di `invitations`.
+
+### Work packages (Phase 1)
+
+1. WP-M5-01: Guest tables migration (guests, guest_credentials + RLS)
+2. WP-M5-02: Guest token system (HMAC create, hash, verify, revoke)
+3. WP-M5-03: Private session (HMAC-signed cookie, PIN verify, 6hr TTL)
+4. WP-M5-04: RSVP submission handler (open + personal mode) + wishes
+5. WP-M5-07: PIN gate UI + API route + wedding page integration
+
+### Implemented
+
+- **Guest tables migration**: `guests` (with RSVP status, wish message, attendance) + `guest_credentials` (access_token_hash, rsvp_edit_token_hash) + RLS (owner SELECT only)
+- **Guest token system**: `createGuestToken()`, `hashGuestToken()`, `verifyGuestToken()` dengan HMAC-SHA256 + timing-safe comparison
+- **Private session**: `signPrivateSession()`, `verifyPrivateSession()` dengan HMAC-signed cookie, 6-hour TTL, pin_version validation
+- **PIN session**: `verifyPinAndCreateSession()` — verify PIN via Edge Function → create session cookie
+- **RSVP submission**: `submitRsvp()` — open mode dengan phone dedup, token generation, moderation
+- **Wishes/guestbook**: `submitWish()`, `getPublicWishes()` dengan moderation support
+- **PIN gate UI**: Client component dengan form PIN → API `/api/guest/verify-pin` → reload
+- **Wedding page flow**: public → private → PIN gate → session verify → render
+
+### Files changed/created
+
+- `supabase/migrations/20260827020000_guest_tables.sql`
+- `src/modules/guest/server/token.ts`
+- `src/modules/guest/server/private-session.ts`
+- `src/modules/guest/server/pin-session.ts`
+- `src/modules/guest/server/actions.ts`
+- `src/modules/guest/components/pin-gate.tsx`
+- `src/app/api/guest/verify-pin/route.ts`
+- `src/app/(wedding)/[slug]/page.tsx` (updated)
+- `tests/unit/guest-token.test.ts`
+- `tests/unit/private-session.test.ts`
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed.
+- Vitest: 17 files, 118 tests passed.
+- Next.js production build: passed.
+- Routes: `ƒ /[slug]`, `ƒ /api/guest/verify-pin`.
+
+### Acceptance criteria (partial)
+
+- [x] `guests` tidak mempunyai anonymous raw-table access (RLS + no browser grants)
+- [x] Private content tidak keluar sebelum valid authorization (PIN gate)
+- [x] PIN plaintext tidak pernah dipersist/log (Edge Function hashing)
+- [x] Token revoke/regenerate efektif (HMAC hash replacement)
+
+### Known limitations
+
+- Rate limiting (Upstash Redis) belum diintegrasikan.
+- Turnstile adaptive belum diintegrasikan.
+- Guest token personal link belum dihubungkan ke wedding page.
+- Integration tests belum ditambahkan.
+- Generic OG untuk private invitation belum diimplementasikan.
+
+### Traceability
+
+- Commit: `e0aa34a`
+- CI evidence: pending
+
+### Next work package
+
+M5 Phase 2: Rate limiting, Turnstile, guest token integration, integration tests.
