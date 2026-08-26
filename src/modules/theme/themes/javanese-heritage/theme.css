@@ -1,0 +1,91 @@
+:root {
+  --jh-bg: #faf5ed;
+  --jh-surface: #f0e8d8;
+  --jh-text: #3a3a3a;
+  --jh-muted: #7a7060;
+  --jh-accent: #b8860b;
+  --jh-sogan: #c4a87c;
+  --jh-accent-contrast: #ffffff;
+  --jh-border: #d4c8b0;
+  --jh-gold-rule: #b8860b;
+
+  --jh-font-display: "Playfair Display", "Georgia", serif;
+  --jh-font-body: "Inter", system-ui, sans-serif;
+}
+
+.javanese-heritage {
+  background-color: var(--jh-bg);
+  color: var(--jh-text);
+  font-family: var(--jh-font-body);
+  line-height: 1.6;
+  min-height: 100svh;
+}
+
+.javanese-heritage section {
+  padding: 3rem 1.5rem;
+}
+
+.javanese-heritage h1,
+.javanese-heritage h2,
+.javanese-heritage h3 {
+  font-family: var(--jh-font-display);
+  font-weight: 700;
+}
+
+.javanese-heritage .jh-rule {
+  border: none;
+  border-top: 1px solid var(--jh-border);
+  margin: 0 auto;
+  max-width: 80px;
+}
+
+.javanese-heritage .jh-gold-rule {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--jh-gold-rule), transparent);
+  margin: 0 auto;
+  max-width: 120px;
+}
+
+.javanese-heritage .jh-overline {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--jh-muted);
+  margin-bottom: 0.5rem;
+}
+
+.javanese-heritage .jh-geometric-border {
+  border: 1px solid var(--jh-border);
+  border-top: 2px solid var(--jh-gold-rule);
+  border-bottom: 2px solid var(--jh-gold-rule);
+}
+
+.javanese-heritage .jh-timeline-line {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.javanese-heritage .jh-timeline-line::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--jh-gold-rule);
+}
+
+.javanese-heritage .jh-chapter-rule {
+  width: 60px;
+  height: 2px;
+  background: var(--jh-gold-rule);
+  margin: 0 auto 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .javanese-heritage * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

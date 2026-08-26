@@ -1,0 +1,68 @@
+"use client";
+
+import { useCallback, useEffect, useRef } from "react";
+
+type Props = {
+  src: string;
+  alt: string;
+  className?: string;
+};
+
+export function Lightbox({ src, alt, className }: Props) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const open = useCallback(() => {
+    dialogRef.current?.showModal();
+  }, []);
+
+  const close = useCallback(() => {
+    dialogRef.current?.close();
+  }, []);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    dialog.addEventListener("keydown", handleKeyDown);
+    return () => dialog.removeEventListener("keydown", handleKeyDown);
+  }, [close]);
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={open}
+        className={className}
+        aria-label={`Perbesar: ${alt}`}
+      >
+        <img src={src} alt={alt} loading="lazy" />
+      </button>
+      <dialog
+        ref={dialogRef}
+        onClick={(e) => {
+          if (e.target === dialogRef.current) close();
+        }}
+        style={{
+          border: "none",
+          background: "transparent",
+          maxWidth: "90vw",
+          maxHeight: "90vh",
+          padding: 0,
+        }}
+      >
+        <img
+          src={src}
+          alt={alt}
+          style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain" }}
+        />
+        <div style={{ textAlign: "center", marginTop: "0.5rem" }}>
+          <button type="button" onClick={close} aria-label="Tutup">
+            Tutup
+          </button>
+        </div>
+      </dialog>
+    </>
+  );
+}

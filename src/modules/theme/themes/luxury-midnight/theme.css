@@ -1,0 +1,114 @@
+:root {
+  --lm-bg: #0a0f1a;
+  --lm-surface: #141b2d;
+  --lm-text: #f5f0e8;
+  --lm-muted: #a0a8b8;
+  --lm-accent: #c9a84c;
+  --lm-accent-contrast: #0a0f1a;
+  --lm-border: #2a3040;
+
+  --lm-font-display: "Playfair Display", "Georgia", serif;
+  --lm-font-body: "Inter", system-ui, sans-serif;
+}
+
+.luxury-midnight {
+  background-color: var(--lm-bg);
+  color: var(--lm-text);
+  font-family: var(--lm-font-body);
+  line-height: 1.6;
+  min-height: 100svh;
+}
+
+.luxury-midnight section {
+  padding: 3rem 1.5rem;
+}
+
+.luxury-midnight h1,
+.luxury-midnight h2,
+.luxury-midnight h3 {
+  font-family: var(--lm-font-display);
+  font-weight: 300;
+}
+
+.luxury-midnight .lm-rule {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--lm-accent), transparent);
+  margin: 0 auto;
+  max-width: 80px;
+}
+
+.luxury-midnight .lm-gold-rule {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--lm-accent), transparent);
+  margin: 0 auto;
+  max-width: 120px;
+}
+
+.luxury-midnight .lm-overline {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--lm-accent);
+  margin-bottom: 0.5rem;
+}
+
+.luxury-midnight .lm-card {
+  background: var(--lm-surface);
+  border: 1px solid var(--lm-border);
+  padding: 2rem;
+  margin: 1rem auto;
+  max-width: 400px;
+}
+
+.luxury-midnight .lm-monogram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--lm-accent);
+  border-radius: 50%;
+  margin: 1rem auto;
+}
+
+.luxury-midnight .lm-monogram-inner {
+  font-family: var(--lm-font-display);
+  font-size: 1.25rem;
+  font-weight: 300;
+  color: var(--lm-accent);
+}
+
+.luxury-midnight .lm-gold-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--lm-accent);
+  display: inline-block;
+  margin: 0 0.5rem;
+}
+
+.luxury-midnight .lm-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+}
+
+.luxury-midnight .lm-divider::before,
+.luxury-midnight .lm-divider::after {
+  content: "";
+  flex: 1;
+  max-width: 60px;
+  height: 1px;
+  background: var(--lm-accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxury-midnight * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
