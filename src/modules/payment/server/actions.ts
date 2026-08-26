@@ -1,8 +1,9 @@
 import "server-only";
 
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
-import { createSnapTransaction, type CreateSnapRequest } from "../provider/midtrans/client";
+import { createSnapTransaction, getTransactionStatus, cancelSnapTransaction, cancelMidtransTransaction, type CreateSnapRequest } from "../provider/midtrans/client";
 import type { PricingSnapshot, EntitlementSnapshot, TransactionRow } from "../types";
+import { assertValidTransition } from "../state-machine";
 
 export class PaymentError extends Error {
   constructor(
@@ -221,4 +222,120 @@ export async function getActiveCheckout(userId: string, invitationId: string): P
     .maybeSingle();
 
   return data as TransactionRow | null;
+}
+
+export async function cancelCheckout(
+  userId: string,
+  transactionId: string,
+): Promise<void> {
+  const supabase = createSupabaseServiceClient();
+
+  const { data: transaction } = await supabase
+    .from("transactions")
+    .select("id, payment_state, invitation_id")
+    .eq("id", transactionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!transaction) throw new PaymentError("Transaction not found", "NOT_FOUND");
+
+  const cancelableStates = ["creating", "provider_create_unknown", "awaiting_payment"];
+  if (!cancelableStates.includes(transaction.payment_state)) {
+    throw new PaymentError("Transaction cannot be cancelled", "STATE_CONFLICT");
+  }
+
+  await supabase
+    .from("transactions")
+    .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })
+    .eq("id", transactionId);
+
+  const { data: attempt } = await supabase
+    .from("payment_attempts")
+    .select("order_id, snap_token_ciphertext, create_state")
+    .eq("transaction_id", transactionId)
+    .order("attempt_no", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!attempt) {
+    await supabase
+      .from("transactions")
+      .update({ payment_state: "cancelled", updated_at: new Date().toISOString() })
+      .eq("id", transactionId);
+    return;
+  }
+
+  try {
+    if (attempt.create_state === "created" && !attempt.snap_token_ciphertext) {
+      const status = await getTransactionStatus(attempt.order_id);
+      if (status.transaction_status === "pending" || status.transaction_status === "authorize") {
+        await cancelMidtransTransaction(attempt.order_id);
+      } else if (status.transaction_status === "settlement" || (status.transaction_status === "capture" && status.fraud_status === "accept")) {
+        await supabase
+          .from("transactions")
+          .update({ payment_state: "awaiting_payment", updated_at: new Date().toISOString() })
+          .eq("id", transactionId);
+        return;
+      }
+    }
+  } catch {
+    // Provider cancel failed — leave in cancel_requested for reconciliation
+  }
+
+  await supabase
+    .from("transactions")
+    .update({ payment_state: "cancelled", updated_at: new Date().toISOString() })
+    .eq("id", transactionId);
+}
+
+export async function publishPaidDraft(
+  userId: string,
+  invitationId: string,
+): Promise<void> {
+  const supabase = createSupabaseServiceClient();
+
+  const { data: invitation } = await supabase
+    .from("invitations")
+    .select("id, status, entitlement_tier_id, expires_at")
+    .eq("id", invitationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (!invitation) throw new PaymentError("Invitation not found", "NOT_FOUND");
+
+  if (invitation.status !== "draft") {
+    throw new PaymentError("Invitation is not in draft status", "INVITATION_NOT_READY");
+  }
+
+  if (!invitation.entitlement_tier_id) {
+    throw new PaymentError("Invitation has no entitlement", "ALREADY_ACTIVE");
+  }
+
+  if (invitation.expires_at && new Date(invitation.expires_at) <= new Date()) {
+    throw new PaymentError("Entitlement has expired", "STATE_CONFLICT");
+  }
+
+  const { data: events } = await supabase
+    .from("invitation_events")
+    .select("title, starts_at, timezone")
+    .eq("invitation_id", invitationId);
+
+  const hasPublishableEvent = (events ?? []).some(
+    (e) => e.title && e.starts_at && e.timezone,
+  );
+
+  if (!hasPublishableEvent) {
+    throw new PaymentError("No publishable event", "INVITATION_NOT_READY");
+  }
+
+  await supabase
+    .from("invitations")
+    .update({
+      status: "published",
+      published_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", invitationId)
+    .eq("status", "draft")
+    .eq("user_id", userId);
 }
