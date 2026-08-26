@@ -1,3 +1,5 @@
+import type { ActionResult } from "@/shared/types/action-result";
+
 export type CurrentUserProfile = {
   id: string;
   email: string;
@@ -6,3 +8,7 @@ export type CurrentUserProfile = {
   isBlocked: boolean;
   accountStatus: "active" | "pending_deletion" | "deleting";
 };
+
+export type IssueSensitiveAuthAction = (
+  input: unknown,
+) => Promise<ActionResult<{ expiresAt: string }>>;

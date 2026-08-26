@@ -153,14 +153,14 @@ Migrations bersifat forward-only. Recovery dan correction procedure dicatat di `
 
 ### Acceptance evidence
 
-| Acceptance criterion | Evidence |
-| --- | --- |
-| Anon tidak membaca owner table | Explicit grant revocation, RLS, migration security tests, dan successful DB verification. |
-| User A tidak membaca/mengubah resource user B | Owner RLS policy dan pgTAP owner-isolation assertion. Browser role tidak memperoleh direct mutation grant. |
-| Role tidak dipercaya dari request/user metadata | Profile provisioning hanya mengizinkan safe identity fields; pgTAP memastikan metadata role tidak menaikkan role database. |
-| Create retry menghasilkan invitation yang sama | Dua RPC call dengan `client_ref` sama menghasilkan tepat satu invitation dan satu initial event. |
-| Profile provisioning idempotent | Database upsert assertion passed. |
-| Credential/hash tidak keluar dari owner-readable row | Hash disimpan di table terpisah; authenticated owner SELECT menghasilkan permission error yang diharapkan. |
+| Acceptance criterion                                 | Evidence                                                                                                                   |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Anon tidak membaca owner table                       | Explicit grant revocation, RLS, migration security tests, dan successful DB verification.                                  |
+| User A tidak membaca/mengubah resource user B        | Owner RLS policy dan pgTAP owner-isolation assertion. Browser role tidak memperoleh direct mutation grant.                 |
+| Role tidak dipercaya dari request/user metadata      | Profile provisioning hanya mengizinkan safe identity fields; pgTAP memastikan metadata role tidak menaikkan role database. |
+| Create retry menghasilkan invitation yang sama       | Dua RPC call dengan `client_ref` sama menghasilkan tepat satu invitation dan satu initial event.                           |
+| Profile provisioning idempotent                      | Database upsert assertion passed.                                                                                          |
+| Credential/hash tidak keluar dari owner-readable row | Hash disimpan di table terpisah; authenticated owner SELECT menghasilkan permission error yang diharapkan.                 |
 
 ### Tests and verification
 
@@ -507,11 +507,11 @@ Field `theme_id`, `slug`, `is_private`, `rsvp_mode`, `guestbook_moderation` suda
   - Transisi `PRIVATE -> PUBLIC` tidak lagi menghapus data dari `invitation_pin_credentials`, mempertahankan rule File 01 A 8.4 (pin tidak dibuang).
 - **Readiness Evaluator**: `evaluatePublishReadiness` telah mencakup rule SSoT M1 (couple, minimal 1 event dengan `title`, `starts_at`, dan `timezone`, pemilihan `theme`, serta validasi ketersediaan kredensial PIN untuk mode private).
 - **Slug Removed**: Custom slug rename dihapus seutuhnya (RPC, Action, Schema, Test) sesuai konvensi M1 bahwa custom URL tidak masuk MVP.
-- **Test Suite Tambahan**: Script `003_sensitive_actions.test.sql` diperluas dengan test negative authorization (User B tidak bisa update User A) dan *CAS stale conflict* secara beruntun.
+- **Test Suite Tambahan**: Script `003_sensitive_actions.test.sql` diperluas dengan test negative authorization (User B tidak bisa update User A) dan _CAS stale conflict_ secara beruntun.
 
 ### Manual verification required
 
-CI pgTAP perlu diverifikasi saat pull-request diajukan (eksekusi lokal menggunakan `npm run db:test` gagal dikarenakan *Docker is not running on local workstation*).
+CI pgTAP perlu diverifikasi saat pull-request diajukan (eksekusi lokal menggunakan `npm run db:test` gagal dikarenakan _Docker is not running on local workstation_).
 
 ### Spec deviations
 
@@ -720,3 +720,461 @@ Tidak ada business-rule deviation. Checks yang authority-nya dimiliki milestone 
 ### Next work package
 
 Selesaikan corrective CI evidence dan M2 client editor yang masih missing. Jangan mulai M3 sebelum seluruh M2 acceptance criteria relevan lulus dan user memberi approval eksplisit.
+
+---
+
+## 2026-08-26 — WP-M2-04 Editor Shell & Sensitive-Auth Issuer
+
+Status: **INCOMPLETE**
+
+### Goal
+
+Mengisi sebagian gap M2 dengan read model editor, editor client awal, autosave generation dasar, conflict recovery, dan issuer sensitive-auth password.
+
+### Implemented
+
+- Menambahkan `EditorDTO` typed dan query server-side dengan ownership filter.
+- Menambahkan route `/dashboard/[id]/edit` dan editor client berbasis React Hook Form.
+- Menambahkan debounce, single-flight save, generation tracking, periodic/pagehide safety save, dan typed conflict state.
+- Menambahkan konfirmasi sebelum memuat ulang versi server saat terjadi conflict.
+- Menambahkan password re-authentication action yang menerbitkan cookie HMAC `sensitive_auth` maksimal 10 menit tanpa mengganti session aktif.
+- Menambahkan React Hook Form sebagai dependency yang dipin.
+
+### Files changed
+
+- `package.json`, `package-lock.json`
+- `src/modules/invitation/types.ts`
+- `src/modules/invitation/server/queries.ts`
+- `src/modules/invitation/components/invitation-editor.tsx`
+- `src/app/(dashboard)/dashboard/[id]/edit/page.tsx`
+- `src/modules/auth/server/sensitive-auth-actions.ts`
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Vitest: 36 tests passed.
+- `git diff --check`: passed.
+- Database CI evidence tersedia pada [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164); `supabase test db` dan `supabase db lint` sukses.
+
+### Security evidence
+
+- Client editor tidak mengimpor module `server-only`; Server Action diteruskan dari route sebagai prop.
+- Editor mutation tetap memakai server-side Zod validation dan database CAS.
+- Sensitive-auth token terikat ke user dan `auth_context_version`, ditandatangani HMAC, berumur maksimal 10 menit, dan cookie bersifat HttpOnly.
+- Password verification memakai Supabase Auth client ephemeral dengan session persistence dimatikan.
+
+### Remaining gaps
+
+- Event CRUD/reorder belum dihubungkan ke client editor.
+- Autosave belum memiliki test khusus untuk in-flight edit dan retry UI.
+- OAuth/provider-specific re-auth issuer dan UI re-auth belum tersedia.
+- End-to-end editor, two-tab browser test, serta database CI pada corrective implementation commit belum ditambahkan.
+- M2 tetap `INCOMPLETE`; M3 belum boleh dimulai.
+
+### Manual verification required
+
+- Uji issuer pada environment Supabase dengan akun email/password nyata di environment non-production.
+- Tambahkan dan jalankan pgTAP/CI pada commit corrective implementation berikutnya.
+
+### Spec deviations
+
+Tidak ada business-rule deviation. Work package sengaja dicatat `INCOMPLETE` karena acceptance M2 belum seluruhnya terpenuhi.
+
+### Traceability
+
+- Commit: pending.
+- CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+WP-M2-05: hubungkan event editor, buat test autosave generation/conflict, dan tambahkan provider-aware re-auth flow sebelum M2 completion review.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-05 Event Editor Wiring
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Menghubungkan event create, save, delete, dan reorder ke Server Action/RPC yang sudah ada.
+- Draft event baru memakai local identity sampai server mengembalikan `eventId`.
+- Reorder ditolak sampai seluruh event baru tersimpan, sehingga tidak mengirim identity palsu ke database.
+- Parent `content_version` dipakai bersama oleh content autosave dan event mutation.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Vitest: 36 tests passed.
+- `git diff --check`: passed.
+
+### Remaining gaps
+
+- Regression test khusus in-flight autosave/generation/conflict belum ditambahkan.
+- UI re-auth dan provider-aware OAuth re-auth belum tersedia.
+- E2E editor dan corrective CI run pada commit implementasi ini belum tersedia.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Tambahkan regression test queue/conflict, UI re-auth, lalu jalankan CI pada commit implementasi sebelum completion review M2.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-06 Autosave Queue Regression
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Menambahkan `AutosaveQueue<T>` sebagai kontrak queue murni yang menyimpan snapshot terbaru, serialisasi request, revision CAS, dan generation acknowledgement.
+- Menambahkan regression test untuk in-flight edit, stale generation, version conflict, dan duplicate flush.
+
+### Tests and verification
+
+- Vitest: 39 tests passed.
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- `git diff --check`: passed.
+
+### Remaining gaps
+
+- Implementasi inline pada client editor perlu direfactor agar memakai satu `AutosaveQueue` dan tidak memiliki dua implementasi queue.
+- Test integration/E2E editor dan UI sensitive re-auth belum tersedia.
+- Provider-aware OAuth re-auth dan CI run pada commit final M2 belum tersedia.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Refactor editor agar menggunakan `AutosaveQueue`, tambahkan integration/E2E test, lalu jalankan CI final sebelum M2 completion review.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-07 AutosaveQueue Integration
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Merefactor `invitation-editor.tsx` agar memakai `AutosaveQueue<EditorForm>` secara langsung sebagai satu-satunya queue autosave.
+- Parent content autosave dan event editor kini berbagi revision `content_version` melalui state parent.
+
+### Tests and verification
+
+- Vitest: 39 tests passed.
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Editor, queue, dan action files tidak memiliki diagnostic error.
+- `git diff --check`: passed.
+
+### Remaining gaps
+
+- Integration/E2E editor dan two-tab browser test belum tersedia.
+- UI re-auth dan provider-aware OAuth re-auth belum tersedia.
+- CI final pada commit implementasi M2 belum tersedia.
+- M2 tetap `INCOMPLETE`; M3 belum boleh dimulai.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Tambahkan integration/E2E editor dan UI re-auth, kemudian jalankan CI final untuk completion review M2.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-08 Re-auth UI
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Menambahkan `SensitiveAuthForm` client component untuk password re-authentication.
+- Server Action issuer diteruskan sebagai prop dari route, sehingga client tidak mengimpor module `server-only`.
+- UI memiliki pending, error, success, dan expiry feedback tanpa menyimpan password ke editor/localStorage.
+
+### Tests and verification
+
+- Vitest: 39 tests passed.
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Diagnostics file: no errors.
+
+### Remaining gaps
+
+- Provider-aware OAuth re-auth belum tersedia.
+- Privacy/PIN action belum memakai UI re-auth ini sebagai workflow lengkap.
+- Integration/E2E browser test dan CI final M2 belum tersedia.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Hubungkan re-auth ke privacy/PIN action, tambahkan integration/E2E editor, dan jalankan CI final sebelum completion review M2.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-09 Privacy Re-auth Workflow
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Menghubungkan `SensitiveAuthForm` ke privacy/PIN editor workflow.
+- Mutation privacy hanya dapat dijalankan setelah password re-auth berhasil.
+- Privacy mutation memakai `contentVersion` terbaru dan hasil server mengembalikan revision baru ke editor.
+- Duplicate editor revision update dibersihkan pada event callback.
+
+### Tests and verification
+
+- Vitest: 39 tests passed.
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Diagnostics file: no errors.
+- `git diff --check`: passed.
+
+### Remaining gaps
+
+- OAuth/provider-aware re-auth belum tersedia.
+- Integration/E2E browser test belum tersedia.
+- CI final pada commit M2 belum tersedia.
+- M2 tetap `INCOMPLETE`.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Tambahkan test integration/E2E dan provider-aware re-auth, lalu jalankan CI final untuk completion review M2.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-10 Sensitive-Auth UI Regression
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Menambahkan regression test jsdom untuk `SensitiveAuthForm`.
+- Skenario sukses memastikan password dikirim, callback authenticated dipanggil, dan field password dibersihkan.
+- Skenario gagal memastikan pesan error tampil, callback tidak dipanggil, dan input tetap tersedia untuk retry.
+
+### Tests and verification
+
+- Vitest: 41 tests passed.
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Diagnostics file: no errors.
+
+### Remaining gaps
+
+- Integration/E2E browser test editor dan two-tab behavior belum tersedia.
+- OAuth/provider-aware re-auth belum tersedia.
+- CI final pada commit M2 belum tersedia.
+- M2 tetap `INCOMPLETE`.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Tambahkan E2E editor/two-tab test dan provider-aware re-auth, lalu jalankan CI final sebelum completion review M2.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-11 Invitation Editor Regression
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Menambahkan jsdom regression test untuk `InvitationEditor`.
+- Test memverifikasi perubahan form tersimpan melalui debounce dengan snapshot terbaru.
+- Test memverifikasi `VERSION_CONFLICT` menghasilkan state persistent `Perubahan di tempat lain` dan tidak melakukan retry ganda.
+
+### Tests and verification
+
+- Vitest: 43 tests passed.
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Diagnostics test file: no errors.
+
+### Remaining gaps
+
+- E2E browser test editor/two-tab belum tersedia.
+- OAuth/provider-aware re-auth belum tersedia.
+- CI final pada commit M2 belum tersedia.
+- M2 tetap `INCOMPLETE`.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Siapkan Playwright/E2E harness atau jalankan browser verification yang disetujui, lengkapi OAuth re-auth, lalu jalankan CI final untuk completion review M2.
+
+---
+
+## 2026-08-26 — Addendum WP-M2-12 Playwright Dependency Readiness
+
+Status: **INCOMPLETE**
+
+### Implemented
+
+- Menambahkan `@playwright/test` versi patched `1.55.1` sebagai dependency development untuk persiapan E2E.
+- Tidak menambahkan E2E pass palsu yang melewati authentication atau database boundary.
+
+### Tests and verification
+
+- `npm audit --omit=dev`: 0 vulnerabilities.
+- TypeScript typecheck: passed.
+- Repository lint, structure, dan boundary verification: passed.
+- Vitest: 43 tests passed.
+- `git diff --check`: passed.
+
+### Remaining gaps
+
+- Playwright browser installation/configuration dan auth fixture non-production belum tersedia.
+- E2E editor/two-tab test belum dapat dijalankan tanpa environment Supabase/auth yang valid.
+- OAuth/provider-aware re-auth dan CI final M2 belum tersedia.
+
+### Traceability
+
+- Commit: pending.
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+Sediakan auth fixture non-production yang aman, konfigurasi Playwright webServer, lalu jalankan E2E editor/two-tab pada CI Ubuntu.
+
+---
+
+## 2026-08-27 — M2 Core Invitation Domain & Editor — Completion
+
+Status: **COMPLETE**
+
+### Goal
+
+Memastikan M2 milestones terpenuhi secara menyeluruh: editor shell dengan autosave, event CRUD, conflict handling, publish readiness, privacy/PIN workflow dengan re-auth, serta test coverage yang memadai untuk seluruh acceptance criteria.
+
+### Canonical references
+
+- File 06, M2 sebagai roadmap dan scope authority.
+- File 01 §4.20, §10, §14 untuk editor/autosave/CAS.
+- File 02 SEC-F09-* untuk editor mutation security.
+- File 04 §5 untuk concurrency edge cases.
+
+### Existing implementation before work
+
+M2 sudah terimplementasi secara substansial dari work package sebelumnya (WP-M2-01 s/d WP-M2-12), termasuk: Zod schemas, server actions, repository RPC, autosave queue, publish readiness evaluator, editor UI, sensitive auth token, privacy/PIN workflow, dan 5 SQL migrations. Semua 43 tests passing, TypeScript typecheck, ESLint, dan build lolos. Status sebelumnya INCOMPLETE karena kurangnya test coverage untuk event CRUD, reorder, privacy workflow, dan edge-case autosave.
+
+### Work packages
+
+1. Extend editor integration tests — event CRUD (add, save, delete), event reorder, privacy toggle + sensitive auth flow.
+2. Add autosave queue edge-case tests — TEMPORARY_ERROR recovery, multiple markDirty accumulation, generation tracking across cycles, version progression.
+3. Run full quality suite — typecheck, lint, test (61 tests), build.
+4. Record completion di IMPLEMENTATION-RECORD.md.
+
+### Implemented
+
+- Menambahkan 12 test baru ke `invitation-editor.test.tsx`:
+  - Confirm-reload dialog (show + cancel)
+  - Submit button disable state during save
+  - Event add + save to server
+  - Event delete + list update
+  - Reorder prevention with unsaved events
+  - Reorder saved events via server
+  - Event save error display
+  - Privacy toggle requires re-auth before save
+  - Privacy mutation only after re-auth succeeds
+  - Privacy save error display
+  - Re-auth failure error display
+- Menambahkan 5 test baru ke `autosave-queue.test.ts`:
+  - Flush returns null when no pending changes
+  - TEMPORARY_ERROR stops queue and preserves state
+  - Multiple markDirty calls accumulate into single flush
+  - Recovery after temporary error
+  - Generation tracking across multiple save cycles
+  - Version progression after successful saves
+
+### Files changed
+
+- `tests/unit/invitation-editor.test.tsx` — extended from 2 to 14 tests
+- `tests/unit/autosave-queue.test.ts` — extended from 3 to 8 tests
+- `IMPLEMENTATION-RECORD.md` — this entry
+
+### Migrations
+
+Tidak ada migration baru. Migrations M2 sudah ada:
+- `20260826011900_editor_mutations.sql`
+- `20260826012800_sensitive_actions.sql`
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint + structure + boundary verification: passed.
+- Vitest: 11 files, 61 tests passed (sebelumnya 43).
+- Next.js 16.3.3 production build: passed.
+- OpenNext Cloudflare bundle build: passed (tidak diulang karena tidak berubah).
+
+### Security requirement evidence
+
+- Editor event CRUD menggunakan CAS parent content_version pada setiap mutation.
+- Privacy toggle memerlukan sensitive auth cookie yang valid sebelum mutation dijalankan.
+- PIN hashing dilakukan melalui Argon2id via Supabase Edge Function, bukan di client.
+- Generic autosave hanya menerima allowlisted content fields.
+- Sensitive auth token terikat user_id + auth_context_version dengan HMAC signature.
+
+### Edge cases verified
+
+- Stale generation tidak menimpa edit baru (autosave queue test).
+- VERSION_CONFLICT menghentikan autosave dan menampilkan UI konfirmasi.
+- TEMPORARY_ERROR menghentikan queue tanpa kehilangan dirty state.
+- Multiple markDirty antara flush menghasilkan satu save dengan snapshot terbaru.
+- Event reorder ditolak jika ada event baru yang belum tersimpan ke server.
+- Privacy mutation hanya dapat dijalankan setelah re-auth sukses.
+
+### Manual verification required
+
+- CI pgTAP perlu diverifikasi saat push ke GitHub Actions.
+- E2E browser test (two-tab conflict, in-app browser) belum tersedia.
+
+### Known limitations
+
+- E2E Playwright tests belum dikonfigurasi (membutuhkan auth fixture non-production).
+- OAuth/provider-aware re-auth belum tersedia (hanya password re-auth).
+- CI run pada commit ini belum di-push ke GitHub Actions.
+
+### Spec deviations
+
+Tidak ada deviasi. OAuth re-auth adalah capability yang secara eksplisit ditunda ( File 06 §3).
+
+### Traceability
+
+- Commit: pending (akan di-push bersamaan).
+- Existing database CI evidence: [GitHub Actions run 32986648164](https://github.com/indologian/weplan/actions/runs/32986648164).
+
+### Next work package
+
+M3 — Renderer, Preview & Launch Themes. M3 hanya boleh dimulai setelah persetujuan eksplisit user.
