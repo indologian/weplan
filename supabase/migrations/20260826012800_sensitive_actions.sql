@@ -154,7 +154,7 @@ begin
   if p_pin_hash is not null then
     if v_current_hash is not null then
       insert into public.pin_history (invitation_id, pin_hash, replaced_at)
-      values (p_invitation_id, v_current_hash, now());
+      values (p_invitation_id, v_current_hash, clock_timestamp());
     end if;
 
     insert into public.invitation_pin_credentials (invitation_id, pin_hash, updated_at)
