@@ -15,6 +15,11 @@ const midtransServerSchema = z.object({
   MIDTRANS_SERVER_KEY: z.string().min(1),
 });
 
+const redisSchema = z.object({
+  REDIS_URL: z.string().url(),
+  REDIS_TOKEN: z.string().min(1),
+});
+
 const sensitiveAuthSecretSchema = z.string().min(32);
 
 export function getServerEnv() {
@@ -35,6 +40,13 @@ export function getMidtransEnv() {
     MIDTRANS_ENV: process.env.MIDTRANS_ENV,
     MIDTRANS_MERCHANT_ID: process.env.MIDTRANS_MERCHANT_ID,
     MIDTRANS_SERVER_KEY: process.env.MIDTRANS_SERVER_KEY,
+  });
+}
+
+export function getRedisEnv() {
+  return redisSchema.parse({
+    REDIS_URL: process.env.REDIS_URL,
+    REDIS_TOKEN: process.env.REDIS_TOKEN,
   });
 }
 
