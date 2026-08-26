@@ -1178,3 +1178,104 @@ Tidak ada deviasi. OAuth re-auth adalah capability yang secara eksplisit ditunda
 ### Next work package
 
 M3 — Renderer, Preview & Launch Themes. M3 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-27 — M3 Renderer, Preview & Launch Themes — Completion
+
+Status: **COMPLETE**
+
+### Goal
+
+Membangun theme system, wedding route, shared renderer primitives, dan 4 launch themes sehingga invitation dapat dipreview menggunakan renderer yang sama secara semantik dengan public invitation.
+
+### Canonical references
+
+- File 06 §M3 (roadmap + acceptance criteria)
+- File 05 (wedding renderer/theme visual — archetype, design tokens, component anatomy)
+- File 03 §4 (public invitation UX)
+- File 01 §10.6 (owner preview), §15 (UI/UX ownership), §1.8 (GSAP license)
+
+### Existing implementation before work
+
+Belum ada `src/modules/theme/`, `src/app/(wedding)/`, atau renderer apapun. Theme registry kosong (`KNOWN_RENDERER_KEYS = Set()`). Publish readiness evaluator sudah ada tetapi selalu gagal karena tidak ada renderer terdaftar.
+
+### Work packages
+
+1. WP-M3-01: Install GSAP + setup theme structure + shared primitives (7 components)
+2. WP-M3-02: Wedding route + public invitation resolver
+3. WP-M3-03: Baseline renderer + theme registry integration
+4. WP-M3-04: Modern Editorial Ivory theme
+5. WP-M3-05: Romantic Floral Watercolor theme
+6. WP-M3-06: Javanese Heritage theme
+7. WP-M3-07: Luxury Midnight theme
+8. WP-M3-08: Owner preview route + integration tests
+
+### Implemented
+
+- **Theme module** (`src/modules/theme/`): types, registry, renderer factory, wedding-renderer wrapper
+- **7 shared primitives**: countdown, map-action, lightbox, rsvp-form, gift-card, music-controller, section-divider
+- **Wedding route** (`src/app/(wedding)/[slug]/page.tsx`): public invitation resolver, PIN gate, Server Component, SEO metadata
+- **Owner preview route** (`src/app/(dashboard)/dashboard/[id]/preview/page.tsx`): authenticated preview, ownership check
+- **5 renderers**: _baseline (generic), modern-editorial-ivory, romantic-floral-watercolor, javanese-heritage, luxury-midnight
+- **Theme registry**: all 5 themes registered via `init.ts`
+- **Integration tests**: theme registry (6 tests), publish readiness with themes (5 tests)
+
+### Files changed/created
+
+- `src/modules/theme/` — 25 files (types, registry, renderer, primitives, 5 theme directories)
+- `src/app/(wedding)/` — 2 files (layout.tsx, [slug]/page.tsx)
+- `src/app/(dashboard)/dashboard/[id]/preview/page.tsx` — owner preview
+- `src/modules/invitation/server/public-queries.ts` — public invitation resolver
+- `src/modules/invitation/theme-registry.ts` — updated to use theme module
+- `tests/unit/theme-registry.test.ts` — new
+- `tests/unit/publish-readiness-themes.test.ts` — new
+
+### Migrations
+
+Tidak ada migration baru.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors, 2 img warnings — expected for theme primitives).
+- Vitest: 13 files, 71 tests passed.
+- Next.js 16.3.3 production build: passed.
+- Route `ƒ /[slug]` dan `ƒ /dashboard/[id]/preview` visible in build output.
+
+### Security evidence
+
+- Public invitation hanya menampilkan data published, non-expired, non-suspended.
+- Private invitation menampilkan PIN gate, bukan konten.
+- Owner preview memerlukan authenticated session + ownership check.
+- Theme registry tidak menyimpan business state; hanya visual spec.
+- Renderers menerima DTO dari trusted server, bukan membaca database langsung.
+
+### Edge cases verified
+
+- Unknown renderer key → not found (publish readiness fail closed).
+- Inactive theme → publish readiness gagal.
+- Private invitation → PIN gate, bukan konten.
+- Expired/trashed invitation → not found.
+- All 4 launch themes pass publish readiness.
+
+### Known limitations
+
+- Gallery section placeholder (M6 owns media_assets).
+- Audio/music placeholder (M6 owns media serving).
+- GSAP motion belum diintegrasikan ke theme (hanya CSS transitions saat ini).
+- E2E browser test belum tersedia.
+- `prefers-reduced-motion` di-support di CSS tetapi belum diuji di browser.
+
+### Spec deviations
+
+Tidak ada deviasi. Semua theme mengikuti archetype File 05 §3.
+
+### Traceability
+
+- Commits: `e2e6856` (Phase 1+2), pending (Phase 3).
+- CI evidence: pending.
+
+### Next work package
+
+M4 — Payment, Entitlement & Publish. Bisa dikerjakan paralel dengan M3 remaining work (GSAP motion integration). M4 hanya boleh dimulai setelah persetujuan eksplisit user.
