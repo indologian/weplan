@@ -351,3 +351,372 @@ Tidak ada.
 ### Next work package
 
 M2 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-26 — WP-M2-01 & WP-M2-02 Editor Aggregate Mutations
+
+Status: **COMPLETE**
+
+### Goal
+
+Membuat canonical draft DTO (Editor) beserta server actions untuk operasi mutasi core: generic autosave, event CRUD, dan transactional reorder.
+
+### Canonical references
+
+- Instruksi spesifik user mengenai `invitation_events` yang menggunakan parent `content_version`.
+- File 06, M2 Core Invitation Domain & Editor.
+- File 01 §4.20, §10, §14 terkait edit boundary dan database.
+- File 07 §4.4, §4.5 terkait Table Contracts.
+
+### Existing implementation before work
+
+Skema `invitations` dan `invitation_events` sudah ada, namun belum ada DTO (Zod Schema), RPC, maupun server actions yang memanfaatkan `content_version` Compare-and-Swap secara atomic untuk editor.
+
+### Implemented
+
+- Membuat Zod schema: `loveStoryItemSchema`, `bankAccountItemSchema`, `invitationSettingsSchema`, `editorContentAutosaveSchema`, `editorEventSaveSchema`, `editorEventDeleteSchema`, `editorEventReorderSchema`.
+- Membuat SQL RPC migration:
+  - `save_invitation_content`: autosave generic invitation fields.
+  - `save_invitation_event`: add/update event secara atomik dengan parent CAS.
+  - `delete_invitation_event`: delete event secara atomik dengan parent CAS.
+  - `reorder_invitation_events`: transactional set-based reorder yang menghindari unique collision.
+- Menambahkan repository wrappers untuk memanggil RPC dan mengembalikan Typed Error (`EditorMutationError`).
+- Menambahkan Server Actions dengan validation dan mapping ke format `ActionResult`.
+- Membuat pgTAP integration test `002_editor_mutations.test.sql`.
+
+### Files changed
+
+- `src/modules/invitation/schemas.ts`
+- `src/modules/invitation/server/repository.ts`
+- `src/modules/invitation/server/actions.ts`
+- `src/shared/types/action-result.ts`
+- `supabase/migrations/20260826011900_editor_mutations.sql`
+- `supabase/tests/002_editor_mutations.test.sql`
+
+### Migrations
+
+- `20260826011900_editor_mutations.sql` (Forward-only)
+
+### Tests and verification
+
+- Local TypeScript typecheck: passed.
+- Local ESLint: passed.
+- Unit/Integration pgTAP test `002_editor_mutations.test.sql` dibuat. (Eksekusi aktual menunggu CI Ubuntu GitHub Actions karena constraint Docker di Windows lokal).
+- Security verifications (RLS dan ownership checks terintegrasi di dalam klausa WHERE pada RPC via `user_id = p_user_id`).
+
+### Security requirement evidence
+
+- RPC didesain dengan `SECURITY DEFINER` yang diletakkan pada domain public namun mewajibkan parameter `p_user_id` (diambil dari verified session context di server action) guna memastikan IDOR tak terjadi.
+- Generic autosave RPC hanya menyentuh field-field yang allowlisted (`couple`, `love_story`, `bank_accounts`, `settings`), tidak menyentuh `status`, `entitlement_tier_id`, `published_at`, `pin_version`, dsb.
+
+### Edge cases verified
+
+- CAS concurrency `VERSION_CONFLICT` dirancang dan dites pada RPC agar stale-saves menolak overwrite.
+- Reorder unik constraint constraint (menggunakan offset `+ 10000` sebelum mereset sesuai array urutan yang benar) menghindarkan dari error unique key duplicate pada tabel.
+
+### Manual verification required
+
+CI pgTAP perlu diverifikasi saat pull-request diajukan untuk memastikan syntax Postgres di RPC berjalan tepat sesuai rencana.
+
+### Known limitations
+
+- Docker/Supabase DB offline tidak dapat diverifikasi secara lokal di Windows. Mengandalkan CI Ubuntu (GitHub Actions) untuk pgTAP.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- CI evidence: Menunggu run GitHub Actions dari push mendatang.
+
+### Next work package
+
+M2 (sisa part UI client/Renderer) dilanjutkan setelah approval berikutnya.
+
+---
+
+## 2026-08-26 — WP-M2-03 Sensitive Actions & Readiness Evaluator
+
+Status: **COMPLETE**
+
+### Goal
+
+Membuat mutation endpoints khusus (perubahan theme, pengaturan privasi, custom URL, RSVP config) dan evaluator kesiapan publish yang tidak bisa ditimpa autosave biasa.
+
+### Canonical references
+
+- File 06, M2 Core Invitation Domain & Editor.
+- File 07 §4.4, Class B — Dedicated sensitive/business action.
+- File 02, Credential separation for PIN.
+
+### Existing implementation before work
+
+Field `theme_id`, `slug`, `is_private`, `rsvp_mode`, `guestbook_moderation` sudah ada dalam tabel, beserta trigger yang mewajibkan penambahan PIN ketika mode private diaktifkan. Belum ada logic server actions maupun RPC spesifik untuk mutasi field ini, dan evaluator readiness untuk penerbitan draft belum dibuat.
+
+### Implemented
+
+- Membuat Zod schema: `editorUpdateThemeSchema`, `editorUpdateSlugSchema`, `editorUpdatePrivacySchema` (dengan refine PIN requirement), dan `editorUpdateRsvpConfigSchema`.
+- Membuat SQL RPC migration untuk action spesifik (semua wajib CAS parent content_version):
+  - `update_invitation_theme`
+  - `update_invitation_slug`
+  - `update_invitation_privacy` (dengan hashing `pgcrypto` crypt/gen_salt otomatis saat true, dan auto-delete pin credential saat false)
+  - `update_invitation_rsvp_config`
+- Menambahkan class error dan repository handler khusus, termasuk constraint error `INVALID_STATE` (misalnya saat slug duplicate `23505`).
+- Menambahkan Server Actions dengan mapping Zod/ActionResult yang sesuai.
+- Membuat komponen domain murni `evaluatePublishReadiness` yang mengecek status field `couple.groom.name`, `couple.bride.name`, jumlah event (minimal 1), dan `theme_id`.
+- Menambahkan test pgTAP `003_sensitive_actions.test.sql` untuk verifikasi integritas CAS dan integrasi credential `pin_hash`.
+
+### Files changed
+
+- `src/modules/invitation/schemas.ts`
+- `src/modules/invitation/server/repository.ts`
+- `src/modules/invitation/server/actions.ts`
+- `src/modules/invitation/server/publish-readiness-evaluator.ts`
+- `supabase/migrations/20260826012800_sensitive_actions.sql`
+- `supabase/tests/003_sensitive_actions.test.sql`
+
+### Migrations
+
+- `20260826012800_sensitive_actions.sql` (Forward-only)
+
+### Tests and verification
+
+- Local TypeScript typecheck: passed.
+- Local ESLint: passed.
+- Unit/Integration pgTAP test `003_sensitive_actions.test.sql` dirilis untuk dieksekusi CI (Docker Windows tidak tersedia).
+
+### Security requirement evidence
+
+- Sensitive fields (`theme_id`, `slug`, `is_private`) dipisahkan dari generic autosave sesuai aturan Class B mutation (File 07).
+- Plaintext PIN yang dikirim ke RPC `update_invitation_privacy` tidak pernah disimpan telanjang. Ia langsung dihash menggunakan ekstensi `pgcrypto` dengan blowfish salt, dan PIN history / credential diupdate sesuai spesifikasi (File 02).
+
+### Edge cases verified
+
+- Pengubahan `is_private=true` menolak request bila PIN null (`PIN_REQUIRED`).
+- Pengubahan kembali `is_private=false` menghapus entry kredensial di tabel `invitation_pin_credentials` tanpa melanggar trigger (karena dieksekusi dalam urutan SET `is_private` terlebih dahulu).
+- Duplikasi custom slug `update_invitation_slug` di-bubble sebagai error `INVALID_STATE`.
+
+### Fixes Applied (2026-08-26)
+
+- **Argon2id**: Pindah dari hashing database `pgcrypto` ke Node.js library `argon2` dengan spesifikasi `argon2id` yang dipassing sebagai `pinHash` opsional ke database.
+- **Privacy `sensitive_auth`**: Action `actionUpdateEditorPrivacy` sekarang mewajibkan existence `sensitive_auth` cookie.
+- **Privacy Invariants**:
+  - Transisi `PUBLIC -> PRIVATE` kini memanfaatkan fallback `p_has_pin`, sehingga tidak memaksa PIN baru jika user sudah punya PIN dari private mode sebelumnya.
+  - Transisi `PRIVATE -> PUBLIC` tidak lagi menghapus data dari `invitation_pin_credentials`, mempertahankan rule File 01 A 8.4 (pin tidak dibuang).
+- **Readiness Evaluator**: `evaluatePublishReadiness` telah mencakup rule SSoT M1 (couple, minimal 1 event dengan `title`, `starts_at`, dan `timezone`, pemilihan `theme`, serta validasi ketersediaan kredensial PIN untuk mode private).
+- **Slug Removed**: Custom slug rename dihapus seutuhnya (RPC, Action, Schema, Test) sesuai konvensi M1 bahwa custom URL tidak masuk MVP.
+- **Test Suite Tambahan**: Script `003_sensitive_actions.test.sql` diperluas dengan test negative authorization (User B tidak bisa update User A) dan *CAS stale conflict* secara beruntun.
+
+### Manual verification required
+
+CI pgTAP perlu diverifikasi saat pull-request diajukan (eksekusi lokal menggunakan `npm run db:test` gagal dikarenakan *Docker is not running on local workstation*).
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- CI evidence: Menunggu run GitHub Actions dari push mendatang.
+
+### Next work package
+
+M2 (sisa part UI client/Renderer) dilanjutkan setelah approval berikutnya.
+
+---
+
+## 2026-08-26 — Addendum Kelengkapan Record M0 dan Dokumentasi
+
+Status: **COMPLETE**
+
+### Goal
+
+Melengkapi traceability entry historis tanpa mengubah scope atau acceptance evidence yang sudah tercatat.
+
+### Canonical references
+
+- File 08 §22 dan §22.1.
+- Entry `M0 Project Foundation` dan `WP-DOC-02 Agent Bootstrap Instructions` di atas.
+
+### Existing implementation before work
+
+Entry M0 belum memiliki heading eksplisit `Manual verification required` dan `Next work package`. Commit dokumentasi `ffdfa59` juga belum memiliki entry ledger tersendiri.
+
+### Implemented
+
+- Menambahkan addendum yang memasok field wajib yang belum eksplisit pada record M0.
+- Mencatat commit format-only pada File 08 tanpa mengubah authority atau business rule.
+
+### Files changed
+
+- `IMPLEMENTATION-RECORD.md`
+- Historical source: `08 - ai-agent-execution-guide.md`
+
+### Migrations
+
+Tidak ada.
+
+### Tests and verification
+
+- Commit `ffdfa59` diperiksa melalui Git history: hanya menstandarkan format code block pada File 08.
+- Tidak ada source code, migration, runtime configuration, atau business rule yang berubah pada commit tersebut.
+
+### Security requirement evidence
+
+Tidak ada secret, credential, PII, atau production payload yang ditambahkan ke ledger.
+
+### Edge cases verified
+
+Addendum tidak mengubah status, scope, atau evidence M0; ia hanya melengkapi field record yang belum eksplisit.
+
+### Manual verification required
+
+Untuk M0, tidak ada acceptance criterion tambahan yang memerlukan verifikasi manual. Environment production dan deployed authentication flow tetap berada pada deployment work package terkait.
+
+### Known limitations
+
+Tidak ada.
+
+### Spec deviations
+
+Tidak ada.
+
+### Traceability
+
+- Documentation formatting commit: [`ffdfa59`](https://github.com/indologian/weplan/commit/ffdfa599346de0e78e9ef3d9fc70505df3604009)
+- Evidence M0 dan CI tetap mengikuti entry M0 di atas.
+
+### Next work package
+
+Untuk entry M0, milestone berikutnya adalah M1 dan telah selesai sesuai entry M1. Addendum ini tidak memberi approval milestone baru.
+
+---
+
+## 2026-08-26 — Addendum Audit WP-M2-01, WP-M2-02, dan WP-M2-03
+
+Status: **INCOMPLETE**
+
+### Goal
+
+Membatalkan klaim completion M2 yang belum memiliki evidence memadai dan mencatat corrective implementation untuk mutation boundary, PIN security, sensitive authentication, serta publish readiness.
+
+### Canonical references
+
+- File 06, M2 sebagai roadmap dan scope authority.
+- File 07 §4.4–§4.5 sebagai database/domain implementation reference.
+- File 01 §1.11.3, §4.3–§4.5, §4.20, §8.4–§8.5, dan §10.1–§10.9.
+- File 02 untuk PIN credential, sensitive action, dan authorization requirements.
+- File 03 untuk canonical editor payload.
+- File 04 §5–§6 untuk editor concurrency dan publish edge cases.
+- File 08 §22 dan §22.1.
+
+### Existing implementation before work
+
+Entry `WP-M2-01 & WP-M2-02 Editor Aggregate Mutations` dan `WP-M2-03 Sensitive Actions & Readiness Evaluator` di atas berstatus `COMPLETE`, walaupun pgTAP belum pernah dieksekusi, CI masih `Menunggu`, dan M2 client editor belum tersedia. Entry tersebut juga mendokumentasikan beberapa implementasi yang tidak memenuhi specification: RPC `SECURITY DEFINER` dengan caller-supplied user ID, reorder offset tetap yang dapat overflow, sensitive-auth berbasis keberadaan cookie, penghapusan credential saat kembali public, serta hashing PIN non-Argon2id atau native Node yang tidak sesuai target Worker.
+
+### Implemented
+
+- Menetapkan bahwa status `COMPLETE` pada dua entry M2 sebelumnya tidak sah dan digantikan oleh addendum ini.
+- Menambahkan canonical Zod DTO yang draft-friendly, strict, serta memakai key JSON sesuai File 03.
+- Menambahkan CAS mutation repository/actions dengan typed `serverVersion` untuk conflict recovery.
+- Mengubah mutation RPC menjadi `SECURITY INVOKER`, hanya executable oleh `service_role`, dengan ownership/account/lifecycle/effective-expiry checks di database.
+- Membuat event reorder exact-set, transactional, duplicate-safe, dan aman untuk rentang `smallint`.
+- Menambahkan signed HMAC sensitive-auth token dengan user binding, auth-context version, expiry maksimal sepuluh menit, dan signature verification.
+- Memindahkan PIN hashing/reuse verification ke Supabase Edge Function menggunakan Argon2id; database hanya menerima hash PHC dan menyimpan maksimal tiga history hash sebelumnya.
+- Mempertahankan PIN credential ketika invitation menjadi public dan menambah `pin_version` hanya saat hash baru disimpan.
+- Menjaga rotasi PIN tanpa perubahan privacy agar tidak menaikkan `content_version`.
+- Membaca allowance berbayar dari immutable `entitlement_snapshot`, bukan konfigurasi katalog tier terbaru.
+- Menambahkan typed publish-readiness evaluator untuk data pasangan, event/timezone, renderer/theme, tier limits, media readiness, dan private credential.
+- Menjadikan theme registry fail-closed sampai renderer milik M3 benar-benar tersedia.
+- Menambahkan unit tests, migration security tests, pgTAP, dan Edge Function crypto tests.
+
+### Files changed
+
+- `.env.example`, `.github/workflows/ci.yml`, `package.json`, `tsconfig.json`, `vitest.config.ts`
+- `src/modules/auth/sensitive-auth-token.ts`
+- `src/modules/auth/server/require-sensitive-auth.ts`
+- `src/modules/invitation/schemas.ts`
+- `src/modules/invitation/publish-readiness.ts`
+- `src/modules/invitation/theme-registry.ts`
+- `src/modules/invitation/server/actions.ts`
+- `src/modules/invitation/server/pin-crypto.ts`
+- `src/modules/invitation/server/publish-readiness-evaluator.ts`
+- `src/modules/invitation/server/repository.ts`
+- `src/shared/lib/env/server.ts`
+- `supabase/config.toml`
+- `supabase/functions/pin-crypto/**`
+- `supabase/migrations/20260826011900_editor_mutations.sql`
+- `supabase/migrations/20260826012800_sensitive_actions.sql`
+- `supabase/tests/002_editor_mutations.test.sql`
+- `supabase/tests/003_sensitive_actions.test.sql`
+- `tests/integration/migration-security.test.ts`
+- `tests/unit/invitation-editor-schema.test.ts`
+- `tests/unit/publish-readiness.test.ts`
+- `tests/unit/sensitive-auth-token.test.ts`
+
+### Migrations
+
+- `20260826011900_editor_mutations.sql` — belum pernah diterapkan ke shared/production environment.
+- `20260826012800_sensitive_actions.sql` — belum pernah diterapkan ke shared/production environment.
+
+Kedua migration masih dapat dikoreksi sebelum first application; setelah diterapkan, koreksi wajib forward-only.
+
+### Tests and verification
+
+- TypeScript typecheck: passed locally.
+- ESLint: passed locally.
+- Vitest: 8 files, 36 tests passed locally.
+- Edge Function Deno check dan 3 Argon2id/request-boundary tests: passed locally.
+- Migration structure/security verifier: passed locally.
+- Next.js 16.3.3 production build: passed locally.
+- OpenNext Cloudflare 1.20.2 bundle build: passed locally.
+- pgTAP 002 dan 003 telah ditulis, tetapi belum dapat dijalankan lokal karena Docker tidak tersedia.
+- GitHub CI database reset, pgTAP, database lint, dan fresh Linux build: pending.
+
+### Security requirement evidence
+
+- Browser roles tidak memperoleh execute grant pada editor/sensitive RPC; invocation hanya melalui trusted server dengan verified session.
+- Sensitive-auth cookie tidak dipercaya berdasarkan keberadaan saja; payload, HMAC, expiry, user ID, dan current auth-context version diverifikasi.
+- Plaintext PIN hanya diproses dalam memory oleh trusted server dan dedicated Edge Function, tidak masuk migration parameter atau persistence.
+- Argon2id memakai random salt dan bounded input; PIN reuse dibandingkan dengan current hash dan maksimal tiga history hash.
+- Readiness dan mutation checks fail closed ketika theme renderer, media readiness, lifecycle, account, ownership, atau entitlement tidak dapat dibuktikan.
+
+### Edge cases verified
+
+- Stale CAS mengembalikan current `serverVersion`.
+- IDOR disamarkan sebagai `NOT_FOUND` dan ditolak ulang pada database boundary.
+- Partial, duplicate, dan foreign-event reorder ditolak; posisi dekat batas `smallint` tidak memakai offset tetap.
+- Weak PIN, tampered/expired sensitive-auth token, invalid timezone/offset, inactive/unknown theme, serta private invitation tanpa credential ditolak.
+- Beralih public tidak menghapus credential; PIN baru mengarsipkan current hash dan memangkas history ke tiga item.
+- Rotasi PIN tanpa privacy transition mempertahankan `content_version`, sedangkan toggle privacy menaikkannya sekali.
+- Allowance mutation berbayar berasal dari invitation entitlement snapshot; perubahan katalog tidak mengurangi hak historis.
+
+### Manual verification required
+
+- Jalankan database reset, pgTAP, dan database lint melalui GitHub CI Linux.
+- Benchmark parameter Argon2id pada deployment hardware sebelum production rollout.
+- Verifikasi end-to-end re-auth issuance dan cookie lifecycle setelah issuer/UI tersedia.
+
+### Known limitations
+
+- M2 client editor berbasis React Hook Form, debounce/save queue, conflict UI, dan two-tab behavior belum diimplementasikan.
+- Sensitive re-auth issuer/UI belum tersedia; verifier sudah fail closed sehingga privacy mutation belum dapat digunakan dari UI.
+- Theme renderer/registry dimiliki M3 dan belum tersedia; real publish readiness sengaja fail closed.
+- Active checkout overlap dimiliki M4, sedangkan media/gallery lifecycle dimiliki M6; checks terkait belum dapat dibuktikan penuh sebelum tabel/capability tersebut ada.
+- Docker lokal tidak tersedia, sehingga database acceptance evidence bergantung pada GitHub CI.
+
+### Spec deviations
+
+Tidak ada business-rule deviation. Checks yang authority-nya dimiliki milestone M3/M4/M6 tidak dipalsukan; limitation dicatat secara eksplisit.
+
+### Traceability
+
+- Corrective implementation commit: pending.
+- GitHub CI evidence: pending.
+- Entry M2 sebelumnya dipertahankan sebagai historical evidence, tetapi status `COMPLETE` dan klaim teknisnya tidak boleh digunakan sebagai completion authority.
+
+### Next work package
+
+Selesaikan corrective CI evidence dan M2 client editor yang masih missing. Jangan mulai M3 sebelum seluruh M2 acceptance criteria relevan lulus dan user memberi approval eksplisit.

@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "@supabase/server": "npm:@supabase/server@1.4.1",
+    "hash-wasm": "npm:hash-wasm@4.12.0"
+  }
+}

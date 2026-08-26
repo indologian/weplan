@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: "node",
+    include: ["tests/**/*.test.{ts,tsx}"],
     coverage: { reporter: ["text", "json", "html"] },
   },
 });

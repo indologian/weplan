@@ -7,6 +7,8 @@ const serverSecretSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(1),
 });
 
+const sensitiveAuthSecretSchema = z.string().min(32);
+
 export function getServerEnv() {
   return {
     ...parsePublicEnv({
@@ -18,4 +20,8 @@ export function getServerEnv() {
       SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
     }),
   };
+}
+
+export function getSensitiveAuthHmacSecret(): string {
+  return sensitiveAuthSecretSchema.parse(process.env.SENSITIVE_AUTH_HMAC_SECRET);
 }

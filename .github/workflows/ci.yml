@@ -17,6 +17,7 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
       SUPABASE_SECRET_KEY: sb_secret_ci_placeholder
+      SENSITIVE_AUTH_HMAC_SECRET: ci_only_placeholder_with_32_characters
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -34,6 +35,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run test
+      - run: npm run functions:check
       - run: npm run verify:migrations
       - run: npm run build
       - run: npm run build:cloudflare
