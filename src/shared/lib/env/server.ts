@@ -7,6 +7,14 @@ const serverSecretSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(1),
 });
 
+const midtransEnvSchema = z.enum(["sandbox", "production"]);
+
+const midtransServerSchema = z.object({
+  MIDTRANS_ENV: midtransEnvSchema,
+  MIDTRANS_MERCHANT_ID: z.string().min(1),
+  MIDTRANS_SERVER_KEY: z.string().min(1),
+});
+
 const sensitiveAuthSecretSchema = z.string().min(32);
 
 export function getServerEnv() {
@@ -20,6 +28,14 @@ export function getServerEnv() {
       SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
     }),
   };
+}
+
+export function getMidtransEnv() {
+  return midtransServerSchema.parse({
+    MIDTRANS_ENV: process.env.MIDTRANS_ENV,
+    MIDTRANS_MERCHANT_ID: process.env.MIDTRANS_MERCHANT_ID,
+    MIDTRANS_SERVER_KEY: process.env.MIDTRANS_SERVER_KEY,
+  });
 }
 
 export function getSensitiveAuthHmacSecret(): string {
