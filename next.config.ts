@@ -15,6 +15,7 @@ const securityHeaders = [
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://js.midtrans.com https://maps.googleapis.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://images.unsplash.com https://*.supabase.co",
+      "media-src 'self' https://*.supabase.co https://cdn.pixabay.com",
       "font-src 'self'",
       "connect-src 'self' https://*.supabase.co https://*.midtrans.com https://*.midtrans.co.id https://challenges.cloudflare.com https://resend.com https://maps.googleapis.com",
       "frame-src 'self' https://www.google.com https://js.midtrans.com https://challenges.cloudflare.com",
