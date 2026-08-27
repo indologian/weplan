@@ -4,6 +4,7 @@ import { getMidtransEnv } from "@/shared/lib/env/server";
 import { verifyNotificationSignature, getTransactionStatus, type MidtransStatusResponse } from "@/modules/payment/provider/midtrans/client";
 import { isFundedSuccess, mapProviderStatusToPaymentState, mergeEntitlements, type EntitlementSnapshot } from "@/modules/payment/types";
 import { assertValidTransition } from "@/modules/payment/state-machine";
+import { enqueuePaymentReceiptEmail } from "@/modules/jobs/server/enqueue";
 import crypto from "crypto";
 
 function computeEventFingerprint(body: Record<string, unknown>): string {
@@ -195,6 +196,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .from("payment_provider_events")
         .update({ applied_at: new Date().toISOString() })
         .eq("event_fingerprint", eventFingerprint);
+    }
+
+    // 12. Enqueue email receipt on funded-success
+    if (funded && !transaction.funded_at && transaction.invitation_id) {
+      try {
+        const { data: owner } = await supabase
+          .from("user_profiles")
+          .select("email")
+          .eq("id", transaction.user_id)
+          .maybeSingle();
+
+        const { data: inv } = await supabase
+          .from("invitations")
+          .select("slug")
+          .eq("id", transaction.invitation_id)
+          .maybeSingle();
+
+        if (owner?.email && inv?.slug) {
+          await enqueuePaymentReceiptEmail(
+            owner.email,
+            inv.slug,
+            transaction.transaction_type,
+            "Active",
+          );
+        }
+      } catch {
+        console.error("[WEBHOOK] Failed to enqueue receipt email");
+      }
     }
 
     return NextResponse.json({ status: "ok" });

@@ -1975,3 +1975,110 @@ Tidak ada deviasi.
 ### Next work package
 
 M7 — Async Reliability, Email & Lifecycle Jobs. M7 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-27 — M7 Async Reliability, Email & Lifecycle Jobs
+
+Status: **COMPLETE**
+
+### Goal
+
+Membangun fondasi async reliability: outbox dispatcher dengan claim lease, email service (Resend), lifecycle scheduler (expiry, cleanup, reconciliation), dan email webhook handler.
+
+### Canonical references
+
+- File 06 §M7 (roadmap + acceptance criteria)
+- File 01 §17 (Background Jobs, Outbox, Scheduler & Workflow)
+- File 01 §19 (Email & Notification Architecture)
+- File 02 Fase 12-13 (Queue, Outbox, Cron & Workflow Security; Email Security)
+
+### Existing implementation before work
+
+Database schema `outbox_events`, `failed_jobs`, `scheduled_job_runs`, `email_deliveries` sudah ada dari M1. Belum ada: outbox dispatcher, email service, lifecycle jobs, atau email webhook handler.
+
+### Work packages
+
+1. **WP-M7-01**: Outbox dispatcher service — claim lease (FOR UPDATE SKIP LOCKED pattern), dispatch, exponential backoff+jitter, failed-job ledger.
+2. **WP-M7-02**: Email service — Resend integration, template system, idempotent delivery via `email_deliveries` table, bounce/complaint tracking.
+3. **WP-M7-03**: Lifecycle scheduler — invitation expiry, draft retention cleanup, expired trash hard-delete, stale media cleanup.
+4. **WP-M7-04**: Payment reconciliation job — scan pending transactions, enqueue outbox events.
+5. **WP-M7-05**: Email webhook — Resend delivery/bounce/complaint handler dengan signature verification.
+6. **WP-M7-06**: Cron routes — `/api/cron/dispatch` (outbox + expiry) dan `/api/cron/lifecycle` (all lifecycle jobs).
+
+### Implemented
+
+- **Outbox types** (`src/modules/jobs/types.ts`): `OutboxEvent`, `FailedJob`, `ScheduledJobRun`, `JobHandler`, retry constants.
+- **Outbox dispatcher** (`src/modules/jobs/server/outbox.ts`): `claimAndDispatchEvents()` — batch claim, handler dispatch, exponential backoff, failed-job ledger, stale lease reclaim, outbox event insertion.
+- **Email service** (`src/modules/email/server/actions.ts`): Resend integration, 5 email templates (payment_receipt, payment_expired, security_alert, invitation_reminder, renewal_reminder), idempotent delivery via `email_deliveries` table, bounce/complaint processing.
+- **Lifecycle jobs** (`src/modules/jobs/server/lifecycle.ts`): `runInvitationExpiry()`, `runDraftRetentionCleanup()`, `runExpiredTrashCleanup()`, `runStaleMediaCleanup()`, `runPaymentReconciliation()`.
+- **Dispatch cron route** (`src/app/api/cron/dispatch/route.ts`): GET endpoint — reclaim stale leases, dispatch events, run expiry.
+- **Lifecycle cron route** (`src/app/api/cron/lifecycle/route.ts`): GET endpoint — run all lifecycle jobs with `Promise.allSettled`.
+- **Resend webhook** (`src/app/api/webhooks/resend/route.ts`): POST endpoint — signature verification, bounce/complaint processing.
+- **Tests** (`tests/unit/outbox.test.ts`): OutboxError, backoff constants, exponential growth, insert event, reclaim leases.
+- **Env vars**: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET` added to `.env.example` and CI workflow.
+
+### Files changed/created
+
+- `src/modules/jobs/types.ts` — NEW
+- `src/modules/jobs/server/outbox.ts` — NEW
+- `src/modules/email/server/actions.ts` — NEW
+- `src/modules/jobs/server/lifecycle.ts` — NEW
+- `src/app/api/cron/dispatch/route.ts` — NEW
+- `src/app/api/cron/lifecycle/route.ts` — NEW
+- `src/app/api/webhooks/resend/route.ts` — NEW
+- `src/shared/lib/env/server.ts` — updated (getResendEnv)
+- `.env.example` — updated
+- `.github/workflows/ci.yml` — updated
+- `tests/unit/outbox.test.ts` — NEW
+- `package.json` / `package-lock.json` — updated (resend dependency)
+
+### Migrations
+
+Tidak ada migration baru — tabel outbox, failed_jobs, scheduled_job_runs, email_deliveries sudah ada dari M1.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors).
+- Vitest: 27 files, 193 tests passed (sebelumnya 185).
+- Next.js production build: passed — routes `ƒ /api/cron/dispatch`, `ƒ /api/cron/lifecycle`, `ƒ /api/webhooks/resend` visible.
+
+### Security evidence
+
+- Outbox dispatcher hanya memproses event dengan status `pending` dan `available_at <= now()`.
+- Stale lease reclaim (5 menit timeout) mencegah worker crash memblokir outbox permanen.
+- Exponential backoff + jitter mencegah thundering herd; max 5 retry attempts sebelum masuk failed-job ledger.
+- Email delivery idempotent via `idempotency_key` UNIQUE — duplicate insert ditolak.
+- Resend webhook diverifikasi dengan HMAC SHA-256 signature sebelum processing.
+- Email templates tidak memuat PIN, guest token, private session, atau raw IP.
+- Cron routes menggunakan GET — sesuai konvensi scheduler external (Supabase Cron, GitHub Actions).
+
+### Acceptance criteria verification
+
+- [x] DB commit + queue failure meninggalkan outbox pending (transactional insert)
+- [x] Duplicate queue delivery aman (idempotent consumer + `event_fingerprint` dedup)
+- [x] Poison job berhenti di failed-job ledger (5 attempts → terminal failed)
+- [x] Cron overlap aman (claim dengan status guard, stale lease reclaim)
+- [x] Correctness lifecycle ditentukan timestamp authoritative, bukan ketepatan cron
+- [x] Bounce/complaint tidak membuat resend loop (idempotent + suppression)
+
+### Known limitations
+
+- Outbox dispatcher belum terintegrasi ke Cloudflare Queues — masih menggunakan polling via cron route. Cloudflare Queue integration (File 01 §1.6) membutuhkan worker deployment terpisah.
+- Email templates sangat basic (HTML tanpa inline styling atau responsive email framework). Untuk production, perlu email template yang lebih polished.
+- Payment reconciliation saat ini hanya mengenqueue outbox event; actual reconciliation logic (Status API polling) belum diimplementasikan.
+- Lifecycle scheduler belum memiliki alerting untuk job failure — hanya return error di response.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- Commit: pending (akan di-push).
+- CI evidence: pending.
+
+### Next work package
+
+M8 — Production Security, Recovery & Observability. M8 hanya boleh dimulai setelah persetujuan eksplisit user.

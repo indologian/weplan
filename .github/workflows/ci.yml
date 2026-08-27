@@ -25,6 +25,8 @@ jobs:
       PRIVATE_SESSION_KEY_CURRENT: ci_only_placeholder_with_32_characters
       NEXT_PUBLIC_TURNSTILE_SITE_KEY: ci_placeholder
       TURNSTILE_SECRET_KEY: ci_placeholder
+      RESEND_API_KEY: re_ci_placeholder
+      RESEND_WEBHOOK_SECRET: re_ci_webhook_placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

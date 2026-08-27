@@ -63,3 +63,13 @@ export function getTurnstileEnv() {
     TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   });
 }
+
+export function getResendEnv() {
+  return z.object({
+    RESEND_API_KEY: z.string().min(1),
+    RESEND_WEBHOOK_SECRET: z.string().min(1),
+  }).parse({
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
+  });
+}
