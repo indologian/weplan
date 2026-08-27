@@ -1,0 +1,26 @@
+name = "weplan"
+main = ".open-next/worker.js"
+compatibility_date = "2026-08-04"
+compatibility_flags = ["nodejs_compat"]
+
+# Halaman statis
+[assets]
+binding = "ASSETS"
+directory = ".open-next/assets"
+
+# Konfigurasi Domain
+routes = [
+  { pattern = "*.weplan.web.id/*", zone_name = "weplan.web.id" }
+]
+workers_dev = false
+preview_urls = false
+
+# Masukkan variabel yang bersifat BUKAN RAHASIA di sini
+[vars]
+MIDTRANS_ENV = "sandbox"
+MIDTRANS_MERCHANT_ID = "M351136950"
+NEXT_PUBLIC_APP_URL = "https://weplan.web.id"
+NEXT_PUBLIC_SUPABASE_URL = "https://cetsivgyghdmkadknwha.supabase.co"
+NEXT_PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAEZCgmFCiZI_ebhs"
+REDIS_URL = "https://oriented-molly-114453.upstash.io"
+
