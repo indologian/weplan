@@ -53,3 +53,13 @@ export function getRedisEnv() {
 export function getSensitiveAuthHmacSecret(): string {
   return sensitiveAuthSecretSchema.parse(process.env.SENSITIVE_AUTH_HMAC_SECRET);
 }
+
+export function getTurnstileEnv() {
+  return z.object({
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1),
+    TURNSTILE_SECRET_KEY: z.string().min(1),
+  }).parse({
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+    TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+  });
+}

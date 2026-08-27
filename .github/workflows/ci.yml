@@ -19,6 +19,12 @@ jobs:
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
       SUPABASE_SECRET_KEY: sb_secret_ci_placeholder
       SENSITIVE_AUTH_HMAC_SECRET: ci_only_placeholder_with_32_characters
+      RATE_LIMIT_HMAC_SECRET: ci_only_placeholder_with_32_characters
+      GUEST_TOKEN_HMAC_SECRET: ci_only_placeholder_with_32_characters
+      RSVP_EDIT_TOKEN_HMAC_SECRET: ci_only_placeholder_with_32_characters
+      PRIVATE_SESSION_KEY_CURRENT: ci_only_placeholder_with_32_characters
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: ci_placeholder
+      TURNSTILE_SECRET_KEY: ci_placeholder
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
