@@ -2284,7 +2284,7 @@ Tidak ada specification deviation yang disetujui. Temuan merupakan implementatio
 
 ### Traceability
 
-- Audit documentation: pending commit.
+- Audit documentation commit: `ccb1996` (`chore: add audit and project foundation updates`).
 - Remediation: not started.
 
 ### Next work package
