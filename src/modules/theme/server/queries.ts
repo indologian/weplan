@@ -14,14 +14,20 @@ export async function getFeaturedThemes(limit: number = 4): Promise<FeaturedThem
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
     .from("themes")
-    .select("id, name, code, description, thumbnail_url, is_premium")
+    .select("id, name, slug, description, preview_image, tiers!inner(code)")
     .eq("is_active", true)
-    .order("name")
     .limit(limit);
 
   if (error || !data) {
     return [];
   }
 
-  return data;
+  return data.map((t: any) => ({
+    id: t.id,
+    name: t.name,
+    code: t.slug,
+    description: t.description,
+    thumbnail_url: t.preview_image,
+    is_premium: t.tiers?.code !== 'basic'
+  }));
 }
