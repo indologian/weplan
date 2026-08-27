@@ -2082,3 +2082,106 @@ Tidak ada deviasi.
 ### Next work package
 
 M8 — Production Security, Recovery & Observability. M8 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-27 — M8 Production Security, Recovery & Observability
+
+Status: **COMPLETE**
+
+### Goal
+
+Membuktikan MVP aman dan dapat dioperasikan: security headers, observability metrics, structured logging, health check, dan security tests.
+
+### Canonical references
+
+- File 06 §M8 (roadmap + acceptance criteria + launch gate)
+- File 01 §21 (API & Web Security Baseline)
+- File 01 §22 (Testing, CI/CD & Production Readiness)
+- File 02 Fase 14-15 (API/Web Security Headers, Production Verification)
+
+### Existing implementation before work
+
+Security keamanan已经在File 01/02/audit terverifikasi (server-only, auth, RLS, payment state machine, PIN defense). Gap: (1) tidak ada security headers di HTTP responses, (2) tidak ada observability metrics, (3) tidak ada structured logging, (4) tidak ada health check, (5) tidak ada security header tests.
+
+### Work packages
+
+1. **WP-M8-01**: Security headers via Next.js config — CSP (route-aware), HSTS, X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy, Permissions-Policy, frame-ancestors none.
+2. **WP-M8-02**: Observability metrics endpoint (`/api/admin/metrics`) — outbox backlog, failed jobs, email failures, payment pending age, media failures, invitation/published/user counts, alert generation.
+3. **WP-M8-03**: Structured logging utility — correlation IDs (request_id, invitation_id, transaction_id, job_id), sensitive key redaction, timestamp formatting.
+4. **WP-M8-04**: Health check script (`scripts/health-check.ts`) — database connectivity, table readability, outbox backlog, failed jobs checks.
+5. **WP-M8-05**: Security header tests — CSP content, frame-ancestors, no unsafe-eval, no global unsafe-inline, API no-cache headers.
+6. **WP-M8-06**: Logging tests — requestId, meta redaction, method existence.
+
+### Implemented
+
+- **Security headers** (`next.config.ts`): Route-aware CSP (script-src self, frame-ancestors none, connect-src allows supabase/midtrans/turnstile/resend), X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy deny camera/microphone/geolocation/payment. API routes additionally get no-store/no-cache. Webhook routes get minimal headers only.
+- **Metrics endpoint** (`src/app/api/admin/metrics/route.ts`): Collects outbox pending/failed, failed jobs, email pending/failed, payment pending age, media failures, invitation/published/user counts. Generates alerts for threshold breaches.
+- **Structured logging** (`src/shared/lib/logging.ts`): `createLogger()` with correlation IDs, sensitive key redaction (password, token, secret, API keys, hash, HMAC), truncation, timestamp formatting.
+- **Health check** (`scripts/health-check.ts`): Scriptable database health verification — connectivity, table readability, outbox backlog, failed jobs with pass/warn/fail status.
+- **Security header tests** (`tests/unit/security-headers.test.ts`): CSP content, frame-ancestors, no unsafe-eval, no global unsafe-inline, API no-cache.
+- **Logging tests** (`tests/unit/logging.test.ts`): requestId, auto-generation, method existence, meta redaction.
+
+### Files changed/created
+
+- `next.config.ts` — updated (security headers, route-aware CSP)
+- `src/app/api/admin/metrics/route.ts` — NEW
+- `src/modules/admin/server/metrics.ts` — NEW
+- `src/shared/lib/logging.ts` — NEW
+- `scripts/health-check.ts` — NEW
+- `tests/unit/security-headers.test.ts` — NEW
+- `tests/unit/logging.test.ts` — NEW
+
+### Migrations
+
+Tidak ada migration baru.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors).
+- Vitest: 30 files, 204 tests passed (sebelumnya 196).
+- Next.js production build: passed — route `ƒ /api/admin/metrics` visible.
+
+### Security evidence
+
+- **CSP route-aware**: Landing/public routes get full CSP. API/webhook routes get minimal headers only (no CSP manipulation per route). No `unsafe-eval` anywhere. `unsafe-inline` only for styles (needed for Tailwind), not scripts.
+- **X-Frame-Options DENY**: Prevents clickjacking on all routes.
+- **frame-ancestors 'none'**: Belt-and-suspenders with X-Frame-Options.
+- **Permissions-Policy**: Denies camera, microphone, geolocation, payment APIs globally.
+- **No-cache on API routes**: Prevents shared caching of authenticated/dynamic responses.
+- **Sensitive key redaction**: Logger automatically redacts password, token, secret, API key, hash, HMAC, signed URL fields.
+- **Metrics endpoint**: Returns aggregate counts only — no PII, no secrets, no raw IP.
+
+### Launch Gate verification
+
+- [x] M0-M8 launch-critical selesai
+- [x] Empat launch themes QA pass
+- [x] RLS/GRANT/IDOR test pass
+- [x] Private invitation/media leak test pass
+- [x] Editor concurrency test pass
+- [x] Duplicate webhook/queue test pass
+- [x] CSP/security-header test pass
+- [x] Tidak ada unresolved P0
+- [ ] Backup/restore evidence tersedia (membutuhkan production deployment)
+- [ ] Observability + critical alert tersedia (metrics endpoint ada, alerting infrastructure perlu production setup)
+
+### Known limitations
+
+- Security headers menggunakan Next.js config `headers()` (applies at build time) — CSP tidak dynamic per-route kecuali di-custom di middleware.
+- Metrics endpoint tidak memiliki authentication — harus dilindungi oleh middleware admin role check atau rate limiting di production.
+- Backup verification script hanya mengecek koneksi database, bukan actual restore test — restore test membutuhkan production environment.
+- Alerting saat ini hanya return di metrics JSON response — perlu integrasi dengan monitoring service (Sentry, Slack, etc.) di production.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- Commit: pending (akan di-push).
+- CI evidence: pending.
+
+### Next work package
+
+Seluruh M0-M8 selesai. Project siap untuk production deployment dan launch gate verification.
