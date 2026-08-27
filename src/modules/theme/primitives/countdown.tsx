@@ -32,20 +32,20 @@ export function Countdown({ targetIso, className, style }: Props) {
   }, [targetIso]);
 
   return (
-    <div className={className} style={style} aria-label="Hitung mundur">
-      <span aria-label={`${units.days} hari`}>
+    <div className={className} style={style} aria-label="Hitung mundur" suppressHydrationWarning>
+      <span aria-label={`${units.days} hari`} suppressHydrationWarning>
         {String(units.days).padStart(2, "0")}
       </span>
       <span aria-hidden="true">:</span>
-      <span aria-label={`${units.hours} jam`}>
+      <span aria-label={`${units.hours} jam`} suppressHydrationWarning>
         {String(units.hours).padStart(2, "0")}
       </span>
       <span aria-hidden="true">:</span>
-      <span aria-label={`${units.minutes} menit`}>
+      <span aria-label={`${units.minutes} menit`} suppressHydrationWarning>
         {String(units.minutes).padStart(2, "0")}
       </span>
       <span aria-hidden="true">:</span>
-      <span aria-label={`${units.seconds} detik`}>
+      <span aria-label={`${units.seconds} detik`} suppressHydrationWarning>
         {String(units.seconds).padStart(2, "0")}
       </span>
     </div>
