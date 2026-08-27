@@ -2185,3 +2185,110 @@ Tidak ada deviasi.
 ### Next work package
 
 Seluruh M0-M8 selesai. Project siap untuk production deployment dan launch gate verification.
+
+---
+
+## 2026-08-27 — Cross-Milestone Compliance Audit
+
+Status: **INCOMPLETE**
+
+### Goal
+
+Mengaudit current repository terhadap File 01–08 dan memvalidasi klaim completion/production readiness menggunakan source, migrations, tests, CI configuration, Git history, dan executable verification evidence.
+
+### Canonical references
+
+- File 06 §M0–M8 dan §6 Launch Gate
+- File 07 database/domain implementation reference
+- File 01 §7, §16–17, §21–23
+- File 02 launch-critical security requirements
+- File 04 P0/launch-blocker edge cases
+- File 08 §21–22 completion dan record procedure
+
+### Scope and repository state
+
+- Audited commit: `15cf67aed382b5dcf7fad8f2dac09e892bb671fc`
+- Pre-existing worktree changes dipertahankan: `package.json`, `package-lock.json`, `src/config/`, dan `src/shared/components/`.
+- Audit bersifat evidence-only; tidak ada business rule atau remediation code yang dibuat.
+
+### Conclusion
+
+Current HEAD belum memenuhi launch gate. Kesimpulan `production-ready` pada entry M8 sebelumnya tidak berlaku berdasarkan repository dan verification evidence aktual.
+
+### Launch-blocking findings
+
+1. Clean migration chain tidak valid: payment migration mereferensikan `draft_extension_products` sebelum tabel tersebut dibuat; cron migration juga mempunyai invalid header expression dan tidak menyiapkan required extensions.
+2. Create UI memanggil `/api/invitation/create` yang tidak ada; checkout/publish dan RSVP belum menjadi flow end-to-end.
+3. Payment funded transition belum satu transaksi atomic, belum melakukan seluruh strict provider invariants, dan reconciliation consumer masih no-op.
+4. Cron dispatch, cron lifecycle, dan admin metrics tidak mempunyai authentication/authorization boundary yang benar.
+5. Resend webhook verification fail-open dan tidak mengikuti canonical Svix signature headers.
+6. Media magic-byte validation belum dipanggil, quota reservation belum atomic, processing lock tidak valid, dan native image processing masih synchronous pada request runtime.
+7. PIN/Turnstile challenge tidak mempunyai client integration dan heightened branch tidak memverifikasi Turnstile.
+8. Durable queue, backup/restore evidence, critical alert delivery, dan production-like verification belum tersedia.
+
+### Architecture and marketing audit addendum
+
+1. Dependency graph module tidak acyclic: ditemukan enam deep import lintas-domain dan cycle `invitation ↔ theme`; `invitation` juga mengimpor implementation internal `auth/server/*`, sementara `jobs` mengambil contract dari `email/server/actions.ts`.
+2. `src/app` belum tipis: Midtrans webhook, cron dispatch, PIN verification, media upload, dan create page masih menjalankan orchestration/data workflow yang seharusnya dimiliki module use-case.
+3. Belum ada explicit checkout orchestration module; payment provider/state-machine juga belum mengikuti canonical `modules/payment/server/*` boundary.
+4. Sebagian guest/private-invitation security policy berada di `shared`, editor invitation terlalu besar, dan `src/config/` yang lokasinya benar belum terintegrasi serta masih menduplikasi constants implementation.
+5. Marketing route group dan static Server Component sudah benar, tetapi landing masih placeholder: belum ada marketing layout/components, theme-preview hero, featured themes, personalized preview, pricing, privacy/security, FAQ, final CTA, atau footer.
+6. Route `/katalog`, `/demo/[slug]`, `/lead-magnet`, dan legal belum tersedia; CTA canonical dan flow `landing → theme → personalized preview → auth → editor` belum terhubung.
+7. Marketing metadata/OG/sitemap/robots, Plus Jakarta Sans via `next/font`, CSS public-static dark mode, responsive image proof, dan browser accessibility/performance evidence belum tersedia.
+8. Structure dan boundary verifier tetap lulus karena hanya memeriksa bentuk folder dan client/server heuristic; verifier tidak mendeteksi cycle, deep cross-domain import, atau import ordering.
+9. Canonical product tree belum lengkap: dashboard `tamu`/`rekening`, wedding template, admin UI, payment client/server boundaries, explicit checkout/analytics modules, Playwright E2E setup, dan public asset groups belum tersedia. Ini dicatat sebagai implementation gap, bukan asumsi bahwa seluruh file yang sudah ada salah ditempatkan.
+
+### Verification
+
+- TypeScript typecheck: passed.
+- ESLint: failed — 7 errors, 26 warnings.
+- Structure verifier: passed.
+- Client/server boundary verifier: passed, tetapi coverage tidak mencakup domain cycle/deep import.
+- Read-only cross-domain import scan: failed — enam edge terdeteksi dan terdapat cycle `invitation ↔ theme`.
+- Canonical target path inventory: incomplete — dashboard child routes, admin UI, payment/checkout boundaries, E2E setup, dan public asset groups belum lengkap.
+- Vitest: failed — 2 suites failed because `@testing-library/dom` is unavailable; 188 tests passed.
+- PIN Edge Function check/tests: passed — 3 tests.
+- Migration filename/empty-file verifier: passed, tetapi tidak memvalidasi executable SQL.
+- Next.js production build: passed.
+- OpenNext Cloudflare build: not proven locally; Windows symlink operation for `sharp` failed.
+- Dependency audit: passed — 0 known vulnerabilities at audit time.
+- Local Supabase reset/pgTAP/db lint: not run because Docker is unavailable.
+- Latest GitHub Actions run for audited HEAD: failed at `supabase start`; subsequent database and quality steps were skipped.
+- Five GitHub Actions runs terbaru yang diperiksa seluruhnya berstatus failure.
+
+### Detailed evidence
+
+- `docs/audits/2026-08-27-compliance-audit.md`
+- CI: https://github.com/indologian/weplan/actions/runs/33073971910
+
+### Milestone status correction
+
+- M0: `PARTIAL`
+- M1: `INCOMPLETE`
+- M2: `PARTIAL`
+- M3: `PARTIAL / UNPROVEN`
+- M4: `INCOMPLETE`
+- M5: `PARTIAL`
+- M6: `INCOMPLETE`
+- M7: `INCOMPLETE`
+- M8: `INCOMPLETE`
+- Launch gate: `FAIL`
+
+### Security and data handling
+
+Audit record tidak memuat secret, token, credential, PII, raw production payload, atau raw sensitive log. Findings menggunakan file path, line-level code evidence, aggregate test results, commit SHA, dan CI URL.
+
+### Spec deviations
+
+Tidak ada specification deviation yang disetujui. Temuan merupakan implementation gaps terhadap specification authority.
+
+### Traceability
+
+- Audit documentation: pending commit.
+- Remediation: not started.
+
+### Next work package
+
+`WP-AUDIT-REMEDIATION-01 — Migration Chain and CI Recovery`.
+
+Work package berikutnya hanya boleh dimulai setelah persetujuan eksplisit user. Prioritas pertama adalah memulihkan executable clean migration chain dan CI sebelum memperbaiki milestone berikutnya.
