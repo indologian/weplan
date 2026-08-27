@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS admin_role_change_requests (
   id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   requested_by     UUID NOT NULL,
   target_user_id   UUID NOT NULL,
-  current_role     TEXT NOT NULL CHECK (current_role IN ('user','admin','super_admin')),
+  previous_role     TEXT NOT NULL CHECK (previous_role IN ('user','admin','super_admin')),
   target_role      TEXT NOT NULL CHECK (target_role IN ('user','admin','super_admin')),
   reason_code      TEXT NOT NULL,
   reason_note      TEXT,
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS admin_role_change_requests (
   approved_by      UUID,
   created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   resolved_at      TIMESTAMPTZ,
-  CHECK (current_role <> target_role),
+  CHECK (previous_role <> target_role),
   CHECK (approved_by IS NULL OR approved_by <> requested_by),
   CHECK (approved_by IS NULL OR approved_by <> target_user_id),
   CHECK (
