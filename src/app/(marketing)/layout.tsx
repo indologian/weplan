@@ -1,3 +1,4 @@
+import { Button } from "@/shared/components/ui/button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicEnv } from "@/shared/lib/env/public";
@@ -20,25 +21,26 @@ export const metadata: Metadata = {
   },
 };
 
+
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
       <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <nav className="mx-auto flex max-w-5xl items-center justify-between p-4 sm:px-6" aria-label="Global">
-          <Link href="/" className="font-semibold tracking-tight text-xl">weplan</Link>
+          <div className="flex items-center gap-8">
+            <Link href="/" className="font-semibold tracking-tight text-xl">weplan</Link>
+            <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
+              <Link href="/katalog" className="hover:text-foreground transition-colors">Katalog Tema</Link>
+              <Link href="/lead-magnet" className="hover:text-foreground transition-colors">Checklist Pernikahan</Link>
+            </div>
+          </div>
           <div className="flex items-center gap-4">
-            <Link 
-              href="/login" 
-              className="text-sm font-medium hover:underline p-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
-            >
-              Masuk
-            </Link>
-            <Link 
-              href="/create" 
-              className="text-sm font-medium bg-primary text-primary-foreground px-4 py-2 rounded-md hover:opacity-90 min-h-[44px] flex items-center justify-center"
-            >
-              Coba Tema Gratis
-            </Link>
+            <Button variant="ghost" asChild className="hidden sm:inline-flex min-h-[44px]">
+              <Link href="/login">Masuk</Link>
+            </Button>
+            <Button asChild className="min-h-[44px]">
+              <Link href="/create">Coba Tema Gratis</Link>
+            </Button>
           </div>
         </nav>
       </header>
