@@ -5,19 +5,12 @@ import { useState } from "react";
 type Attendance = "confirmed" | "declined";
 
 type Props = {
+  invitationId: string;
   guestName?: string;
-  isOpen: boolean;
-  onSubmit: (data: {
-    name: string;
-    phone: string;
-    attendance: Attendance;
-    guestCount: number;
-    wishMessage: string;
-  }) => Promise<void>;
   className?: string;
 };
 
-export function RsvpForm({ guestName, isOpen, onSubmit, className }: Props) {
+export function RsvpForm({ invitationId, guestName, className }: Props) {
   const [name, setName] = useState(guestName ?? "");
   const [phone, setPhone] = useState("");
   const [attendance, setAttendance] = useState<Attendance>("confirmed");
@@ -26,14 +19,17 @@ export function RsvpForm({ guestName, isOpen, onSubmit, className }: Props) {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setPending(true);
     setMessage("");
     try {
-      await onSubmit({ name, phone, attendance, guestCount, wishMessage });
+      const response = await fetch("/api/guest/rsvp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invitationId, name, phone, attendance, guestCount: attendance === "declined" ? 0 : guestCount, wishMessage }),
+      });
+      if (!response.ok) throw new Error("RSVP submission failed");
       setMessage("Terima kasih atas konfirmasi Anda!");
     } catch {
       setMessage("Gagal mengirim. Silakan coba lagi.");
@@ -56,16 +52,16 @@ export function RsvpForm({ guestName, isOpen, onSubmit, className }: Props) {
             />
           </label>
         )}
-        {isOpen && (
-          <label>
-            Nomor WhatsApp
-            <input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-          </label>
-        )}
+        <label>
+          Nomor WhatsApp
+          <input
+            type="tel"
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+          />
+        </label>
         <fieldset>
           <legend>Kehadiran</legend>
           <label>

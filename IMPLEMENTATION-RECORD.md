@@ -2406,3 +2406,112 @@ Work package berikutnya hanya boleh dimulai setelah persetujuan eksplisit user. 
   - Output build Next.js (16.3.3) menyatakan sukses (Compiled successfully) tanpa cyclic dependency, siap dieksekusi Cloudflare Workers (melalui open-next).
 - **Status:** COMPLETE
 
+## [2026-08-28] WP-THEME-ARCH-01: Wedding Theme Architecture Remediation
+
+### Goal
+
+Menutup temuan audit arsitektur theme system pada File 01, File 03, File 05, dan File 06 M3 tanpa menambah business rule atau schema tersembunyi.
+
+### Canonical references
+
+- File 01 §§14–15 — dependency, file organization, dan theme boundary.
+- File 03 — public invitation interaction, responsive, dan accessibility contract.
+- File 05 §§1–2, 27, 29, 32–37 — composition, registry, media, performance, cultural review, dan QA.
+- File 06 M3 — server-compatible renderer dan client islands.
+
+### Changes
+
+- Mengganti mutable side-effect registry dengan lazy static mapping `renderer_key -> renderer loader`; metadata tier/name/visual spec tidak lagi diduplikasi di source registry.
+- Memutus dependency domain `invitation -> theme` melalui konfigurasi netral `src/config/renderer-keys.ts` dan menambahkan deteksi siklus domain pada boundary verification.
+- Mengembalikan renderer/section tema menjadi Server Components. Client boundary dibatasi ke access gate/audio, countdown, map lazy loader, lightbox, copy action, RSVP, dan bottom navigation.
+- Menggabungkan dispatch public/preview/demo melalui `WeddingRenderer`; switch renderer duplikat pada public page dihapus.
+- Memperluas public/private/preview projection dengan RSVP mode, approved wishes, dan seluruh media ready yang direferensikan couple/story/gallery/gift/audio.
+- Menggunakan derived image variant `medium`, dimensi, caption, serta `focus_x/focus_y`; theme image memakai `next/image` dan crop non-destruktif.
+- Menambahkan calendar CTA, address-based navigation fallback, lazy trusted map presentation, video/live embed, RSVP shell, wishes, QRIS, physical gift, safe-area navigation, dan single audio controller.
+- Memperbaiki access-gate focus isolation melalui conditional dialog dan `inert` pada content sebelum dibuka.
+- Memindahkan token CSS dari `:root` ke satu wrapper `.wedding-theme.<theme>`, mengaktifkan allowlisted DB token overrides, dan memuat display font melalui `next/font`.
+- Membuat cover, portrait treatment, dan gallery composition yang berbeda untuk Modern Editorial, Romantic Floral, Javanese Heritage, dan Luxury Midnight.
+- Menambahkan internal research note Javanese Heritage dengan status `REVIEW_REQUIRED`; tidak ada cultural approval yang diklaim.
+- Memperbaiki invariant RSVP declined agar attendance/guest count disimpan sebagai `0`.
+
+### Verification evidence
+
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS dengan 0 error; 26 warning lama di luar theme scope tetap tercatat.
+- `npm run verify:structure`: PASS.
+- `npm run verify:boundaries`: PASS, termasuk domain-cycle detector baru.
+- `npm run test`: PASS — 31 files, 210 tests.
+- `NEXT_DIST_DIR=.next-build-verification npm run build`: PASS — Next.js 16.3.3 production build compiled, typechecked, dan menghasilkan 21 static pages tanpa build error.
+- Runtime smoke test pada dev server aktif: `/demo/modern-editorial`, `/demo/romantic-floral`, `/demo/javanese-heritage`, dan `/demo/luxury-midnight` seluruhnya HTTP 200 serta memuat access gate dan RSVP server-rendered markup.
+- Temporary build directory dihapus setelah verification; proses `next dev` user tidak dihentikan.
+
+### Security and data handling
+
+Tidak ada secret, credential, token, PII, raw production payload, atau migration database baru dalam work package ini. Stable media URL dibangun hanya dari canonical `media_id` dan allowlisted variant.
+
+### Commit / CI / deployment evidence
+
+- Commit: belum dibuat pada saat record ditulis.
+- CI/deployment: tidak dijalankan; verification dilakukan lokal.
+
+### Remaining launch gate
+
+- Cultural review Javanese Heritage oleh reviewer yang kompeten masih `REVIEW_REQUIRED`.
+- Device QA nyata untuk narrow Android, iOS Safari, dan in-app browser belum memiliki evidence pada work package ini.
+- Warning lint lama di luar theme scope dan warning build `middleware`/Edge Runtime/`metadataBase` tetap menjadi backlog terpisah.
+
+### Status
+
+`IMPLEMENTED_AND_AUTOMATED_VERIFIED`; belum boleh dipromosikan menjadi seluruh launch-theme QA `COMPLETE` sampai manual cultural/device review di atas selesai.
+
+## [2026-08-28] WP-AUTH-GOOGLE-01: Google OAuth and Canonical Auth Callback
+
+### Goal
+
+Melengkapi login/register Google melalui Supabase Auth PKCE serta menyatukan keamanan return path untuk login password, OAuth, dan verifikasi email.
+
+### Canonical references
+
+- File 01 §6 dan auth intent/redirect contract — Supabase SSR client, HTTP callback boundary, session cookie, serta internal redirect yang aman.
+- File 03 — entry point login/register pada onboarding flow.
+- Supabase Google Auth dan Redirect URL guides — `signInWithOAuth`, PKCE code exchange, provider configuration, dan redirect allowlist.
+
+### Changes
+
+- Menambahkan tombol `Lanjutkan dengan Google` yang reusable pada halaman login dan register.
+- Memulai `signInWithOAuth({ provider: "google" })` dari browser dengan callback canonical `/callback` dan mempertahankan tujuan internal setelah autentikasi.
+- Memperbaiki `emailRedirectTo` register dari route yang tidak tersedia `/api/auth/callback` menjadi `/callback`.
+- Menyatukan sanitasi auth redirect pada `src/modules/auth/redirect.ts`; external URL, protocol-relative URL, backslash, dan control character ditolak.
+- Mempertahankan tujuan redirect ketika code exchange gagal dan menampilkan pesan kegagalan callback pada halaman login.
+- Menangani konfigurasi Supabase lokal melalui environment variables di `supabase/config.toml` dan placeholder non-secret di `.env.example`.
+- Menangani mode sign-up tanpa email confirmation dengan langsung menuju tujuan ketika Supabase mengembalikan session.
+
+### Verification evidence
+
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS dengan 0 error; 25 warning lama di luar auth scope tetap tercatat.
+- `npm test`: PASS — 33 files, 219 tests.
+- Unit/component tests baru: 9 assertions untuk safe redirect, canonical callback, pemanggilan provider Google, dan safe OAuth error feedback.
+- `NEXT_DIST_DIR=.next-build-verification npm run build`: PASS — Next.js 16.3.3 compiled, typechecked, dan menghasilkan route `/login`, `/register`, serta `/callback` tanpa build error.
+- Runtime smoke test pada dev server aktif: `/login` dan `/register` HTTP 200 serta keduanya memuat tombol Google.
+- Temporary build directory dihapus setelah verification; proses `next dev` user tidak dihentikan.
+
+### Security and data handling
+
+Tidak ada Google Client ID/secret nyata, token OAuth, cookie session, PII, atau raw provider payload yang ditulis ke repository atau record. Pesan error UI tidak meneruskan detail provider mentah.
+
+### Commit / CI / deployment evidence
+
+- Commit: belum dibuat pada saat record ditulis.
+- CI/deployment: tidak dijalankan; verification dilakukan lokal.
+
+### Remaining external configuration gate
+
+- Hosted Supabase project masih harus mengaktifkan provider Google dan mengisi Client ID/secret melalui Dashboard atau Management API.
+- Supabase redirect allowlist harus memuat URL `/callback` untuk domain production/preview yang digunakan.
+- Google Cloud OAuth client harus mengizinkan origin aplikasi dan callback Supabase project; end-to-end consent/account test membutuhkan credential tersebut.
+
+### Status
+
+`IMPLEMENTED_AND_AUTOMATED_VERIFIED`; live Google OAuth belum dapat dinyatakan `COMPLETE` sebelum external provider configuration dan end-to-end consent test tersedia.
+

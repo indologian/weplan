@@ -1,18 +1,18 @@
 @layer theme_modern_editorial {
-:root {
-  --me-bg: #faf8f5;
-  --me-surface: #f5f0ea;
-  --me-text: #2c2c2c;
-  --me-muted: #8a8580;
-  --me-accent: #c4a87c;
-  --me-accent-contrast: #ffffff;
-  --me-border: #e8e2da;
+.wedding-theme.modern-editorial {
+  --me-bg: var(--theme-bg, #faf8f5);
+  --me-surface: var(--theme-surface, #f5f0ea);
+  --me-text: var(--theme-text, #2c2c2c);
+  --me-muted: var(--theme-muted, #8a8580);
+  --me-accent: var(--theme-accent, #c4a87c);
+  --me-accent-contrast: var(--theme-accent-contrast, #ffffff);
+  --me-border: var(--theme-border, #e8e2da);
 
-  --me-font-display: "Playfair Display", "Georgia", serif;
-  --me-font-body: "Inter", system-ui, sans-serif;
+  --me-font-display: var(--font-wedding-display), Georgia, serif;
+  --me-font-body: var(--font-jakarta), system-ui, sans-serif;
 }
 
-.modern-editorial {
+.wedding-theme.modern-editorial {
   background-color: var(--me-bg);
   color: var(--me-text);
   font-family: var(--me-font-body);
@@ -46,6 +46,14 @@
   color: var(--me-muted);
   margin-bottom: 0.5rem;
 }
+
+.modern-editorial.me-cover { min-height: 100svh; display: grid; align-content: center; grid-template-columns: 2.5rem 1fr; gap: 1rem; padding: 3rem 2rem; text-align: left; }
+.modern-editorial .me-cover-index { grid-column: 1 / -1; font-size: 0.65rem; letter-spacing: 0.18em; }
+.modern-editorial .me-cover-rule { width: 1px; height: 100%; min-height: 17rem; background: var(--me-accent); }
+.modern-editorial.me-cover > :not(.me-cover-rule, .me-cover-index) { grid-column: 2; }
+.modern-editorial.me-cover h1 { display: grid; gap: 0.2rem; margin: 0; font-size: clamp(2.7rem, 11vw, 4.7rem); line-height: 0.92; }
+.modern-editorial .me-cover-and { margin-left: 1.5rem; color: var(--me-accent); font-size: 0.65em; font-style: italic; }
+.modern-editorial .me-cover-caption { max-width: 24ch; color: var(--me-muted); font-size: 0.85rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .modern-editorial * {

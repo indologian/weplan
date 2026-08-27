@@ -6,9 +6,7 @@ type Props = {
   venueName: string;
   address: string;
   navigationUrl: string;
-  latitude?: number | null;
-  longitude?: number | null;
-  mapProvider?: "google_embed" | "openfreemap";
+  mapSrc?: string | null;
   className?: string;
 };
 
@@ -16,12 +14,10 @@ export function MapAction({
   venueName,
   address,
   navigationUrl,
-  latitude,
-  longitude,
-  mapProvider = "google_embed",
+  mapSrc,
   className,
 }: Props) {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const iframeRef = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -38,17 +34,6 @@ export function MapAction({
     observer.observe(iframeRef.current);
     return () => observer.disconnect();
   }, []);
-
-  const hasCoords =
-    typeof latitude === "number" &&
-    typeof longitude === "number" &&
-    !Number.isNaN(latitude) &&
-    !Number.isNaN(longitude);
-
-  const mapSrc =
-    mapProvider === "google_embed" && hasCoords
-      ? `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1`
-      : null;
 
   return (
     <section className={className} aria-label="Lokasi acara">

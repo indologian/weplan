@@ -34,7 +34,7 @@ export async function getPublicInvitation(slug: string): Promise<PublicInvitatio
   const { data: invitation, error: invitationError } = await supabase
     .from("invitations")
     .select(`
-      id, slug, is_private, couple, love_story, bank_accounts, settings,
+      id, slug, is_private, rsvp_mode, couple, love_story, bank_accounts, settings,
       theme_id, published_at, expires_at, public_suspended_at,
       themes!inner ( renderer_key, design_tokens, layout_config )
     `)
@@ -97,34 +97,71 @@ export async function getPublicInvitation(slug: string): Promise<PublicInvitatio
     layoutConfig: (themeRaw.layout_config ?? {}) as Record<string, unknown>,
   };
 
-  const { data: galleryItems } = await supabase
+  const { data: galleryItems, error: galleryError } = await supabase
     .from("invitation_gallery_items")
-    .select(`
-      id, media_asset_id, caption, position,
-      media_assets!inner ( id, status, final_path, kind, purpose )
-    `)
+    .select("media_asset_id,caption,position")
     .eq("invitation_id", invitation.id)
     .order("position", { ascending: true });
 
-  const media: PublicMediaDTO[] = (galleryItems ?? [])
-    .filter((item) => {
-      const asset = item.media_assets as unknown as Record<string, unknown>;
-      return asset.status === "ready" && asset.final_path;
-    })
-    .map((item) => {
-      const asset = item.media_assets as unknown as Record<string, unknown>;
-      return {
-        mediaId: asset.id as string,
-        purpose: asset.purpose as string,
-        variant: "original",
-        url: `/api/media/${asset.id}/original`,
-      };
-    });
+  if (galleryError) throw new PublicInvitationError("Database error loading gallery", "DATABASE_ERROR");
+
+  const referencedIds = new Set<string>([
+    ...((galleryItems ?? []).map((item) => item.media_asset_id)),
+    invitation.couple?.groom?.photoMediaId,
+    invitation.couple?.bride?.photoMediaId,
+    ...((invitation.love_story ?? []).map((item: PublicInvitationDTO["loveStory"][number]) => item.photoMediaId)),
+    ...((invitation.bank_accounts ?? []).map((item: PublicInvitationDTO["bankAccounts"][number]) => item.qrisMediaId)),
+    invitation.settings?.backgroundAudioMediaId,
+  ].filter((value): value is string => typeof value === "string"));
+
+  const { data: assets, error: mediaError } = referencedIds.size > 0
+    ? await supabase
+        .from("media_assets")
+        .select("id,kind,purpose,status,final_path,width,height,focus_x,focus_y")
+        .eq("invitation_id", invitation.id)
+        .eq("status", "ready")
+        .in("id", [...referencedIds])
+    : { data: [], error: null };
+
+  if (mediaError) throw new PublicInvitationError("Database error loading media", "DATABASE_ERROR");
+
+  const galleryMetadata = new Map((galleryItems ?? []).map((item) => [
+    item.media_asset_id,
+    { caption: item.caption ?? undefined, position: item.position },
+  ]));
+  const media: PublicMediaDTO[] = (assets ?? []).map((asset) => {
+    const variant = asset.kind === "image" ? "medium" : "original";
+    return {
+      mediaId: asset.id,
+      purpose: asset.purpose,
+      variant,
+      url: `/api/media/${asset.id}/${variant}`,
+      width: asset.width,
+      height: asset.height,
+      focusX: Number(asset.focus_x),
+      focusY: Number(asset.focus_y),
+      caption: galleryMetadata.get(asset.id)?.caption,
+    };
+  }).sort((left, right) =>
+    (galleryMetadata.get(left.mediaId)?.position ?? Number.MAX_SAFE_INTEGER)
+      - (galleryMetadata.get(right.mediaId)?.position ?? Number.MAX_SAFE_INTEGER));
+
+  const { data: wishes, error: wishesError } = await supabase
+    .from("guests")
+    .select("name,wish_message,created_at")
+    .eq("invitation_id", invitation.id)
+    .eq("wish_status", "approved")
+    .not("wish_message", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (wishesError) throw new PublicInvitationError("Database error loading wishes", "DATABASE_ERROR");
 
   return {
     invitationId: invitation.id,
     slug: invitation.slug,
     isPrivate: invitation.is_private,
+    rsvpMode: invitation.rsvp_mode,
     couple: invitation.couple,
     loveStory: invitation.love_story,
     bankAccounts: invitation.bank_accounts,
@@ -136,5 +173,10 @@ export async function getPublicInvitation(slug: string): Promise<PublicInvitatio
       layoutConfig: theme.layoutConfig,
     },
     media,
+    wishes: (wishes ?? []).map((wish) => ({
+      name: wish.name,
+      wishMessage: wish.wish_message ?? "",
+      createdAt: wish.created_at,
+    })),
   };
 }

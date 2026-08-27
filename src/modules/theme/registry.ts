@@ -1,23 +1,18 @@
-import type { RendererComponent, ThemeDefinition } from "./types";
+import type { RendererKey } from "@/config/renderer-keys";
+import type { RendererLoader } from "./types";
 
-const registry = new Map<string, ThemeDefinition>();
+const rendererRegistry = {
+  _baseline: () => import("./themes/_baseline/renderer").then((module) => module.BaselineRenderer),
+  "modern-editorial-ivory": () => import("./themes/modern-editorial/renderer").then((module) => module.ModernEditorialRenderer),
+  "romantic-floral-watercolor": () => import("./themes/romantic-floral/renderer").then((module) => module.RomanticFloralRenderer),
+  "javanese-heritage": () => import("./themes/javanese-heritage/renderer").then((module) => module.JavaneseHeritageRenderer),
+  "luxury-midnight": () => import("./themes/luxury-midnight/renderer").then((module) => module.LuxuryMidnightRenderer),
+} satisfies Record<RendererKey, RendererLoader>;
 
-export function registerTheme(definition: ThemeDefinition): void {
-  registry.set(definition.key, definition);
+export function getRendererLoader(key: string): RendererLoader | undefined {
+  return rendererRegistry[key as RendererKey];
 }
 
-export function getTheme(key: string): ThemeDefinition | undefined {
-  return registry.get(key);
-}
-
-export function getRenderer(key: string): RendererComponent | undefined {
-  return registry.get(key)?.renderer;
-}
-
-export function getAllThemes(): ThemeDefinition[] {
-  return [...registry.values()];
-}
-
-export function getActiveRendererKeys(): string[] {
-  return [...registry.keys()];
+export function getActiveRendererKeys(): RendererKey[] {
+  return Object.keys(rendererRegistry) as RendererKey[];
 }

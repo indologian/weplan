@@ -1,5 +1,3 @@
-"use client";
-
 import { createRenderer } from "@/modules/theme/renderer";
 import { Cover } from "./cover";
 import { Couple } from "./couple";
@@ -10,6 +8,7 @@ import { Gift } from "./gift";
 import { Closing } from "./closing";
 
 export const ModernEditorialRenderer = createRenderer({
+  rootClassName: "wedding-theme modern-editorial",
   Cover,
   Couple,
   Events,

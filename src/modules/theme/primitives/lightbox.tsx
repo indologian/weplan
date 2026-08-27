@@ -1,14 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import Image from "next/image";
 
 type Props = {
   src: string;
   alt: string;
   className?: string;
+  width?: number | null;
+  height?: number | null;
+  focusX?: number;
+  focusY?: number;
 };
 
-export function Lightbox({ src, alt, className }: Props) {
+export function Lightbox({ src, alt, className, width, height, focusX = 0.5, focusY = 0.5 }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const open = useCallback(() => {
@@ -37,7 +42,14 @@ export function Lightbox({ src, alt, className }: Props) {
         className={className}
         aria-label={`Perbesar: ${alt}`}
       >
-        <img src={src} alt={alt} loading="lazy" />
+        <Image
+          src={src}
+          alt={alt}
+          width={width ?? 800}
+          height={height ?? 600}
+          sizes="(max-width: 480px) 50vw, 240px"
+          style={{ width: "100%", height: "auto", aspectRatio: "4 / 5", objectFit: "cover", objectPosition: `${focusX * 100}% ${focusY * 100}%` }}
+        />
       </button>
       <dialog
         ref={dialogRef}
@@ -52,10 +64,13 @@ export function Lightbox({ src, alt, className }: Props) {
           padding: 0,
         }}
       >
-        <img
+        <Image
           src={src}
           alt={alt}
-          style={{ maxWidth: "90vw", maxHeight: "90vh", objectFit: "contain" }}
+          width={width ?? 1200}
+          height={height ?? 900}
+          sizes="90vw"
+          style={{ width: "auto", height: "auto", maxWidth: "90vw", maxHeight: "80vh", objectFit: "contain" }}
         />
         <div style={{ textAlign: "center", marginTop: "0.5rem" }}>
           <button type="button" onClick={close} aria-label="Tutup">

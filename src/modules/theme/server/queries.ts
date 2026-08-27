@@ -12,6 +12,16 @@ export type FeaturedThemeDTO = {
   price_amount: number;
 };
 
+type FeaturedThemeRow = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  preview_image: string | null;
+  category: string;
+  tiers: { code: string; price_amount: number } | null;
+};
+
 export async function getFeaturedThemes(limit: number = 4): Promise<FeaturedThemeDTO[]> {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase
@@ -24,14 +34,14 @@ export async function getFeaturedThemes(limit: number = 4): Promise<FeaturedThem
     return [];
   }
 
-  return data.map((t: any) => ({
+  return (data as unknown as FeaturedThemeRow[]).map((t) => ({
     id: t.id,
     name: t.name,
     code: t.slug,
     description: t.description,
     thumbnail_url: t.preview_image,
-    is_premium: t.tiers?.code !== 'basic',
+    is_premium: t.tiers?.code !== "basic",
     category: t.category,
-    price_amount: t.tiers?.price_amount ?? 0
+    price_amount: t.tiers?.price_amount ?? 0,
   }));
 }

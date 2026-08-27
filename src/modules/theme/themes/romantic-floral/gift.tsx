@@ -31,6 +31,7 @@ export function Gift({ invitation }: SectionRendererProps) {
             bankName={account.bankName}
             accountNumber={account.accountNumber}
             accountHolder={account.accountHolder}
+            qris={invitation.media.find((media) => media.mediaId === account.qrisMediaId)}
           />
         ))}
       </div>

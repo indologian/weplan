@@ -3,13 +3,18 @@
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/shared/lib/supabase/browser-client";
+import { GoogleOAuthButton } from "@/modules/auth/components/google-oauth-button";
+import {
+  createAuthCallbackUrl,
+  getSafeAuthRedirect,
+} from "@/modules/auth/redirect";
 
 import Link from "next/link";
 
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirect") ?? "/dashboard";
+  const redirectTo = getSafeAuthRedirect(searchParams.get("redirect"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -37,11 +42,11 @@ function RegisterForm() {
 
     try {
       const supabase = createSupabaseBrowserClient();
-      const { error: authError } = await supabase.auth.signUp({
+      const { data, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/api/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+          emailRedirectTo: createAuthCallbackUrl(window.location.origin, redirectTo),
         },
       });
 
@@ -52,7 +57,13 @@ function RegisterForm() {
         return;
       }
 
-      setSuccess("Akun berhasil dibuat! Silakan cek email untuk verifikasi, lalu masuk.");
+      if (data.session) {
+        router.push(redirectTo);
+        router.refresh();
+        return;
+      }
+
+      setSuccess("Akun berhasil dibuat! Silakan cek email untuk verifikasi.");
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
@@ -67,10 +78,18 @@ function RegisterForm() {
       </h1>
       <p style={{ color: "#6b7280", textAlign: "center", marginBottom: "1.5rem", fontSize: "0.875rem" }}>
         Sudah punya akun?{" "}
-        <Link href="/login" style={{ color: "#1a1a1a", fontWeight: 500 }}>
+        <Link href={`/login?redirect=${encodeURIComponent(redirectTo)}`} style={{ color: "#1a1a1a", fontWeight: 500 }}>
           Masuk
         </Link>
       </p>
+
+      <GoogleOAuthButton redirectTo={redirectTo} />
+
+      <div aria-hidden="true" style={{ display: "flex", alignItems: "center", gap: "0.75rem", margin: "1.25rem 0", color: "#9ca3af", fontSize: "0.75rem" }}>
+        <span style={{ height: 1, flex: 1, background: "#e5e7eb" }} />
+        ATAU DENGAN EMAIL
+        <span style={{ height: 1, flex: 1, background: "#e5e7eb" }} />
+      </div>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         <div>
@@ -137,11 +156,11 @@ function RegisterForm() {
         </div>
 
         {error && (
-          <p style={{ color: "#dc2626", fontSize: "0.875rem" }}>{error}</p>
+          <p role="alert" style={{ color: "#dc2626", fontSize: "0.875rem" }}>{error}</p>
         )}
 
         {success && (
-          <p style={{ color: "#16a34a", fontSize: "0.875rem" }}>{success}</p>
+          <p role="status" style={{ color: "#16a34a", fontSize: "0.875rem" }}>{success}</p>
         )}
 
         <button

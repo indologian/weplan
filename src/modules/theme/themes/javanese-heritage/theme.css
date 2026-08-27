@@ -1,20 +1,20 @@
 @layer theme_javanese_heritage {
-:root {
-  --jh-bg: #faf5ed;
-  --jh-surface: #f0e8d8;
-  --jh-text: #3a3a3a;
-  --jh-muted: #7a7060;
-  --jh-accent: #b8860b;
+.wedding-theme.javanese-heritage {
+  --jh-bg: var(--theme-bg, #faf5ed);
+  --jh-surface: var(--theme-surface, #f0e8d8);
+  --jh-text: var(--theme-text, #3a3a3a);
+  --jh-muted: var(--theme-muted, #7a7060);
+  --jh-accent: var(--theme-accent, #b8860b);
   --jh-sogan: #c4a87c;
-  --jh-accent-contrast: #ffffff;
-  --jh-border: #d4c8b0;
+  --jh-accent-contrast: var(--theme-accent-contrast, #ffffff);
+  --jh-border: var(--theme-border, #d4c8b0);
   --jh-gold-rule: #b8860b;
 
-  --jh-font-display: "Playfair Display", "Georgia", serif;
-  --jh-font-body: "Inter", system-ui, sans-serif;
+  --jh-font-display: var(--font-wedding-display), Georgia, serif;
+  --jh-font-body: var(--font-jakarta), system-ui, sans-serif;
 }
 
-.javanese-heritage {
+.wedding-theme.javanese-heritage {
   background-color: var(--jh-bg);
   color: var(--jh-text);
   font-family: var(--jh-font-body);
@@ -83,6 +83,13 @@
   background: var(--jh-gold-rule);
   margin: 0 auto 1rem;
 }
+
+.javanese-heritage.jh-cover { display: flex; min-height: 100svh; flex-direction: column; justify-content: center; padding: 3rem 1.5rem; text-align: center; }
+.javanese-heritage .jh-cover-crown { width: 8rem; height: 5rem; margin: 0 auto 1rem; border-right: 1px solid var(--jh-accent); border-left: 1px solid var(--jh-accent); clip-path: polygon(50% 0, 100% 100%, 72% 78%, 50% 100%, 28% 78%, 0 100%); background: color-mix(in srgb, var(--jh-accent) 18%, transparent); }
+.javanese-heritage .jh-cover-panel { max-width: 24rem; margin: 1rem auto; border: 4px double var(--jh-border); padding: 2.5rem 1.25rem; }
+.javanese-heritage .jh-cover-panel > p { margin: 0 0 1.5rem; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; }
+.javanese-heritage .jh-cover-panel h1 { display: grid; gap: 0.6rem; margin: 0; font-size: clamp(2rem, 8vw, 3.4rem); line-height: 1.05; }
+.javanese-heritage .jh-cover-note { max-width: 30ch; margin: 1.5rem auto 0; color: var(--jh-muted); font-size: 0.85rem; }
 
 @media (prefers-reduced-motion: reduce) {
   .javanese-heritage * {

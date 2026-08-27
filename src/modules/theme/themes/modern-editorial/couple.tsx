@@ -1,11 +1,9 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
+import { Portrait } from "@/modules/theme/primitives/portrait";
 
 export function Couple({ invitation }: SectionRendererProps) {
   const groom = invitation.couple.groom;
   const bride = invitation.couple.bride;
-
-  const groomPhoto = invitation.media.find((m) => m.mediaId === groom?.photoMediaId)?.url;
-  const bridePhoto = invitation.media.find((m) => m.mediaId === bride?.photoMediaId)?.url;
 
   return (
     <section
@@ -24,13 +22,7 @@ export function Couple({ invitation }: SectionRendererProps) {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          {groomPhoto && (
-            <img 
-              src={groomPhoto} 
-              alt={groom?.name}
-              style={{ width: "160px", height: "160px", objectFit: "cover", borderRadius: "50%", marginBottom: "1.5rem", border: "1px solid var(--me-border)" }}
-            />
-          )}
+          <Portrait invitation={invitation} mediaId={groom?.photoMediaId} name={groom?.name} variant="circle" />
           <h2
             style={{
               fontFamily: "var(--me-font-display)",
@@ -57,13 +49,7 @@ export function Couple({ invitation }: SectionRendererProps) {
           &
         </span>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-          {bridePhoto && (
-            <img 
-              src={bridePhoto} 
-              alt={bride?.name}
-              style={{ width: "160px", height: "160px", objectFit: "cover", borderRadius: "50%", marginBottom: "1.5rem", border: "1px solid var(--me-border)" }}
-            />
-          )}
+          <Portrait invitation={invitation} mediaId={bride?.photoMediaId} name={bride?.name} variant="circle" />
           <h2
             style={{
               fontFamily: "var(--me-font-display)",

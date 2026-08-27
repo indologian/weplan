@@ -1,6 +1,6 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
 import { Countdown } from "@/modules/theme/primitives/countdown";
-import { MapAction } from "@/modules/theme/primitives/map-action";
+import { EventActions } from "@/modules/theme/primitives/event-actions";
 
 function formatDate(iso: string | null, timezone: string | null): string {
   if (!iso) return "";
@@ -67,15 +67,7 @@ export function Events({ invitation }: SectionRendererProps) {
           <p>{formatTime(event.startsAt, event.timezone)}</p>
           {event.venueName && <p>{event.venueName}</p>}
           {event.address && <p style={{ fontSize: "0.875rem", opacity: 0.7 }}>{event.address}</p>}
-          {event.latitude && event.longitude && (
-            <MapAction
-              venueName={event.venueName}
-              address={event.address}
-              navigationUrl={`https://www.google.com/maps/dir/?api=1&destination=${event.latitude},${event.longitude}`}
-              latitude={event.latitude}
-              longitude={event.longitude}
-            />
-          )}
+          <EventActions event={event} />
         </article>
       ))}
     </section>

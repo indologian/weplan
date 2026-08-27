@@ -7,7 +7,12 @@ export function Gallery({ invitation }: SectionRendererProps) {
     .map((m) => ({
       mediaId: m.mediaId,
       url: m.url,
-      alt: `Foto galeri`,
+      alt: m.caption ?? "Foto galeri pernikahan",
+      caption: m.caption,
+      width: m.width,
+      height: m.height,
+      focusX: m.focusX,
+      focusY: m.focusY,
     }));
 
   if (items.length === 0) return null;
@@ -21,7 +26,7 @@ export function Gallery({ invitation }: SectionRendererProps) {
       <div className="rf-floral-divider">
         <span className="rf-floral-dot" />
       </div>
-      <GallerySection items={items} />
+      <GallerySection items={items} layout="floral" />
     </section>
   );
 }

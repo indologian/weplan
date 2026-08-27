@@ -1,5 +1,5 @@
-import { getActiveRendererKeys } from "@/modules/theme/registry";
+import { RENDERER_KEYS } from "@/config/renderer-keys";
 
 export function getKnownRendererKeys(): string[] {
-  return getActiveRendererKeys();
+  return [...RENDERER_KEYS];
 }

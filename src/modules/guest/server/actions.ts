@@ -21,9 +21,16 @@ const rsvpSubmissionSchema = z.object({
   name: z.string().min(1).max(160),
   phone: z.string().min(1).max(20),
   attendance: z.enum(["confirmed", "declined"]),
-  guestCount: z.number().int().min(1).max(10),
+  guestCount: z.number().int().min(0).max(10),
   wishMessage: z.string().max(500).optional(),
-}).strict();
+}).strict().superRefine((input, context) => {
+  if (input.attendance === "confirmed" && input.guestCount < 1) {
+    context.addIssue({ code: "custom", path: ["guestCount"], message: "Confirmed attendance requires at least one guest" });
+  }
+  if (input.attendance === "declined" && input.guestCount !== 0) {
+    context.addIssue({ code: "custom", path: ["guestCount"], message: "Declined attendance must have zero guests" });
+  }
+});
 
 function normalizePhone(phone: string): string {
   return phone.replace(/[^0-9+]/g, "").trim();

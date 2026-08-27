@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 type Props = {
   bankName: string;
   accountNumber: string;
   accountHolder: string;
   className?: string;
+  qris?: { url: string; width: number | null; height: number | null };
 };
 
 export function GiftCard({
@@ -14,6 +16,7 @@ export function GiftCard({
   accountNumber,
   accountHolder,
   className,
+  qris,
 }: Props) {
   const [copied, setCopied] = useState(false);
 
@@ -40,6 +43,16 @@ export function GiftCard({
       <p>{bankName}</p>
       <p>{accountNumber}</p>
       <p>{accountHolder}</p>
+      {qris && (
+        <Image
+          src={qris.url}
+          alt={`Kode QRIS atas nama ${accountHolder}`}
+          width={qris.width ?? 600}
+          height={qris.height ?? 600}
+          sizes="280px"
+          style={{ width: "min(100%, 280px)", height: "auto", margin: "1rem auto" }}
+        />
+      )}
       <button type="button" onClick={handleCopy}>
         {copied ? "Tersalin" : "Salin Nomor"}
       </button>

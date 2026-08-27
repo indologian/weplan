@@ -1,4 +1,5 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
+import { Portrait } from "@/modules/theme/primitives/portrait";
 
 export function Couple({ invitation }: SectionRendererProps) {
   const groom = invitation.couple.groom;
@@ -21,6 +22,7 @@ export function Couple({ invitation }: SectionRendererProps) {
         }}
       >
         <div>
+          <Portrait invitation={invitation} mediaId={groom?.photoMediaId} name={groom?.name} variant="oval" />
           <h2
             style={{
               fontFamily: "var(--lm-font-display)",
@@ -51,6 +53,7 @@ export function Couple({ invitation }: SectionRendererProps) {
           &
         </span>
         <div>
+          <Portrait invitation={invitation} mediaId={bride?.photoMediaId} name={bride?.name} variant="oval" />
           <h2
             style={{
               fontFamily: "var(--lm-font-display)",

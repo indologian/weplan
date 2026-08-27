@@ -1,20 +1,20 @@
 @layer theme_romantic_floral {
-:root {
-  --rf-bg: #fdf8f3;
-  --rf-surface: #f4e4e6;
-  --rf-text: #4a3a3a;
-  --rf-muted: #9a8a8a;
-  --rf-accent: #d4a0a0;
-  --rf-accent-contrast: #ffffff;
-  --rf-border: #e8d5d0;
+.wedding-theme.romantic-floral {
+  --rf-bg: var(--theme-bg, #fdf8f3);
+  --rf-surface: var(--theme-surface, #f4e4e6);
+  --rf-text: var(--theme-text, #4a3a3a);
+  --rf-muted: var(--theme-muted, #9a8a8a);
+  --rf-accent: var(--theme-accent, #d4a0a0);
+  --rf-accent-contrast: var(--theme-accent-contrast, #ffffff);
+  --rf-border: var(--theme-border, #e8d5d0);
   --rf-peach: #f7ddd0;
   --rf-sage: #b5c4b1;
 
-  --rf-font-display: "Playfair Display", "Georgia", serif;
-  --rf-font-body: "Inter", system-ui, sans-serif;
+  --rf-font-display: var(--font-wedding-display), Georgia, serif;
+  --rf-font-body: var(--font-jakarta), system-ui, sans-serif;
 }
 
-.romantic-floral {
+.wedding-theme.romantic-floral {
   background-color: var(--rf-bg);
   color: var(--rf-text);
   font-family: var(--rf-font-body);
@@ -95,6 +95,13 @@
   background: var(--rf-accent);
   opacity: 0.6;
 }
+
+.romantic-floral.rf-cover { position: relative; display: grid; min-height: 100svh; place-items: center; overflow: hidden; padding: 3rem 1.5rem; text-align: center; }
+.romantic-floral .rf-cover-frame { position: relative; z-index: 1; width: min(100%, 22rem); border: 1px solid var(--rf-border); border-radius: 50% 50% 1rem 1rem; padding: 5rem 1.5rem 3rem; background: color-mix(in srgb, var(--rf-bg) 88%, transparent); }
+.romantic-floral .rf-cover-frame h1 { display: grid; gap: 0.5rem; margin: 1rem 0; font-size: clamp(2.4rem, 10vw, 4rem); line-height: 1; }
+.romantic-floral .rf-cover-bloom { position: absolute; width: 13rem; height: 13rem; border-radius: 45% 55% 48% 52%; background: radial-gradient(circle at 35% 35%, var(--rf-peach), transparent 60%), radial-gradient(circle at 70% 65%, var(--rf-sage), transparent 65%); opacity: 0.45; }
+.romantic-floral .rf-cover-bloom-left { top: -3rem; left: -5rem; transform: rotate(25deg); }
+.romantic-floral .rf-cover-bloom-right { right: -5rem; bottom: -3rem; transform: rotate(205deg); }
 
 @media (prefers-reduced-motion: reduce) {
   .romantic-floral * {

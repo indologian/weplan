@@ -1,20 +1,12 @@
 export type {
-  ThemeVisualSpec,
-  ThemePalette,
-  ThemeTypography,
-  ThemeGeometry,
-  ThemeArtDirection,
   RendererProps,
   RendererComponent,
-  ThemeDefinition,
+  RendererLoader,
 } from "./types";
 
 export { createRenderer } from "./renderer";
 export type { ThemeSectionRenderers } from "./renderer";
 export {
-  registerTheme,
-  getTheme,
-  getRenderer,
-  getAllThemes,
+  getRendererLoader,
   getActiveRendererKeys,
 } from "./registry";

@@ -27,14 +27,15 @@ export default async function DemoPage({
     invitationId: "demo-id",
     slug: slug,
     isPrivate: false,
+    rsvpMode: "open",
     couple: {
-      groom: { name: "Romeo Montague", nickname: "Romeo", parentNames: ["Bpk. Montague", "Ibu Montague"], photoMediaId: "groom-photo" },
-      bride: { name: "Juliet Capulet", nickname: "Juliet", parentNames: ["Bpk. Capulet", "Ibu Capulet"], photoMediaId: "bride-photo" },
+      groom: { name: "Romeo Montague", nickname: "Romeo", parentNames: ["Bpk. Montague", "Ibu Montague"], photoMediaId: "10000000-0000-4000-8000-000000000001" },
+      bride: { name: "Juliet Capulet", nickname: "Juliet", parentNames: ["Bpk. Capulet", "Ibu Capulet"], photoMediaId: "10000000-0000-4000-8000-000000000002" },
     },
     loveStory: [],
     bankAccounts: [],
     settings: {
-      backgroundAudioMediaId: "bg-music",
+      backgroundAudioMediaId: "10000000-0000-4000-8000-000000000003",
       sectionVisibility: {
         guestbook: true,
         gallery: true,
@@ -75,12 +76,14 @@ export default async function DemoPage({
       layoutConfig: {},
     },
     media: [
-      { mediaId: "1", purpose: "cover", variant: "main", url: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1080&q=80" },
-      { mediaId: "2", purpose: "gallery", variant: "main", url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1080&q=80" },
-      { mediaId: "3", purpose: "gallery", variant: "main", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1080&q=80" },
-      { mediaId: "groom-photo", purpose: "profile", variant: "main", url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80" },
-      { mediaId: "bride-photo", purpose: "profile", variant: "main", url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" },
-      { mediaId: "bg-music", purpose: "audio", variant: "main", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_d16790a6ea.mp3" }
+      { mediaId: "10000000-0000-4000-8000-000000000004", purpose: "gallery", variant: "medium", url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1080&q=80", width: 1080, height: 720, focusX: 0.5, focusY: 0.5, caption: "Hari bahagia kami" },
+      { mediaId: "10000000-0000-4000-8000-000000000005", purpose: "gallery", variant: "medium", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1080&q=80", width: 1080, height: 1350, focusX: 0.5, focusY: 0.4, caption: "Sebuah perjalanan bersama" },
+      { mediaId: "10000000-0000-4000-8000-000000000001", purpose: "couple_portrait", variant: "medium", url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=600&q=80", width: 600, height: 750, focusX: 0.5, focusY: 0.35 },
+      { mediaId: "10000000-0000-4000-8000-000000000002", purpose: "couple_portrait", variant: "medium", url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=600&q=80", width: 600, height: 750, focusX: 0.5, focusY: 0.35 },
+      { mediaId: "10000000-0000-4000-8000-000000000003", purpose: "background_audio", variant: "original", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_d16790a6ea.mp3", width: null, height: null, focusX: 0.5, focusY: 0.5 }
+    ],
+    wishes: [
+      { name: "Sahabat", wishMessage: "Semoga selalu bahagia dan penuh berkah.", createdAt: "2026-08-28T00:00:00Z" },
     ],
     guestName: "Tamu Kehormatan",
   };

@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
-import type { RendererProps } from "./types";
 import type { PublicInvitationDTO } from "@/modules/invitation/types";
-import { MailOpen } from "lucide-react";
-import { MusicController } from "./primitives/music-controller";
+import { InvitationNavigation } from "./primitives/invitation-navigation";
+import { InvitationShell } from "./primitives/invitation-shell";
+import { RsvpForm } from "./primitives/rsvp-form";
+import type { RendererProps } from "./types";
 
-export type SectionRendererProps = {
-  invitation: PublicInvitationDTO;
-  guestName?: string;
-};
+export type SectionRendererProps = { invitation: PublicInvitationDTO; guestName?: string };
 
 export type ThemeSectionRenderers = {
+  rootClassName: string;
   Cover: React.ComponentType<SectionRendererProps>;
   Events: React.ComponentType<SectionRendererProps>;
   Couple: React.ComponentType<SectionRendererProps>;
@@ -19,103 +17,131 @@ export type ThemeSectionRenderers = {
   Closing: React.ComponentType<SectionRendererProps>;
 };
 
-export function createRenderer(sections: ThemeSectionRenderers) {
-  function ThemeRenderer({ invitation, guestName }: RendererProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const sectionProps: SectionRendererProps = { invitation, guestName };
-    const audioUrl = invitation.media.find((m) => m.mediaId === invitation.settings.backgroundAudioMediaId)?.url;
+function isVisible(invitation: PublicInvitationDTO, key: string, fallback = true): boolean {
+  return invitation.settings.sectionVisibility?.[key] ?? fallback;
+}
 
+function safeToken(value: unknown): string | undefined {
+  if (typeof value !== "string" || value.length > 100 || /url|expression|[;{}]/i.test(value)) return undefined;
+  return value;
+}
 
-    // Kunci scroll body saat undangan belum dibuka
-    useEffect(() => {
-      if (!isOpen) {
-        document.body.style.overflow = "hidden";
-      } else {
-        document.body.style.overflow = "unset";
-      }
-      return () => {
-        document.body.style.overflow = "unset";
-      };
-    }, [isOpen]);
+function getThemeStyle(invitation: PublicInvitationDTO): React.CSSProperties {
+  const tokens = invitation.theme.designTokens;
+  const layout = invitation.theme.layoutConfig;
+  const style: Record<string, string> = {};
+  const mappings: Array<[Record<string, unknown>, string, string]> = [
+    [tokens, "background", "--theme-bg"], [tokens, "surface", "--theme-surface"],
+    [tokens, "text", "--theme-text"], [tokens, "muted", "--theme-muted"],
+    [tokens, "accent", "--theme-accent"], [tokens, "accentContrast", "--theme-accent-contrast"],
+    [tokens, "border", "--theme-border"], [layout, "contentWidth", "--theme-content-width"],
+    [layout, "sectionSpace", "--theme-section-space"], [layout, "cardRadius", "--theme-card-radius"],
+    [layout, "photoRadius", "--theme-photo-radius"],
+  ];
+  for (const [source, key, variable] of mappings) {
+    const value = safeToken(source[key]);
+    if (value) style[variable] = value;
+  }
+  return style as React.CSSProperties;
+}
 
-    return (
-      <main style={{ minHeight: "100svh", position: "relative" }}>
-        {/* Overlay Buka Undangan (Envelope) */}
-        <div 
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 backdrop-blur-md transition-all duration-700 ease-in-out"
-          style={{
-            opacity: isOpen ? 0 : 1,
-            pointerEvents: isOpen ? "none" : "auto",
-            transform: isOpen ? "translateY(-100%)" : "translateY(0)"
-          }}
-        >
-          <div className="text-center space-y-6 px-6 max-w-sm animate-in fade-in zoom-in duration-700">
-            <h2 className="text-2xl font-semibold tracking-tight">Undangan Pernikahan</h2>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground uppercase tracking-widest">Kepada Yth.</p>
-              <p className="text-xl font-medium">{invitation.guestName || guestName || "Tamu Kehormatan"}</p>
-            </div>
-            <button 
-              onClick={() => {
-                setIsOpen(true);
-                // Sinkron memutar musik tepat saat user berinteraksi
-                const audio = document.getElementById("wedding-audio") as HTMLAudioElement;
-                if (audio) {
-                  audio.play().catch((e) => console.warn("Autoplay ditolak:", e));
-                }
-              }}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background rounded-full font-medium transition-transform hover:scale-105 active:scale-95"
-            >
-              <MailOpen className="w-4 h-4" />
-              Buka Undangan
-            </button>
-          </div>
-        </div>
-
-        {/* Konten Utama Undangan */}
-        <div style={{ opacity: isOpen ? 1 : 0, transition: "opacity 1s ease-in-out 0.3s" }}>
-          <sections.Cover {...sectionProps} />
-          {invitation.settings.openingText && (
-            <section aria-label="Pembuka" style={{ padding: "3rem 1.5rem", textAlign: "center" }}>
-              <p style={{ maxWidth: "600px", margin: "0 auto", lineHeight: 1.6 }}>{invitation.settings.openingText}</p>
-              {invitation.settings.quoteText && (
-                <blockquote style={{ marginTop: "1.5rem", fontStyle: "italic", opacity: 0.8 }}>
-                  "{invitation.settings.quoteText}"
-                </blockquote>
-              )}
-            </section>
-          )}
-          <sections.Couple {...sectionProps} />
-          <sections.Events {...sectionProps} />
-          {invitation.loveStory.length > 0 && (
-            <sections.Story {...sectionProps} />
-          )}
-          <sections.Gallery {...sectionProps} />
-          <sections.Gift {...sectionProps} />
-          <sections.Closing {...sectionProps} />
-        </div>
-
-        {/* Global Floating Music Player */}
-        {audioUrl && (
-          <div 
-            className="fixed bottom-6 right-6 z-40 transition-all duration-700 ease-in-out"
-            style={{ 
-              opacity: isOpen ? 1 : 0,
-              transform: isOpen ? "scale(1)" : "scale(0.8)",
-              pointerEvents: isOpen ? "auto" : "none" 
-            }}
-          >
-            <MusicController 
-              src={audioUrl} 
-              autoPlay={isOpen}
-              className="flex items-center justify-center w-12 h-12 bg-foreground text-background rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform" 
+function VideoSection({ invitation }: { invitation: PublicInvitationDTO }) {
+  const embeds = invitation.settings.videoEmbeds ?? [];
+  if (embeds.length === 0) return null;
+  return (
+    <section className="theme-generic-section" aria-labelledby="video-title">
+      <p className="theme-overline">Siaran & Video</p>
+      <h2 id="video-title">Saksikan Momen Kami</h2>
+      <div className="theme-video-list">
+        {embeds.map((embed) => (
+          <div key={embed.id} className="theme-video-frame">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${embed.externalId}`}
+              title={embed.title ?? (embed.kind === "live" ? "Siaran langsung pernikahan" : "Video pernikahan")}
+              loading="lazy"
+              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
             />
           </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Wishes({ invitation }: { invitation: PublicInvitationDTO }) {
+  if (invitation.wishes.length === 0) return null;
+  return (
+    <section className="theme-generic-section" aria-labelledby="wishes-title">
+      <p className="theme-overline">Ucapan & Doa</p>
+      <h2 id="wishes-title">Dari Tamu</h2>
+      <div className="theme-wishes">
+        {invitation.wishes.map((wish) => (
+          <blockquote key={`${wish.name}-${wish.createdAt}`}>
+            <p>{wish.wishMessage}</p><footer>— {wish.name}</footer>
+          </blockquote>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PhysicalGift({ invitation }: { invitation: PublicInvitationDTO }) {
+  const gift = invitation.settings.physicalGift;
+  if (!gift?.enabled || (!gift.recipient && !gift.address)) return null;
+  return (
+    <section className="theme-generic-section" aria-labelledby="physical-gift-title">
+      <p className="theme-overline">Kirim Hadiah</p>
+      <h2 id="physical-gift-title">Alamat Penerima</h2>
+      {gift.recipient && <p>{gift.recipient}</p>}
+      {gift.address && <address>{gift.address}</address>}
+    </section>
+  );
+}
+
+export function createRenderer(sections: ThemeSectionRenderers) {
+  function ThemeRenderer({ invitation, guestName }: RendererProps) {
+    const sectionProps = { invitation, guestName };
+    const audioUrl = invitation.media.find((media) => media.mediaId === invitation.settings.backgroundAudioMediaId)?.url;
+    const displayGuestName = invitation.guestName ?? guestName ?? "Tamu Kehormatan";
+    const showStory = invitation.loveStory.length > 0 && isVisible(invitation, "loveStory");
+    const showGallery = invitation.media.some((media) => media.purpose === "gallery") && isVisible(invitation, "gallery");
+    const showVideo = (invitation.settings.videoEmbeds?.length ?? 0) > 0 && isVisible(invitation, "video");
+    const showRsvp = invitation.rsvpMode === "open" && isVisible(invitation, "rsvp");
+    const showWishes = invitation.wishes.length > 0 && isVisible(invitation, "guestbook");
+    const showGift = (invitation.bankAccounts.length > 0 || invitation.settings.physicalGift?.enabled) && isVisible(invitation, "gift");
+    const navigation = [
+      { id: "couple", label: "Mempelai" },
+      ...(invitation.events.length > 0 ? [{ id: "events", label: "Acara" }] : []),
+      ...(showGallery ? [{ id: "gallery", label: "Galeri" }] : []),
+      ...(showRsvp ? [{ id: "rsvp", label: "RSVP" }] : []),
+      ...(showGift ? [{ id: "gift", label: "Hadiah" }] : []),
+    ];
+
+    return (
+      <InvitationShell className={sections.rootClassName} guestName={displayGuestName} audioUrl={audioUrl} style={getThemeStyle(invitation)}>
+        <div id="cover"><sections.Cover {...sectionProps} /></div>
+        {(invitation.settings.openingText || invitation.settings.quoteText) && (
+          <section className="theme-opening" aria-labelledby="opening-title">
+            <p className="theme-overline">Dengan penuh sukacita</p>
+            <h2 id="opening-title" className="sr-only">Pembuka</h2>
+            {invitation.settings.openingText && <p>{invitation.settings.openingText}</p>}
+            {invitation.settings.quoteText && <blockquote><q>{invitation.settings.quoteText}</q></blockquote>}
+          </section>
         )}
-      </main>
+        <div id="couple"><sections.Couple {...sectionProps} /></div>
+        <div id="events"><sections.Events {...sectionProps} /></div>
+        {showStory && <div id="story"><sections.Story {...sectionProps} /></div>}
+        {showGallery && <div id="gallery"><sections.Gallery {...sectionProps} /></div>}
+        {showVideo && <div id="video"><VideoSection invitation={invitation} /></div>}
+        {showRsvp && <div id="rsvp"><RsvpForm invitationId={invitation.invitationId} guestName={invitation.guestName ?? guestName} className="theme-generic-section theme-rsvp" /></div>}
+        {showWishes && <div id="wishes"><Wishes invitation={invitation} /></div>}
+        {showGift && <div id="gift"><sections.Gift {...sectionProps} /><PhysicalGift invitation={invitation} /></div>}
+        <sections.Closing {...sectionProps} />
+        <InvitationNavigation items={navigation} />
+      </InvitationShell>
     );
   }
-
-  ThemeRenderer.displayName = "ThemeRenderer";
+  ThemeRenderer.displayName = `ThemeRenderer(${sections.rootClassName})`;
   return ThemeRenderer;
 }

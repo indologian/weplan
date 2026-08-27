@@ -85,12 +85,18 @@ export type PublicMediaDTO = {
   purpose: string;
   variant: string;
   url: string;
+  width: number | null;
+  height: number | null;
+  focusX: number;
+  focusY: number;
+  caption?: string;
 };
 
 export type PublicInvitationDTO = {
   invitationId: string;
   slug: string;
   isPrivate: boolean;
+  rsvpMode: "personal_only" | "open";
   couple: z.infer<typeof invitationCoupleSchema>;
   loveStory: z.infer<typeof loveStoryItemSchema>[];
   bankAccounts: z.infer<typeof bankAccountItemSchema>[];
@@ -102,5 +108,10 @@ export type PublicInvitationDTO = {
     layoutConfig: Record<string, unknown>;
   };
   media: PublicMediaDTO[];
+  wishes: Array<{
+    name: string;
+    wishMessage: string;
+    createdAt: string;
+  }>;
   guestName?: string;
 };
