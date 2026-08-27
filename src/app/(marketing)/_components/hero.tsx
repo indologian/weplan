@@ -7,7 +7,7 @@ export function Hero() {
       <div className="max-w-3xl space-y-8">
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
           Undangan yang terasa <br className="hidden md:inline" />
-          <span className="text-primary italic font-serif">seperti milik kalian.</span>
+          <span className="text-primary">seperti milik kalian.</span>
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground leading-relaxed max-w-2xl mx-auto">
           Platform pembuat undangan digital premium dengan ratusan tema elegan. Sesuaikan warna, musik, hingga galeri dalam beberapa menit.

@@ -3,7 +3,7 @@ import { type FeaturedThemeDTO } from "@/modules/theme/server/queries";
 
 export function FeaturedThemes({ themes }: { themes: FeaturedThemeDTO[] }) {
   return (
-    <section className="bg-muted/30 py-24 dark:bg-[#1a1a1a]">
+    <section className="bg-muted/30 py-24">
       <div className="mx-auto max-w-5xl px-6">
         <div className="mb-12 text-center space-y-4">
           <h2 className="text-3xl font-semibold tracking-tight">Pilih Tema Favorit Anda</h2>
@@ -14,7 +14,7 @@ export function FeaturedThemes({ themes }: { themes: FeaturedThemeDTO[] }) {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {themes?.map((theme) => (
-            <div key={theme.id} className="group relative overflow-hidden rounded-xl border bg-background shadow-sm transition-all hover:shadow-md dark:border-[#333]">
+            <div key={theme.id} className="group relative overflow-hidden rounded-xl border bg-background shadow-sm transition-all hover:shadow-md">
               <div className="aspect-[3/4] bg-muted relative">
                 {theme.thumbnail_url ? (
                   <img 
@@ -45,7 +45,7 @@ export function FeaturedThemes({ themes }: { themes: FeaturedThemeDTO[] }) {
         <div className="mt-12 text-center">
           <Link 
             href="/katalog" 
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-sm font-medium hover:underline text-primary dark:text-[#f8f9fa]"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-sm font-medium hover:underline text-primary"
           >
             Lihat semua tema &rarr;
           </Link>
