@@ -56,7 +56,14 @@ export function createRenderer(sections: ThemeSectionRenderers) {
               <p className="text-xl font-medium">{invitation.guestName || guestName || "Tamu Kehormatan"}</p>
             </div>
             <button 
-              onClick={() => setIsOpen(true)}
+              onClick={() => {
+                setIsOpen(true);
+                // Sinkron memutar musik tepat saat user berinteraksi
+                const audio = document.getElementById("wedding-audio") as HTMLAudioElement;
+                if (audio) {
+                  audio.play().catch((e) => console.warn("Autoplay ditolak:", e));
+                }
+              }}
               className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background rounded-full font-medium transition-transform hover:scale-105 active:scale-95"
             >
               <MailOpen className="w-4 h-4" />
