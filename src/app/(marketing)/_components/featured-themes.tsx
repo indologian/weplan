@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { type FeaturedThemeDTO } from "@/modules/theme/server/queries";
+import { Button } from "@/shared/components/ui/button";
 
 export function FeaturedThemes({ themes }: { themes: FeaturedThemeDTO[] }) {
   return (
@@ -14,8 +15,8 @@ export function FeaturedThemes({ themes }: { themes: FeaturedThemeDTO[] }) {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {themes?.map((theme) => (
-            <div key={theme.id} className="group relative overflow-hidden rounded-xl border bg-background shadow-sm transition-all hover:shadow-md">
-              <div className="aspect-[3/4] bg-muted relative">
+            <div key={theme.id} className="group flex flex-col relative overflow-hidden rounded-2xl border bg-card text-card-foreground shadow-sm transition-all hover:-translate-y-1 hover:shadow-md">
+              <div className="aspect-[3/4] bg-muted relative overflow-hidden">
                 {theme.thumbnail_url ? (
                   <img 
                     src={theme.thumbnail_url} 
@@ -34,9 +35,23 @@ export function FeaturedThemes({ themes }: { themes: FeaturedThemeDTO[] }) {
                   </span>
                 )}
               </div>
-              <div className="p-4">
-                <h3 className="font-medium text-lg leading-none mb-2">{theme.name}</h3>
-                <p className="text-sm text-muted-foreground line-clamp-2">{theme.description}</p>
+              <div className="p-5 flex flex-col flex-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                  {theme.category}
+                </span>
+                <h3 className="font-semibold text-lg leading-none mb-2">{theme.name}</h3>
+                <div className="text-sm font-medium mt-1">
+                  {theme.price_amount > 0 ? (
+                    new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(theme.price_amount)
+                  ) : (
+                    "Gratis"
+                  )}
+                </div>
+                <div className="mt-auto pt-5">
+                  <Button asChild className="w-full">
+                    <Link href={`/demo/${theme.code}`}>Coba Tema Ini</Link>
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
