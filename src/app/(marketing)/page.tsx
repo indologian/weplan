@@ -1,14 +1,8 @@
 import Link from "next/link";
-import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
+import { getFeaturedThemes } from "@/modules/theme/server/queries";
 
 export default async function HomePage() {
-  const supabase = createSupabaseServiceClient();
-  const { data: featuredThemes } = await supabase
-    .from("themes")
-    .select("id, name, code, description, thumbnail_url, is_premium")
-    .eq("is_active", true)
-    .order("name")
-    .limit(4);
+  const featuredThemes = await getFeaturedThemes(4);
 
   return (
     <div className="flex flex-col">

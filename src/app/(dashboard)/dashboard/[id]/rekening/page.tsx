@@ -1,5 +1,5 @@
 import { requireUser } from "@/modules/auth/server/require-user";
-import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
+import { getEditorDTO } from "@/modules/invitation/server/queries";
 import { notFound } from "next/navigation";
 
 export default async function RekeningPage({
@@ -10,13 +10,7 @@ export default async function RekeningPage({
   const user = await requireUser();
   const { id } = await params;
 
-  const supabase = createSupabaseServiceClient();
-  const { data: invitation } = await supabase
-    .from("invitations")
-    .select("id")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const invitation = await getEditorDTO(user.id, id);
 
   if (!invitation) notFound();
 
