@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Music2, VolumeX } from "lucide-react";
 
 type Props = {
   src: string;
+  autoPlay?: boolean;
   className?: string;
 };
 
-export function MusicController({ src, className }: Props) {
+export function MusicController({ src, autoPlay, className }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
 
@@ -23,17 +25,25 @@ export function MusicController({ src, className }: Props) {
     };
   }, [src]);
 
+  useEffect(() => {
+    if (autoPlay && audioRef.current && !playing) {
+      audioRef.current.play().then(() => {
+        setPlaying(true);
+      }).catch(() => {
+        // Handle blocked autoplay
+      });
+    }
+  }, [autoPlay]); // Triggered when autoPlay changes
+
   const toggle = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
     if (playing) {
       audio.pause();
+      setPlaying(false);
     } else {
-      audio.play().catch(() => {
-        // autoplay blocked — user needs to interact first
-      });
+      audio.play().then(() => setPlaying(true)).catch(() => {});
     }
-    setPlaying((p) => !p);
   }, [playing]);
 
   return (
@@ -43,7 +53,7 @@ export function MusicController({ src, className }: Props) {
       className={className}
       aria-label={playing ? "Pause musik" : "Putar musik"}
     >
-      {playing ? "⏸" : "🎵"}
+      {playing ? <Music2 className="w-5 h-5 animate-pulse" /> : <VolumeX className="w-5 h-5" />}
     </button>
   );
 }

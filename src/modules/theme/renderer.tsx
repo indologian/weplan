@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import type { RendererProps } from "./types";
 import type { PublicInvitationDTO } from "@/modules/invitation/types";
-import { MailOpen } from "lucide-react"; // Import an icon
+import { MailOpen } from "lucide-react";
+import { MusicController } from "./primitives/music-controller";
 
 export type SectionRendererProps = {
   invitation: PublicInvitationDTO;
@@ -16,13 +17,14 @@ export type ThemeSectionRenderers = {
   Gallery: React.ComponentType<SectionRendererProps>;
   Gift: React.ComponentType<SectionRendererProps>;
   Closing: React.ComponentType<SectionRendererProps>;
-  Music?: React.ComponentType<SectionRendererProps>;
 };
 
 export function createRenderer(sections: ThemeSectionRenderers) {
   function ThemeRenderer({ invitation, guestName }: RendererProps) {
     const [isOpen, setIsOpen] = useState(false);
     const sectionProps: SectionRendererProps = { invitation, guestName };
+    const audioUrl = invitation.media.find((m) => m.mediaId === invitation.settings.backgroundAudioMediaId)?.url;
+
 
     // Kunci scroll body saat undangan belum dibuka
     useEffect(() => {
@@ -83,11 +85,26 @@ export function createRenderer(sections: ThemeSectionRenderers) {
           )}
           <sections.Gallery {...sectionProps} />
           <sections.Gift {...sectionProps} />
-          {sections.Music && invitation.settings.backgroundAudioMediaId && (
-            <sections.Music {...sectionProps} />
-          )}
           <sections.Closing {...sectionProps} />
         </div>
+
+        {/* Global Floating Music Player */}
+        {audioUrl && (
+          <div 
+            className="fixed bottom-6 right-6 z-40 transition-all duration-700 ease-in-out"
+            style={{ 
+              opacity: isOpen ? 1 : 0,
+              transform: isOpen ? "scale(1)" : "scale(0.8)",
+              pointerEvents: isOpen ? "auto" : "none" 
+            }}
+          >
+            <MusicController 
+              src={audioUrl} 
+              autoPlay={isOpen}
+              className="flex items-center justify-center w-12 h-12 bg-foreground text-background rounded-full shadow-lg hover:scale-105 active:scale-95 transition-transform" 
+            />
+          </div>
+        )}
       </main>
     );
   }

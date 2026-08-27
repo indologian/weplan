@@ -28,12 +28,13 @@ export default async function DemoPage({
     slug: slug,
     isPrivate: false,
     couple: {
-      groom: { name: "Romeo Montague", nickname: "Romeo", parentNames: ["Bpk. Montague", "Ibu Montague"] },
-      bride: { name: "Juliet Capulet", nickname: "Juliet", parentNames: ["Bpk. Capulet", "Ibu Capulet"] },
+      groom: { name: "Romeo Montague", nickname: "Romeo", parentNames: ["Bpk. Montague", "Ibu Montague"], photoMediaId: "groom-photo" },
+      bride: { name: "Juliet Capulet", nickname: "Juliet", parentNames: ["Bpk. Capulet", "Ibu Capulet"], photoMediaId: "bride-photo" },
     },
     loveStory: [],
     bankAccounts: [],
     settings: {
+      backgroundAudioMediaId: "bg-music",
       sectionVisibility: {
         guestbook: true,
         gallery: true,
@@ -76,7 +77,10 @@ export default async function DemoPage({
     media: [
       { mediaId: "1", purpose: "cover", variant: "main", url: "https://images.unsplash.com/photo-1519741497674-611481863552?w=1080&q=80" },
       { mediaId: "2", purpose: "gallery", variant: "main", url: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1080&q=80" },
-      { mediaId: "3", purpose: "gallery", variant: "main", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1080&q=80" }
+      { mediaId: "3", purpose: "gallery", variant: "main", url: "https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=1080&q=80" },
+      { mediaId: "groom-photo", purpose: "profile", variant: "main", url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80" },
+      { mediaId: "bride-photo", purpose: "profile", variant: "main", url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80" },
+      { mediaId: "bg-music", purpose: "audio", variant: "main", url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_d16790a6ea.mp3" }
     ],
     guestName: "Tamu Kehormatan",
   };
