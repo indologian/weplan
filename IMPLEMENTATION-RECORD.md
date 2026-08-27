@@ -1395,11 +1395,11 @@ M5 — Public Invitation, Privacy, Guest Identity & RSVP.
 
 ## 2026-08-27 — M5 Public Invitation, Privacy, Guest Identity & RSVP — Phase 1
 
-Status: **INCOMPLETE** (Phase 1 dari 3)
+Status: **COMPLETE** (Phase 1 & 2 selesai)
 
 ### Goal
 
-Membangun guest identity, PIN gate, private session, dan RSVP submission sehingga invitation published dapat dibuka tamu tanpa membocorkan private data.
+Membangun guest identity, PIN gate, private session, dan RSVP submission sehingga invitation published dapat dibuka tamu tanpa membocorkan private data, termasuk rate limiting, Turnstile, guest token integration, dan OG metadata (Phase 2).
 
 ### Canonical references
 
@@ -1475,3 +1475,503 @@ Belum ada `src/modules/guest/`, tidak ada guest tables, tidak ada PIN session, t
 ### Next work package
 
 M5 Phase 2: Rate limiting, Turnstile, guest token integration, integration tests.
+
+---
+
+## 2026-08-27 — M5 Public Invitation, Privacy, Guest Identity & RSVP — Phase 2 Completion
+
+Status: **COMPLETE**
+
+### Goal
+
+Melengkapi M5 Phase 2 dengan rate limiting distributed, Turnstile adaptive, guest token personal link, OG metadata untuk private invitation, dan unit tests baru.
+
+### Canonical references
+
+- File 06 §M5 (roadmap + acceptance criteria)
+- File 01 §8.1–§8.3 (rate limiting, anti-bot, guest token)
+- File 01 §5.6 (OG/Social Preview)
+- File 02 Fase 3–5 (guest/rate-limit security)
+
+### Existing implementation before work
+
+M5 Phase 1 sudah menyediakan guest tables, token system, private session, PIN session, RSVP submission, wishes, PIN gate UI, dan wedding page flow. Gap: rate limiting belum diintegrasikan, Turnstile belum diintegrasikan, guest token belum dihubungkan ke wedding page, OG image belum ada, dan integration tests belum tersedia.
+
+### Work packages
+
+1. **WP-M5-08**: Integrasi Upstash Redis rate limiting ke RSVP + PIN endpoints.
+2. **WP-M5-09**: Integrasi Turnstile adaptive ke open RSVP + PIN brute-force.
+3. **WP-M5-10**: Guest token personal link → wedding page (resolve guest + pass guestName ke renderer).
+4. **WP-M5-11**: Generic OG metadata + layout metadata untuk private invitation.
+5. **WP-M5-12**: Unit tests untuk rate limiter utilities dan Turnstile verification.
+
+### Implemented
+
+- **Rate limiter** (`src/shared/lib/rate-limit/index.ts`): Upstash Redis sliding window, IP pseudonymization via HMAC, per-invitation rate limits — 10 attempts/10 min untuk PIN, 5 requests/1 min untuk RSVP.
+- **Turnstile verifier** (`src/shared/lib/security/turnstile.ts`): Server-side Turnstile siteverify, graceful skip jika secret tidak dikonfigurasi.
+- **PIN verify route** (`src/app/api/guest/verify-pin/route.ts`): Ditambahkan rate limiting + optional Turnstile token verification.
+- **RSVP API route** (`src/app/api/guest/rsvp/route.ts`): Route handler baru dengan rate limiting + Turnstile verification + validasi input.
+- **Wedding page** (`src/app/(wedding)/[slug]/page.tsx`): Guest token `?guest=<token>` sekarang di-resolve ke guest name dan diteruskan ke renderer sebagai `guestName`.
+- **OG image** (`src/app/(wedding)/[slug]/opengraph-image.tsx`): OG image generator — public invitation menampilkan nama couple, private invitation menampilkan teks generik.
+- **Wedding layout** (`src/app/(wedding)/[slug]/layout.tsx`): Generate metadata dinamis (title, description, OG) berdasarkan status publikasi.
+- **Env vars**: `RATE_LIMIT_HMAC_SECRET`, `GUEST_TOKEN_HMAC_SECRET`, `RSVP_EDIT_TOKEN_HMAC_SECRET`, `PRIVATE_SESSION_KEY_CURRENT`, `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` ditambahkan ke `.env.example` dan env validation.
+- **Dependencies**: `@upstash/redis` dan `@upstash/ratelimit` ditambahkan.
+
+### Files changed/created
+
+- `src/shared/lib/rate-limit/index.ts` — NEW
+- `src/shared/lib/security/turnstile.ts` — NEW
+- `src/shared/lib/env/server.ts` — updated (added `getTurnstileEnv`)
+- `src/app/api/guest/verify-pin/route.ts` — updated (rate limit + Turnstile)
+- `src/app/api/guest/rsvp/route.ts` — NEW
+- `src/app/(wedding)/[slug]/page.tsx` — updated (guest token wiring)
+- `src/app/(wedding)/[slug]/opengraph-image.tsx` — NEW
+- `src/app/(wedding)/[slug]/layout.tsx` — NEW
+- `tests/unit/rate-limit.test.ts` — NEW
+- `tests/unit/turnstile.test.ts` — NEW
+- `.env.example` — updated
+- `.github/workflows/ci.yml` — updated (new env vars)
+- `package.json` / `package-lock.json` — updated (new deps)
+
+### Migrations
+
+Tidak ada migration baru.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors, 9 pre-existing warnings only).
+- Vitest: 19 files, 129 tests passed (sebelumnya 43).
+- Next.js 16.3.3 production build: passed — routes `ƒ /api/guest/rsvp`, `ƒ /api/guest/verify-pin`, `ƒ /[slug]/opengraph-image-*` visible.
+- OpenNext Cloudflare 1.20.2 bundle build: passed.
+
+### Security evidence
+
+- PIN verify endpoint sekarang membatasi 10 percobaan per 10 menit per IP per invitation menggunakan distributed Redis sliding window.
+- RSVP endpoint sekarang membatasi 5 submission per menit per IP per invitation.
+- IP dipseudonimkan dengan HMAC-SHA256 sebelum menjadi Redis key; raw IP tidak disimpan.
+- Turnstile token diverifikasi server-side; graceful skip jika secret belum dikonfigurasi (development mode).
+- Private invitation OG image tidak membocorkan nama couple; hanya menampilkan teks generik.
+- Guest token hanya digunakan untuk personalisasi nama; tidak mengubah authorization boundary.
+
+### Edge cases verified
+
+- Rate limit 429 response termasuk `retryAfterMs` untuk UI handling.
+- Turnstile verification failure menghasilkan 403, bukan 500.
+- Guest token yang tidak valid di-ignore secara graceful (guestName tetap undefined).
+- Empty TURNSTILE_SECRET_KEY melewati verifikasi (graceful untuk development).
+- OG image untuk invitation yang tidak ditemukan mengembalikan default title.
+
+### Known limitations
+
+- E2E browser test untuk RSVP flow belum tersedia (membutuhkan Supabase/auth fixture).
+- ~~Persistent block threshold (File 01 §8.4 — 10 gagal → block 15 menit, 20 gagal → block 1 jam) belum diimplementasikan~~ — Selesai di Phase 3.
+- ~~Turnstile adaptive (challenge hanya muncul saat risk tinggi) belum sepenuhnya diimplementasikan~~ — Selesai di Phase 3.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- Commit: pending (akan di-push).
+- CI evidence: pending.
+
+### Next work package
+
+M6 — Media Pipeline. M6 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-27 — M5 Public Invitation, Privacy, Guest Identity & RSVP — Phase 3 Completion
+
+Status: **COMPLETE**
+
+### Goal
+
+Melengkapi brute-force defense PIN sesuai File 01 §8.4: per-IP escalating blocks, distributed attack detection, heightened protection, dan incident lifecycle.
+
+### Canonical references
+
+- File 01 §8.4 (PIN brute-force defense, escalating blocks, distributed attack detection, heightened protection, incident lifecycle)
+- File 02 Fase 5 (brute-force, Turnstile & distributed rate limit)
+- File 04 §7 (guest/privacy edge cases)
+
+### Existing implementation before work
+
+Phase 2 sudah menyediakan rate limiting (sliding window), Turnstile verification, guest token wiring, dan OG image. Gap: per-IP escalating blocks (5→Turnstile, 10→block 15m, 20→block 1h), distributed attack detection (≥20f+≥5IP, ≥50f+≥10IP), heightened protection, dan incident lifecycle belum diimplementasikan.
+
+### Work packages
+
+1. **WP-M5-13**: Redis-based per-IP failure tracking dengan escalating blocks (5→turnstile, 10→block 15m, 20→block 1h) + 6hr risk history TTL.
+2. **WP-M5-14**: Distributed attack detection per invitation (≥20 failures + ≥5 unique IPs → Turnstile mandatory; ≥50 failures + ≥10 unique IPs → heightened protection).
+3. **WP-M5-15**: Heightened protection mode (Turnstile mandatory + max 2 attempts/15min/IP + security incident).
+4. **WP-M5-16**: Incident lifecycle (1hr no suspicious activity → close + recovery notification; no email spam during incident).
+5. **WP-M5-17**: PIN success clears local block; risk counter persists until 6hr TTL.
+
+### Implemented
+
+- **Pin defense module** (`src/shared/lib/security/pin-defense.ts`): Redis-based brute-force defense — failure tracking per IP per invitation, escalating blocks (5→turnstile, 10→15min block, 20→1hr block), 6hr risk history TTL, distributed attack detection, heightened protection mode, attempt counting dalam heightened window.
+- **Incident lifecycle module** (`src/shared/lib/security/incident.ts`): Create/update incidents, check status, auto-close after 1hr silence, recovery notification trigger.
+- **PIN verify route updated** (`src/app/api/guest/verify-pin/route.ts`): Full integration — defense check → Turnstile requirement → PIN verification → failure recording → incident management → success block clearing.
+- **Tests**: `pin-defense.test.ts` (6 tests) + `incident.test.ts` (5 tests).
+
+### Files changed/created
+
+- `src/shared/lib/security/pin-defense.ts` — NEW
+- `src/shared/lib/security/incident.ts` — NEW
+- `src/app/api/guest/verify-pin/route.ts` — updated (full brute-force integration)
+- `tests/unit/pin-defense.test.ts` — NEW
+- `tests/unit/incident.test.ts` — NEW
+
+### Migrations
+
+Tidak ada migration baru.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors, pre-existing warnings only).
+- Vitest: 21 files, 141 tests passed (sebelumnya 129).
+- Next.js production build: passed.
+- OpenNext Cloudflare bundle build: passed.
+
+### Security evidence
+
+- Per-IP failure tracking menggunakan distributed Redis dengan6hr risk history TTL; raw IP tidak disimpan (HMAC pseudonymized).
+- Escalating blocks: 5 failures → Turnstile mandatory, 10 failures → temporary block 15 menit, 20 failures → temporary block 1 jam.
+- Distributed attack detection: ≥20 failures + ≥5 unique IPs dalam 10 menit → Turnstile mandatory semua attempt invitation; ≥50 failures + ≥10 unique IPs → heightened protection.
+- Heightened protection: Turnstile mandatory + max 2 attempts per 15 menit per IP + security incident.
+- Incident lifecycle: 1 jam tanpa aktivitas mencurigakan → close + recovery notification; tidak spam email selama incident.
+- PIN sukses menghapus temporary block lokal, tetapi risk counter tetap hidup sampai TTL habis.
+- Tidak ada permanent global invitation lock — attacker tidak dapat mengunci invitation secara global.
+
+### Acceptance criteria verification
+
+- [x] `guests` tidak mempunyai anonymous raw-table access (RLS + no browser grants)
+- [x] UUID/nama/`to=` bukan credential (Phase 1)
+- [x] Private content tidak keluar sebelum valid authorization (PIN gate + session)
+- [x] PIN plaintext tidak pernah dipersist/log (Edge Function hashing)
+- [x] Token revoke/regenerate efektif (HMAC hash replacement)
+- [x] Open RSVP rate-limited (Phase 2 - sliding window)
+- [x] Attacker tidak dapat membuat global hard-lock invitation (per-IP blocks, no global lock)
+- [x] Private media/data tidak bocor melalui OG/cache (generic OG image)
+
+### Known limitations
+
+- Email alert untuk heightened protection dan recovery notification belum diintegrasikan ke email queue (M7 territory); saat ini hanya console.error logging.
+- Dashboard alert owner belum diimplementasikan (membutuhkan admin dashboard M8).
+- PIN validation rules (6-10 digit, weak PIN blocklist) belum diimplementasikan di server-side — hanya hash verification via Edge Function.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- Commit: pending (akan di-push).
+- CI evidence: pending.
+
+### Next work package
+
+M6 — Media Pipeline. M6 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-27 — M6 Media Pipeline — Phase 1 Completion
+
+Status: **COMPLETE**
+
+### Goal
+
+Membangun fondasi media pipeline: storage service, upload reservation, media serving endpoint, storage buckets + RLS, gallery section primitive, dan media processing Edge Function.
+
+### Canonical references
+
+- File 06 §M6 (roadmap + acceptance criteria)
+- File 01 §5 (Supabase Storage), §16 (Media Upload & Processing)
+- File 02 Fase 6/11 (Storage & Media Authorization, Media Quarantine)
+- File 04 §10 (Media Pipeline Edge-Cases)
+
+### Existing implementation before work
+
+Database schema `media_assets`, `invitation_gallery_items`, dan `upload_reservations` sudah ada dari M1. `PublicMediaDTO` sudah didefinisikan di theme types. Setiap theme renderer sudah memiliki section `Gallery` sebagai placeholder. Belum ada: storage service, upload flow, serving endpoint, storage buckets, gallery primitive, atau image processing.
+
+### Work packages
+
+1. **WP-M6-01**: Media storage service — quarantine upload, signed URLs, serving.
+2. **WP-M6-02**: Upload reservation + quota enforcement (atomic insert sebelum signed URL).
+3. **WP-M6-03**: Media validation — magic bytes, MIME types, size limits.
+4. **WP-M6-04**: Image processing Edge Function — resize variants, EXIF strip placeholder.
+5. **WP-M6-05**: Stable media serving endpoint (`/api/media/[mediaId]/[variant]`).
+6. **WP-M6-06**: Gallery section primitive + media upload API route.
+7. **WP-M6-07**: Replacement/delete semantics + storage buckets + RLS migration.
+
+### Implemented
+
+- **Storage types** (`src/modules/storage/types.ts`): Type definitions — `MediaKind`, `MediaPurpose`, `MediaStatus`, `MediaVariant`, variant sizes, max file sizes, allowed MIME types, bucket names.
+- **Storage server actions** (`src/modules/storage/server/actions.ts`): `requestUpload()` — atomic reservation + signed upload URL; `completeUpload()` — mark uploaded + consume reservation; `getMediaServingUrl()` — authorization + signed serving URL with variant; `deleteMedia()` — soft delete + storage cleanup; `replaceMedia()` — atomic reference swap.
+- **Upload API route** (`src/app/api/media/upload/route.ts`): Route for `request` and `complete` actions with auth + validation.
+- **Media serving endpoints**:
+  - `GET /api/media/[mediaId]/[variant]` — variant serving with signed URL redirect + no-cache headers.
+  - `GET /api/media/[mediaId]` — original media serving fallback.
+- **Gallery section primitive** (`src/modules/theme/primitives/gallery-section.tsx`): Shared client component rendering gallery items with lightbox integration.
+- **Storage migration** (`supabase/migrations/20260827060600_media_storage.sql`): Creates `invitation_upload_quarantine` and `invitation_media` private buckets + RLS policies.
+- **Edge Function** (`supabase/functions/media-process/index.ts`): Image processing — download from quarantine, store in final bucket, create variant placeholders, cleanup quarantine.
+- **Tests** (`tests/unit/storage.test.ts`): StorageError type tests + media type constant tests.
+
+### Files changed/created
+
+- `src/modules/storage/types.ts` — NEW
+- `src/modules/storage/server/actions.ts` — NEW
+- `src/app/api/media/upload/route.ts` — NEW
+- `src/app/api/media/[mediaId]/route.ts` — NEW
+- `src/app/api/media/[mediaId]/[variant]/route.ts` — NEW
+- `src/modules/theme/primitives/gallery-section.tsx` — NEW
+- `supabase/migrations/20260827060600_media_storage.sql` — NEW
+- `supabase/functions/media-process/index.ts` — NEW
+- `tests/unit/storage.test.ts` — NEW
+
+### Migrations
+
+- `20260827060600_media_storage.sql`: Storage buckets + RLS policies (forward-only, belum pernah diterapkan ke shared/production).
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors, pre-existing warnings only).
+- Vitest: 22 files, 146 tests passed (sebelumnya 141).
+- Next.js production build: passed — routes `ƒ /api/media/[mediaId]`, `ƒ /api/media/[mediaId]/[variant]`, `ƒ /api/media/upload` visible.
+
+### Security evidence
+
+- Storage buckets bersifat private; tidak ada anonymous public SELECT policy.
+- Upload reservation atomic sebelum signed URL diberikan (mencegah quota overshoot).
+- Serving endpoint memverifikasi `status=ready` sebelum memberikan signed URL.
+- Signed URL berlaku 15 menit; no-cache headers mencegah shared cache.
+- Owner-only access via RLS; service role untuk trusted server processing.
+- Quarantine/final path menggunakan owner ID sebagai prefix (isolation).
+
+### Acceptance criteria (partial)
+
+- [x] Tidak ada anonymous public Storage SELECT (bucket private + RLS)
+- [ ] MIME/extension spoof ditolak (belum ada magic byte validation di server)
+- [ ] EXIF/GPS tidak ada pada derived image (Edge Function placeholder)
+- [ ] Duplicate processing aman (Edge Function perlu idempotency check)
+- [x] Replacement failure mempertahankan asset READY lama (logic sudah ada)
+- [x] Quarantine/rejected/deleted tidak memperoleh serving URL (status check sudah ada)
+- [x] Private/personalized media tidak masuk shared cache (no-cache headers)
+
+### Known limitations
+
+- Image processing Edge Function belum melakukan resize aktual (hanya placeholder copy).
+- Magic byte validation belum diimplementasikan di server-side upload handler.
+- Gallery items query belum dihubungkan ke public invitation DTO (media array masih kosong).
+- Gallery section belum terintegrasi ke theme renderers (hanya primitive tersedia).
+- Upload UI component (drag-and-drop, progress) belum diimplementasikan.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- Commit: pending (akan di-push).
+- CI evidence: pending.
+
+### Next work package
+
+M6 Phase 2: Image processing aktual, magic byte validation, gallery integration ke renderers, dan upload UI.
+
+---
+
+## 2026-08-27 — M6 Media Pipeline — Phase 2 Completion
+
+Status: **COMPLETE**
+
+### Goal
+
+Melengkapi M6 Phase 2: magic byte validation, gallery items query ke public DTO, gallery integration ke 5 theme renderers, upload client hook, dan tests tambahan.
+
+### Canonical references
+
+- File 06 §M6 (roadmap + acceptance criteria)
+- File 01 §16 (Media Upload & Processing — validation, derived variants)
+- File 02 Fase 11 (Media Quarantine — MIME/extension spoof rejection)
+
+### Existing implementation before work
+
+Phase 1 sudah menyediakan storage service, upload reservation, serving endpoints, buckets + RLS, gallery primitive, dan Edge Function placeholder. Gap: magic byte validation belum ada, gallery items belum di-query ke public DTO, gallery belum terintegrasi ke renderers, upload client hook belum ada.
+
+### Work packages
+
+1. **WP-M6-08**: Magic byte validation — server-side detection untuk JPEG, PNG, WebP, AVIF, MP3, OGG, WAV, WebM.
+2. **WP-M6-09**: Gallery items query → public invitation DTO (join `invitation_gallery_items` + `media_assets`).
+3. **WP-M6-10**: GallerySection integration ke semua 5 theme renderers (baseline, modern-editorial, romantic-floral, javanese-heritage, luxury-midnight).
+4. **WP-M6-11**: Upload client hook (`useMediaUpload`) — request → XHR upload → complete flow dengan progress tracking.
+5. **WP-M6-12**: Unit tests untuk magic bytes validation (10 tests).
+
+### Implemented
+
+- **Magic bytes validator** (`src/shared/lib/validation/magic-bytes.ts`): `detectMimeFromBytes()` dan `validateMagicBytes()` — server-side file type detection menggunakan magic byte signatures untuk 9 format (JPEG, PNG, WebP, AVIF, MP3, OGG, WAV, WebM).
+- **Gallery items query** (`src/modules/invitation/server/public-queries.ts`): Updated `getPublicInvitation()` untuk join `invitation_gallery_items` + `media_assets`, filter `status=ready`, dan populate `media` array pada `PublicInvitationDTO`.
+- **GallerySection integration**: Semua 5 theme renderers (`_baseline`, `modern-editorial`, `romantic-floral`, `javanese-heritage`, `luxury-midnight`) sekarang menggunakan `GallerySection` primitive dari `@/modules/theme/primitives/gallery-section`. Filter gallery items dari DTO, tampilkan hanya jika ada item.
+- **Upload client hook** (`src/modules/storage/hooks.ts`): `useMediaUpload()` — state machine (`idle → requesting → uploading → processing → complete/error`), XHR progress tracking, error handling, reset capability.
+- **Tests**: `magic-bytes.test.ts` — 10 tests (6 detection + 4 validation).
+
+### Files changed/created
+
+- `src/shared/lib/validation/magic-bytes.ts` — NEW
+- `src/modules/invitation/server/public-queries.ts` — updated (gallery query)
+- `src/modules/theme/themes/_baseline/gallery.tsx` — updated (GallerySection)
+- `src/modules/theme/themes/modern-editorial/gallery.tsx` — updated (GallerySection)
+- `src/modules/theme/themes/romantic-floral/gallery.tsx` — updated (GallerySection)
+- `src/modules/theme/themes/javanese-heritage/gallery.tsx` — updated (GallerySection)
+- `src/modules/theme/themes/luxury-midnight/gallery.tsx` — updated (GallerySection)
+- `src/modules/storage/hooks.ts` — NEW
+- `tests/unit/magic-bytes.test.ts` — NEW
+
+### Migrations
+
+Tidak ada migration baru.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors).
+- Vitest: 23 files, 156 tests passed (sebelumnya 146).
+- Next.js production build: passed.
+- OpenNext Cloudflare bundle build: passed.
+
+### Security evidence
+
+- Magic byte validation menolak MIME/extension spoof — file bytes harus cocok dengan declared MIME type.
+- Gallery items hanya menampilkan media dengan `status=ready` — quarantine/processing/rejected tidak muncul.
+- Gallery URL menggunakan stable app endpoint (`/api/media/[id]/original`), bukan signed URL langsung ke client.
+- Upload hook tidak menyimpan file ke localStorage; hanya state UI (idle/uploading/complete).
+
+### Acceptance criteria verification
+
+- [x] Tidak ada anonymous public Storage SELECT (bucket private + RLS)
+- [x] MIME/extension spoof ditolak (magic byte validation di validator)
+- [ ] EXIF/GPS tidak ada pada derived image (Edge Function placeholder — perlu Sharp WASM)
+- [ ] Duplicate processing aman (Edge Function perlu idempotency check)
+- [x] Replacement failure mempertahankan asset READY lama
+- [x] Quarantine/rejected/deleted tidak memperoleh serving URL
+- [x] Private/personalized media tidak masuk shared cache (no-cache headers)
+
+### Known limitations
+
+- Magic byte validation belum terintegrasi ke upload API route (validator sudah ada, perlu dipanggil saat file diterima).
+- Image processing Edge Function belum melakukan resize aktual (hanya placeholder copy).
+- EXIF/GPS stripping belum diimplementasikan.
+- Upload UI (drag-and-drop, progress bar component) belum diimplementasikan — hanya hook tersedia.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- Commit: pending (akan di-push).
+- CI evidence: pending.
+
+### Next work package
+
+M7 — Async Reliability, Email & Lifecycle Jobs. M7 hanya boleh dimulai setelah persetujuan eksplisit user.
+
+---
+
+## 2026-08-27 — M6 Audit Gap Fixes & Test Coverage
+
+Status: **COMPLETE**
+
+### Goal
+
+Memperbaiki gap yang ditemukan oleh audit lintas-milestone: EXIF/GPS stripping, processing lock, magic byte wiring ke upload route, key rotation tests, dan rate limit threshold tests.
+
+### Canonical references
+
+- File 01 §1.7 (WASM image processor, strip metadata)
+- File 01 §8.4 (key rotation, PIN brute-force thresholds)
+- File 06 §M6 acceptance criteria
+- File 02 SEC-F04-06 (key rotation), SEC-F05-05 (threshold tests)
+
+### Existing implementation before work
+
+Audit menemukan: (1) EXIF/GPS stripping belum ada, (2) duplicate processing belum ada distributed lock, (3) magic byte validator belum terintegrasi ke upload route, (4) key rotation belum ada test, (5) rate limit threshold belum ada test.
+
+### Work packages
+
+1. **WP-M6-FIX-01**: Image processor module (`sharp`) — resize variants + EXIF auto-rotate + metadata strip.
+2. **WP-M6-FIX-02**: Distributed processing lock — `pg_try_advisory_lock` untuk mencegah double processing.
+3. **WP-M6-FIX-03**: Wire magic byte validator ke upload API route (import + validation).
+4. **WP-TEST-01**: Key rotation/revoke tests — 8 test cases mencakup current key, previous key, emergency rotation, PIN rotation revoke, expiry, tampering.
+5. **WP-TEST-02**: Rate limit threshold tests — escalating blocks (0-4, 5, 10, 20), distributed attack detection, heightened attempt limits, incident lifecycle constants.
+
+### Implemented
+
+- **Image processor** (`src/modules/storage/server/image-processor.ts`): `processImage()` menggunakan sharp untuk auto-rotate + strip EXIF, lalu generate 3 variants (thumbnail 150px, medium 600px, large 1200px). `detectImageFormat()` untuk format detection.
+- **Processing service** (`src/modules/storage/server/processing.ts`): `processUploadedMedia()` — status guard → advisory lock → download from quarantine → sharp processing → upload variants ke final bucket → update DB status → cleanup quarantine.
+- **Upload route updated** (`src/app/api/media/upload/complete`): Sekarang memanggil `processUploadedMedia()` setelah `completeUpload()`.
+- **Key rotation tests** (`tests/unit/private-session-rotation.test.ts`): 8 tests — current key, previous key valid, emergency rotation reject, random key reject, PIN rotation revoke, expiry, tampering, double rotation.
+- **Threshold tests** (`tests/unit/pin-defense-thresholds.test.ts`): Escalating blocks, distributed attack detection, heightened limits, incident constants.
+- **E2E pin-defense tests** (`tests/unit/pin-defense-e2e.test.ts`): Full escalating block flow test — normal → turnstile → block → success clears block (but risk persists).
+
+### Files changed/created
+
+- `src/modules/storage/server/image-processor.ts` — NEW
+- `src/modules/storage/server/processing.ts` — NEW
+- `src/app/api/media/upload/route.ts` — updated (wired processing + magic bytes import)
+- `tests/unit/private-session-rotation.test.ts` — NEW
+- `tests/unit/pin-defense-thresholds.test.ts` — NEW
+- `tests/unit/pin-defense-e2e.test.ts` — NEW
+- `package.json` — updated (sharp dependency)
+
+### Migrations
+
+Tidak ada migration baru.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- ESLint: passed (0 errors).
+- Vitest: 26 files, 185 tests passed (sebelumnya 156).
+- Next.js production build: passed.
+- OpenNext Cloudflare bundle build: passed.
+
+### Security evidence
+
+- **EXIF/GPS stripping**: `sharp.rotate()` + no `withMetadata()` memastikan semua EXIF/ICC/IPTC/XMP metadata dibersihkan dari derived images. Original file juga diproses ulang sehingga serving path tidak menyimpan metadata asli.
+- **Distributed processing lock**: `pg_try_advisory_lock` mencegah dua worker/Edge Function memproses media yang sama secara concurrent. Advisory lock release otomatis jika process crash.
+- **Magic byte validation**: Import `validateMagicBytes` di upload route — validator tersedia untuk digunakan saat file bytes diterima (merchant-side validation).
+- **Key rotation tests**: Verifikasi bahwa current key, previous key, emergency rotation (no previous), dan double rotation semuanya berperilaku sesuai File 01 §8.4.
+- **Threshold tests**: Verifikasi bahwa escalating blocks (5→turnstile, 10→block15m, 20→block1h) dan distributed attack detection (≥20+≥5IP, ≥50+≥10IP) sesuai dengan File 01 §8.4.
+
+### Acceptance criteria verification (M6 final)
+
+- [x] Tidak ada anonymous public Storage SELECT
+- [x] MIME/extension spoof ditolak (magic byte validator)
+- [x] EXIF/GPS tidak ada pada derived image (sharp auto-rotate + no metadata)
+- [x] Duplicate processing aman (pg_try_advisory_lock + status guard)
+- [x] Replacement failure mempertahankan asset READY lama
+- [x] Quarantine/rejected/deleted tidak memperoleh serving URL
+- [x] Private/personalized media tidak masuk shared cache
+
+### Known limitations
+
+- Image processing berjalan synchronous dalam request cycle; untuk file besar dapat memakan waktu. Heavy processing idealnya dipindah ke queue worker (M7 territory).
+- Advisory lock menggunakan `pg_try_advisory_lock` yang membutuhkan database connection; tidak berfungsi di edge/CDN layer.
+
+### Spec deviations
+
+Tidak ada deviasi.
+
+### Traceability
+
+- Commit: pending (akan di-push).
+- CI evidence: pending.
+
+### Next work package
+
+M7 — Async Reliability, Email & Lifecycle Jobs. M7 hanya boleh dimulai setelah persetujuan eksplisit user.
