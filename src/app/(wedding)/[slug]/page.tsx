@@ -8,25 +8,25 @@ import { RomanticFloralRenderer } from "@/modules/theme/themes/romantic-floral/r
 import { JavaneseHeritageRenderer } from "@/modules/theme/themes/javanese-heritage/renderer";
 import { LuxuryMidnightRenderer } from "@/modules/theme/themes/luxury-midnight/renderer";
 import { PinGate } from "@/modules/guest/components/pin-gate";
-import { verifyPrivateSessionFromCookie } from "@/modules/guest/server/pin-session";
+import { verifyPrivateSessionFromCookie, resolveGuestFromToken } from "@/modules/guest/server/pin-session";
 
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ guest?: string }>;
 };
 
-function renderInvitation(invitation: PublicInvitationDTO) {
+function renderInvitation(invitation: PublicInvitationDTO, guestName?: string) {
   switch (invitation.theme.rendererKey) {
     case "_baseline":
-      return <BaselineRenderer invitation={invitation} />;
+      return <BaselineRenderer invitation={invitation} guestName={guestName} />;
     case "modern-editorial-ivory":
-      return <ModernEditorialRenderer invitation={invitation} />;
+      return <ModernEditorialRenderer invitation={invitation} guestName={guestName} />;
     case "romantic-floral-watercolor":
-      return <RomanticFloralRenderer invitation={invitation} />;
+      return <RomanticFloralRenderer invitation={invitation} guestName={guestName} />;
     case "javanese-heritage":
-      return <JavaneseHeritageRenderer invitation={invitation} />;
+      return <JavaneseHeritageRenderer invitation={invitation} guestName={guestName} />;
     case "luxury-midnight":
-      return <LuxuryMidnightRenderer invitation={invitation} />;
+      return <LuxuryMidnightRenderer invitation={invitation} guestName={guestName} />;
     default:
       return null;
   }
@@ -98,14 +98,17 @@ async function getPrivateInvitation(slug: string): Promise<PublicInvitationDTO |
 
 export default async function WeddingPage({ params, searchParams }: Props) {
   const { slug } = await params;
-  const { guest: _guestToken } = await searchParams;
-  void _guestToken;
+  const { guest: guestToken } = await searchParams;
 
-  // Try public invitation first
   const publicInvitation = await getPublicInvitation(slug).catch(() => null);
 
   if (publicInvitation) {
-    const content = renderInvitation(publicInvitation);
+    let guestName: string | undefined;
+    if (guestToken) {
+      const resolved = await resolveGuestFromToken(publicInvitation.invitationId, guestToken).catch(() => null);
+      guestName = resolved?.name;
+    }
+    const content = renderInvitation(publicInvitation, guestName);
     if (!content) notFound();
     return (
       <div style={{ width: "100%", maxWidth: "480px", margin: "0 auto" }}>
@@ -114,12 +117,16 @@ export default async function WeddingPage({ params, searchParams }: Props) {
     );
   }
 
-  // Try private invitation with session verification
   const privateInvitation = await getPrivateInvitation(slug);
   if (privateInvitation) {
     const hasValidSession = await verifyPrivateSessionFromCookie(privateInvitation.invitationId);
     if (hasValidSession) {
-      const content = renderInvitation(privateInvitation);
+      let guestName: string | undefined;
+      if (guestToken) {
+        const resolved = await resolveGuestFromToken(privateInvitation.invitationId, guestToken).catch(() => null);
+        guestName = resolved?.name;
+      }
+      const content = renderInvitation(privateInvitation, guestName);
       if (!content) notFound();
       return (
         <div style={{ width: "100%", maxWidth: "480px", margin: "0 auto" }}>
@@ -129,8 +136,7 @@ export default async function WeddingPage({ params, searchParams }: Props) {
     }
   }
 
-  // Either not found or needs PIN
-  const slugInvitation = await getPrivateInvitation(slug);
+  const slugInvitation = privateInvitation;
   if (!slugInvitation) notFound();
 
   return (

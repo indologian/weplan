@@ -1,17 +1,25 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
+import { GallerySection } from "@/modules/theme/primitives/gallery-section";
 
-export function Gallery(_props: SectionRendererProps) {
-  void _props;
+export function Gallery({ invitation }: SectionRendererProps) {
+  const items = invitation.media
+    .filter((m) => m.purpose === "gallery")
+    .map((m) => ({
+      mediaId: m.mediaId,
+      url: m.url,
+      alt: `Foto galeri`,
+    }));
+
+  if (items.length === 0) return null;
+
   return (
     <section
       className="javanese-heritage"
-      style={{ background: "var(--jh-bg)", textAlign: "center" }}
+      style={{ background: "var(--jh-bg)", textAlign: "center", padding: "2rem" }}
     >
       <p className="jh-overline">Galeri</p>
       <hr className="jh-gold-rule" style={{ marginBottom: "1rem" }} />
-      <p style={{ color: "var(--jh-muted)" }}>
-        Galeri foto akan tersedia setelah media diunggah.
-      </p>
+      <GallerySection items={items} />
     </section>
   );
 }

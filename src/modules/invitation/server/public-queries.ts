@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
-import type { PublicInvitationDTO, PublicEventDTO } from "@/modules/theme/types";
+import type { PublicInvitationDTO, PublicEventDTO, PublicMediaDTO } from "@/modules/theme/types";
 
 const publicEventSchema = z.object({
   id: z.string().uuid(),
@@ -97,6 +97,30 @@ export async function getPublicInvitation(slug: string): Promise<PublicInvitatio
     layoutConfig: (themeRaw.layout_config ?? {}) as Record<string, unknown>,
   };
 
+  const { data: galleryItems } = await supabase
+    .from("invitation_gallery_items")
+    .select(`
+      id, media_asset_id, caption, position,
+      media_assets!inner ( id, status, final_path, kind, purpose )
+    `)
+    .eq("invitation_id", invitation.id)
+    .order("position", { ascending: true });
+
+  const media: PublicMediaDTO[] = (galleryItems ?? [])
+    .filter((item) => {
+      const asset = item.media_assets as unknown as Record<string, unknown>;
+      return asset.status === "ready" && asset.final_path;
+    })
+    .map((item) => {
+      const asset = item.media_assets as unknown as Record<string, unknown>;
+      return {
+        mediaId: asset.id as string,
+        purpose: asset.purpose as string,
+        variant: "original",
+        url: `/api/media/${asset.id}/original`,
+      };
+    });
+
   return {
     invitationId: invitation.id,
     slug: invitation.slug,
@@ -111,6 +135,6 @@ export async function getPublicInvitation(slug: string): Promise<PublicInvitatio
       designTokens: theme.designTokens,
       layoutConfig: theme.layoutConfig,
     },
-    media: [],
+    media,
   };
 }

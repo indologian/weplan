@@ -1,17 +1,25 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
+import { GallerySection } from "@/modules/theme/primitives/gallery-section";
 
-export function Gallery(_props: SectionRendererProps) {
-  void _props;
+export function Gallery({ invitation }: SectionRendererProps) {
+  const items = invitation.media
+    .filter((m) => m.purpose === "gallery")
+    .map((m) => ({
+      mediaId: m.mediaId,
+      url: m.url,
+      alt: `Foto galeri`,
+    }));
+
+  if (items.length === 0) return null;
+
   return (
     <section
       className="modern-editorial"
-      style={{ background: "var(--me-bg)", textAlign: "center" }}
+      style={{ background: "var(--me-bg)", textAlign: "center", padding: "2rem" }}
     >
       <p className="me-overline">Galeri</p>
       <hr className="me-rule" style={{ marginBottom: "2rem" }} />
-      <p style={{ color: "var(--me-muted)" }}>
-        Galeri foto akan tersedia setelah media diunggah.
-      </p>
+      <GallerySection items={items} />
     </section>
   );
 }

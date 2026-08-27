@@ -1,12 +1,16 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
+import { GallerySection } from "@/modules/theme/primitives/gallery-section";
 
-export function Gallery(_props: SectionRendererProps) {
-  void _props;
-  // M6 owns media_assets. Gallery will be populated when M6 is implemented.
-  return (
-    <section style={{ padding: "2rem" }}>
-      <h2>Galeri</h2>
-      <p style={{ opacity: 0.7 }}>Galeri foto akan tersedia setelah media diunggah.</p>
-    </section>
-  );
+export function Gallery({ invitation }: SectionRendererProps) {
+  const items = invitation.media
+    .filter((m) => m.purpose === "gallery")
+    .map((m) => ({
+      mediaId: m.mediaId,
+      url: m.url,
+      alt: `Foto galeri`,
+    }));
+
+  if (items.length === 0) return null;
+
+  return <GallerySection items={items} />;
 }
