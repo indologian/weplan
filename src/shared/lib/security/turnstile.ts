@@ -17,6 +17,9 @@ export async function verifyTurnstileToken(
   const key = secretKey ?? getTurnstileSecretKey();
 
   if (!key) {
+    if (process.env.NODE_ENV === "production") {
+      return { success: false, error: "Turnstile configuration is missing." };
+    }
     return { success: true, error: undefined };
   }
 

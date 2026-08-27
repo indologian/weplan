@@ -12,11 +12,11 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://js.midtrans.com https://maps.googleapis.com",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
+      "img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com",
       "font-src 'self'",
-      "connect-src 'self' https://*.supabase.co https://*.midtrans.com https://*.midtrans.co.id https://challenges.cloudflare.com https://resend.com",
+      "connect-src 'self' https://*.supabase.co https://*.midtrans.com https://*.midtrans.co.id https://challenges.cloudflare.com https://resend.com https://maps.googleapis.com",
       "frame-src 'self' https://www.google.com https://js.midtrans.com https://challenges.cloudflare.com",
       "frame-ancestors 'none'",
       "base-uri 'self'",
@@ -46,6 +46,7 @@ const nextConfig: NextConfig = {
       headers: [
         { key: "X-Frame-Options", value: "DENY" },
         { key: "X-Content-Type-Options", value: "nosniff" },
+        { key: "Content-Security-Policy", value: "default-src 'none'" },
       ],
     },
   ],

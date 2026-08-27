@@ -5,6 +5,8 @@ import { parsePublicEnv } from "./public";
 
 const serverSecretSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(1),
+  CRON_SECRET: z.string().min(1),
+  ADMIN_SECRET: z.string().min(1),
 });
 
 const midtransEnvSchema = z.enum(["sandbox", "production"]);
@@ -28,9 +30,12 @@ export function getServerEnv() {
       NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
       NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
     }),
     ...serverSecretSchema.parse({
       SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
+      CRON_SECRET: process.env.CRON_SECRET,
+      ADMIN_SECRET: process.env.ADMIN_SECRET,
     }),
   };
 }

@@ -1,3 +1,4 @@
+@layer theme_luxury_midnight {
 :root {
   --lm-bg: #0a0f1a;
   --lm-surface: #141b2d;
@@ -111,4 +112,6 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
 }

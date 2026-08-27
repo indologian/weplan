@@ -68,6 +68,8 @@ export type MidtransStatusResponse = {
   transaction_id: string;
   order_id: string;
   gross_amount: string;
+  currency?: string;
+  merchant_id?: string;
   payment_type: string;
   transaction_time: string;
   transaction_status: string;

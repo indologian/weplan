@@ -4,6 +4,8 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/shared/lib/supabase/browser-client";
 
+import Link from "next/link";
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -51,9 +53,9 @@ function LoginForm() {
       </h1>
       <p style={{ color: "#6b7280", textAlign: "center", marginBottom: "1.5rem", fontSize: "0.875rem" }}>
         Belum punya akun?{" "}
-        <a href="/register" style={{ color: "#1a1a1a", fontWeight: 500 }}>
+        <Link href="/register" style={{ color: "#1a1a1a", fontWeight: 500 }}>
           Daftar
-        </a>
+        </Link>
       </p>
 
       <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

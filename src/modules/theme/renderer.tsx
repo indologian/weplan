@@ -1,4 +1,5 @@
-import type { PublicInvitationDTO, RendererProps } from "./types";
+import type { RendererProps } from "./types";
+import type { PublicInvitationDTO } from "@/modules/invitation/types";
 
 export type SectionRendererProps = {
   invitation: PublicInvitationDTO;

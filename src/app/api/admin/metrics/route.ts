@@ -1,11 +1,32 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { collectMetrics } from "@/modules/admin/server/metrics";
 import { createLogger } from "@/shared/lib/logging";
+import { getServerEnv } from "@/shared/lib/env/server";
+import crypto from "crypto";
 
-export async function GET(): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const logger = createLogger();
 
   try {
+    const authHeader = request.headers.get("authorization");
+    const env = getServerEnv();
+    
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    
+    const expected = crypto.createHash('sha256').update(env.ADMIN_SECRET).digest();
+    const actual = crypto.createHash('sha256').update(token).digest();
+    
+    if (!crypto.timingSafeEqual(actual, expected)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const metrics = await collectMetrics();
 
     const alerts: string[] = [];

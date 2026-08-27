@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireUser } from "@/modules/auth/server/require-user";
 import { ensureUserProfile } from "@/modules/auth/server/ensure-user-profile";
 import { requestUpload, completeUpload, StorageError } from "@/modules/storage/server/actions";
-import { processUploadedMedia } from "@/modules/storage/server/processing";
+import { enqueueMediaProcessing } from "@/modules/jobs/server/enqueue";
 import { validateMagicBytes } from "@/shared/lib/validation/magic-bytes";
 import type { MediaKind } from "@/modules/storage/types";
 
@@ -15,10 +15,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const { action } = body;
 
     if (action === "request") {
-      const { invitationId, kind, purpose, filename, mimeType, byteSize } = body;
-      if (!invitationId || !kind || !purpose || !filename || !mimeType || byteSize === undefined) {
+      const { invitationId, kind, purpose, filename, mimeType, byteSize, firstBytesBase64 } = body;
+      if (!invitationId || !kind || !purpose || !filename || !mimeType || byteSize === undefined || !firstBytesBase64) {
         return NextResponse.json(
-          { success: false, error: "Missing required fields." },
+          { success: false, error: "Missing required fields, including firstBytesBase64." },
           { status: 400 },
         );
       }
@@ -26,6 +26,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       if (kind === "video") {
         return NextResponse.json(
           { success: false, error: "Video upload is not supported in MVP." },
+          { status: 400 },
+        );
+      }
+
+      const firstBytes = Buffer.from(firstBytesBase64, "base64");
+      const validation = validateMagicBytes(firstBytes, mimeType, kind as "image" | "audio");
+      if (!validation.valid) {
+        return NextResponse.json(
+          { success: false, error: validation.error },
           { status: 400 },
         );
       }
@@ -53,15 +62,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       await completeUpload(user.id, { mediaId, invitationId });
 
-      const processingResult = await processUploadedMedia(mediaId);
-      if (!processingResult.success) {
-        return NextResponse.json({
-          success: false,
-          error: processingResult.error ?? "Processing failed.",
-        }, { status: 422 });
+      try {
+        await enqueueMediaProcessing(mediaId);
+      } catch (err) {
+        // Enqueueing failed, but upload is complete. We return 202 to indicate accepted but processing might be delayed or needs manual retry.
+        return NextResponse.json({ success: true, warning: "Upload complete but processing queue failed." }, { status: 202 });
       }
 
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true }, { status: 202 });
     }
 
     return NextResponse.json(

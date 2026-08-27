@@ -1,3 +1,4 @@
+@layer theme_modern_editorial {
 :root {
   --me-bg: #faf8f5;
   --me-surface: #f5f0ea;
@@ -51,4 +52,6 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
 }

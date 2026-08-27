@@ -92,23 +92,7 @@ CREATE TABLE IF NOT EXISTS admin_role_change_requests (
   )
 );
 
--- §4.11 Draft Extension Products
-CREATE TABLE IF NOT EXISTS draft_extension_products (
-  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code          TEXT NOT NULL UNIQUE CHECK (code IN ('draft_90d','draft_180d','draft_365d')),
-  name          TEXT NOT NULL,
-  duration_days INT NOT NULL,
-  price_amount  INT NOT NULL CHECK (price_amount > 0),
-  is_active     BOOLEAN NOT NULL DEFAULT true,
-  sort_order    INT NOT NULL DEFAULT 0,
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  CHECK (
-    (code = 'draft_90d'  AND duration_days = 90) OR
-    (code = 'draft_180d' AND duration_days = 180) OR
-    (code = 'draft_365d' AND duration_days = 365)
-  )
-);
+-- §4.11 Draft Extension Products (moved to 20260827005000_draft_extension_products.sql)
 
 -- §4.13 Leads
 CREATE TABLE IF NOT EXISTS leads (
@@ -405,7 +389,6 @@ ALTER TABLE security_audit_purge_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE security_incidents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_support_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_role_change_requests ENABLE ROW LEVEL SECURITY;
-ALTER TABLE draft_extension_products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE global_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
@@ -420,10 +403,7 @@ ALTER TABLE email_deliveries ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payment_adjustments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invitation_analytics_daily ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies
-CREATE POLICY "Anyone can view active draft extension products"
-  ON draft_extension_products FOR SELECT TO anon, authenticated
-  USING (is_active = true);
+-- Policies
 
 CREATE POLICY "Anyone can view public global settings"
   ON global_settings FOR SELECT TO anon, authenticated

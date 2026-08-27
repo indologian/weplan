@@ -89,39 +89,26 @@ export async function requestUpload(
     );
   }
 
-  const { data: invitation } = await supabase
-    .from("invitations")
-    .select("id, user_id")
-    .eq("id", input.invitationId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (!invitation) {
-    throw new StorageError("Invitation not found.", "NOT_FOUND");
-  }
-
-  const reservationId = crypto.randomUUID();
   const mediaId = crypto.randomUUID();
   const ext = getExtensionFromMime(input.mimeType);
   const quarantinePath = generateStoragePath(userId, input.invitationId, mediaId, input.purpose, ext);
 
-  const { error: reservationError } = await supabase
-    .from("upload_reservations")
-    .insert({
-      id: reservationId,
-      invitation_id: input.invitationId,
-      owner_id: userId,
-      kind: input.kind,
-      purpose: input.purpose,
-      reserved_count: 1,
-      reserved_bytes: input.byteSize,
-      status: "active",
-      expires_at: new Date(Date.now() + UPLOAD_EXPIRY_SECONDS * 1000).toISOString(),
-    });
+  const { data: rpcResult, error: rpcError } = await supabase.rpc("reserve_upload_quota", {
+    p_user_id: userId,
+    p_invitation_id: input.invitationId,
+    p_kind: input.kind,
+    p_purpose: input.purpose,
+    p_byte_size: input.byteSize,
+  });
 
-  if (reservationError) {
-    throw new StorageError("Failed to create upload reservation.", "DATABASE_ERROR");
+  if (rpcError) {
+    throw new StorageError("Database error during quota reservation.", "DATABASE_ERROR");
   }
+  if (!rpcResult.success) {
+    throw new StorageError(rpcResult.error === "QUOTA_EXCEEDED" ? "Storage quota exceeded." : "Failed to create reservation.", rpcResult.error === "QUOTA_EXCEEDED" ? "QUOTA_EXCEEDED" : "NOT_FOUND");
+  }
+
+  const reservationId = rpcResult.reservation_id;
 
   const { error: mediaError } = await supabase
     .from("media_assets")

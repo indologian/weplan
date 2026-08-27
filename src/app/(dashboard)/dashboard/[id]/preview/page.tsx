@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/shared/lib/supabase/server-client";
 import { WeddingRenderer } from "@/modules/theme/wedding-renderer";
-import type { PublicInvitationDTO } from "@/modules/theme/types";
+import type { PublicInvitationDTO } from "@/modules/invitation/types";
 import "@/modules/theme/init";
 
 type Props = {

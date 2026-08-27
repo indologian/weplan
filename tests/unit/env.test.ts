@@ -7,6 +7,7 @@ describe("public environment", () => {
       NEXT_PUBLIC_APP_URL: "http://localhost:3000",
       NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_test",
+      NEXT_PUBLIC_TURNSTILE_SITE_KEY: "test_site_key",
     })).toMatchObject({ NEXT_PUBLIC_APP_URL: "http://localhost:3000" });
   });
 

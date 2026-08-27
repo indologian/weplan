@@ -60,3 +60,23 @@ export async function enqueuePaymentExpiredEmail(
     data: { invitationSlug },
   });
 }
+
+export async function enqueueMediaProcessing(mediaId: string): Promise<string> {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase
+    .from("outbox_events")
+    .insert({
+      event_type: "process_media",
+      aggregate_type: "media_asset",
+      aggregate_id: mediaId,
+      payload_version: 1,
+      payload: { mediaId },
+      status: "pending",
+      available_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+
+  if (error) throw new Error("Failed to enqueue media processing: " + error.message);
+  return data.id;
+}

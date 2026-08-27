@@ -1,3 +1,4 @@
+@layer theme_javanese_heritage {
 :root {
   --jh-bg: #faf5ed;
   --jh-surface: #f0e8d8;
@@ -88,4 +89,6 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
 }

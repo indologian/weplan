@@ -62,7 +62,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    if (defense.requiresTurnstile && defense.level !== "heightened") {
+    if (defense.requiresTurnstile) {
       if (!turnstileToken) {
         return NextResponse.json(
           {

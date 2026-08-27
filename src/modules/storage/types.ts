@@ -40,7 +40,7 @@ export const ALLOWED_MIME_TYPES: Record<MediaKind, readonly string[]> = {
 export const IMAGE_VARIANT_SIZES = {
   thumbnail: { width: 150, height: 150 },
   medium: { width: 600, height: 600 },
-  large: { width: 1200, height: 1200 },
+  large: { width: 1920, height: 1920 },
 } as const;
 
 export const QUARANTINE_BUCKET = "invitation_upload_quarantine";

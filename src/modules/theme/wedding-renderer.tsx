@@ -1,4 +1,4 @@
-import type { PublicInvitationDTO } from "./types";
+import type { PublicInvitationDTO } from "@/modules/invitation/types";
 import { BaselineRenderer } from "./themes/_baseline/renderer";
 import { ModernEditorialRenderer } from "./themes/modern-editorial/renderer";
 import { RomanticFloralRenderer } from "./themes/romantic-floral/renderer";

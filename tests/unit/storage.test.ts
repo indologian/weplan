@@ -59,6 +59,6 @@ describe("media types", () => {
     const { IMAGE_VARIANT_SIZES } = await import("@/modules/storage/types");
     expect(IMAGE_VARIANT_SIZES.thumbnail.width).toBe(150);
     expect(IMAGE_VARIANT_SIZES.medium.width).toBe(600);
-    expect(IMAGE_VARIANT_SIZES.large.width).toBe(1200);
+    expect(IMAGE_VARIANT_SIZES.large.width).toBe(1920);
   });
 });

@@ -2,7 +2,7 @@ import "server-only";
 
 import { z } from "zod";
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
-import type { PublicInvitationDTO, PublicEventDTO, PublicMediaDTO } from "@/modules/theme/types";
+import type { PublicInvitationDTO, PublicEventDTO, PublicMediaDTO } from "@/modules/invitation/types";
 
 const publicEventSchema = z.object({
   id: z.string().uuid(),

@@ -28,7 +28,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ received: true });
     }
 
-    if (env.RESEND_WEBHOOK_SECRET && signature) {
+    if (env.RESEND_WEBHOOK_SECRET) {
+      if (!signature) {
+        return NextResponse.json({ error: "Missing signature" }, { status: 401 });
+      }
       if (!verifyWebhookSignature(body, signature, env.RESEND_WEBHOOK_SECRET)) {
         return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
       }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
 import { requireUser } from "@/modules/auth/server/require-user";
 import { ensureUserProfile } from "@/modules/auth/server/ensure-user-profile";
@@ -34,9 +35,9 @@ export default async function DashboardPage() {
     return (
       <div className="py-12 text-center">
         <p className="text-sm text-[#6b7280]">Silakan masuk terlebih dahulu.</p>
-        <a href="/login" className="mt-4 inline-block text-sm font-medium text-[#1a1a1a] underline">
+        <Link href="/login" className="mt-4 inline-block text-sm font-medium text-[#1a1a1a] underline">
           Masuk
-        </a>
+        </Link>
       </div>
     );
   }
@@ -48,7 +49,7 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Undangan</h1>
           <p className="text-sm text-[#6b7280]">Kelola undangan pernikahan Anda</p>
         </div>
-        <a
+        <Link
           href="/create"
           className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-4 py-2 text-sm font-medium text-white hover:bg-[#333]"
         >
@@ -56,18 +57,18 @@ export default async function DashboardPage() {
             <path d="M7 2v10M2 7h10" />
           </svg>
           Buat Undangan
-        </a>
+        </Link>
       </div>
 
       {invitations.length === 0 ? (
         <div className="rounded-xl border border-[#e5e7eb] bg-white py-16 text-center">
           <p className="text-[#6b7280]">Belum ada undangan — pilih tema untuk membuat draft pertama.</p>
-          <a
+          <Link
             href="/create"
             className="mt-4 inline-flex items-center rounded-lg bg-[#1a1a1a] px-4 py-2 text-sm font-medium text-white hover:bg-[#333]"
           >
             Pilih Tema
-          </a>
+          </Link>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">

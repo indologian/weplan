@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import "@/modules/theme/init";
 import { getPublicInvitation } from "@/modules/invitation/server/public-queries";
-import type { PublicInvitationDTO } from "@/modules/theme/types";
+import type { PublicInvitationDTO } from "@/modules/invitation/types";
 import { BaselineRenderer } from "@/modules/theme/themes/_baseline/renderer";
 import { ModernEditorialRenderer } from "@/modules/theme/themes/modern-editorial/renderer";
 import { RomanticFloralRenderer } from "@/modules/theme/themes/romantic-floral/renderer";
