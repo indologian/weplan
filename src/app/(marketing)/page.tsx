@@ -4,6 +4,10 @@ import { FeaturedThemes } from "./_components/featured-themes";
 import { TrustStrip } from "./_components/trust-strip";
 import { Pricing } from "./_components/pricing";
 import { FAQ } from "./_components/faq";
+import { FinalCta } from "./_components/final-cta";
+
+// Revalidasi halaman statis secara inkremental (ISR) setiap 1 jam
+export const revalidate = 3600;
 
 export default async function HomePage() {
   const featuredThemes = await getFeaturedThemes(4);
@@ -15,6 +19,7 @@ export default async function HomePage() {
       <TrustStrip />
       <Pricing />
       <FAQ />
+      <FinalCta />
     </div>
   );
 }
