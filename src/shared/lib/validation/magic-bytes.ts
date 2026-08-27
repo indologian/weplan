@@ -21,7 +21,7 @@ export function detectMimeFromBytes(firstBytes: Uint8Array): string | null {
   for (const sig of MAGIC_SIGNATURES) {
     let matches = true;
     for (let i = 0; i < sig.offsets.length; i++) {
-      if (firstBytes[sig.offsets[i]] !== sig.bytes[i]) {
+      if (firstBytes[sig.offsets[i]!] !== sig.bytes[i]!) {
         matches = false;
         break;
       }

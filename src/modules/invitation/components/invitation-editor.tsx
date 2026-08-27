@@ -424,8 +424,8 @@ function InvitationEventsEditor({
     if (target < 0 || target >= events.length) return;
     const reordered = [...events];
     [reordered[index], reordered[target]] = [
-      reordered[target],
-      reordered[index],
+      reordered[target]!,
+      reordered[index]!,
     ];
     if (reordered.some((event) => !event.eventId)) {
       setMessage("Simpan semua acara baru sebelum mengubah urutan.");

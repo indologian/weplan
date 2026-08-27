@@ -88,6 +88,7 @@ export async function runExpiredTrashCleanup(): Promise<{ deleted: number }> {
         const paths = data.map((f) => `${inv.id}/${f.name}`);
         return supabase.storage.from("invitation_media").remove(paths);
       }
+      return undefined;
     }).catch(() => {});
 
     const { error: delError } = await supabase

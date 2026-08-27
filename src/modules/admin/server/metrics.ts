@@ -47,10 +47,13 @@ export async function collectMetrics(): Promise<MetricsResult> {
 
   let paymentPendingAge = 0;
   if (paymentPending.data && paymentPending.data.length > 0) {
-    const oldest = paymentPending.data
+    const sorted = paymentPending.data
       .map((r) => new Date(r.created_at).getTime())
-      .sort((a, b) => a - b)[0];
-    paymentPendingAge = Math.floor((Date.now() - oldest) / 1000);
+      .sort((a, b) => a - b);
+    const oldest = sorted[0];
+    if (oldest !== undefined) {
+      paymentPendingAge = Math.floor((Date.now() - oldest) / 1000);
+    }
   }
 
   return {

@@ -59,8 +59,8 @@ export function isWeakPin(pin: string): boolean {
   if (/^(\d)\1+$/.test(pin)) return true;
 
   const digits = [...pin].map(Number);
-  const isAscending = digits.every((digit, index) => index === 0 || digit === digits[index - 1] + 1);
-  const isDescending = digits.every((digit, index) => index === 0 || digit === digits[index - 1] - 1);
+  const isAscending = digits.every((digit, index) => index === 0 || digit === digits[index - 1]! + 1);
+  const isDescending = digits.every((digit, index) => index === 0 || digit === digits[index - 1]! - 1);
   if (isAscending || isDescending) return true;
 
   for (let patternLength = 1; patternLength <= Math.floor(pin.length / 2); patternLength += 1) {

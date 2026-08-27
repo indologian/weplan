@@ -65,8 +65,8 @@ export async function verifySensitiveAuthToken(
   const parts = token.split(".");
   if (parts.length !== 2) return null;
 
-  const payloadBytes = decodeBase64Url(parts[0]);
-  const signature = decodeBase64Url(parts[1]);
+  const payloadBytes = decodeBase64Url(parts[0]!);
+  const signature = decodeBase64Url(parts[1]!);
   if (!payloadBytes || !signature) return null;
 
   const signatureIsValid = await crypto.subtle.verify(

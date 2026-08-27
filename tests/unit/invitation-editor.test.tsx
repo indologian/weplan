@@ -239,12 +239,12 @@ describe("InvitationEditor — event CRUD", () => {
     const titleInput = screen.getAllByLabelText("Nama acara");
     expect(titleInput).toHaveLength(1);
 
-    fireEvent.change(titleInput[0], { target: { value: "Akad Nikah" } });
+    fireEvent.change(titleInput[0]!, { target: { value: "Akad Nikah" } });
     fireEvent.change(
-      screen.getAllByLabelText("Waktu ISO dengan offset")[0],
+      screen.getAllByLabelText("Waktu ISO dengan offset")[0]!,
       { target: { value: "2026-10-15T08:00:00+07:00" } },
     );
-    fireEvent.change(screen.getAllByLabelText("Timezone IANA")[0], {
+    fireEvent.change(screen.getAllByLabelText("Timezone IANA")[0]!, {
       target: { value: "Asia/Jakarta" },
     });
 
@@ -369,7 +369,7 @@ describe("InvitationEditor — event CRUD", () => {
     fireEvent.click(screen.getByText("Tambah acara"));
 
     const downButtons = screen.getAllByText("Turun");
-    fireEvent.click(downButtons[0]);
+    fireEvent.click(downButtons[0]!);
 
     expect(screen.getByText("Simpan semua acara baru sebelum mengubah urutan.")).toBeTruthy();
     expect(actions.reorderEditorEvents).not.toHaveBeenCalled();
@@ -424,7 +424,7 @@ describe("InvitationEditor — event CRUD", () => {
     );
 
     const downButtons = screen.getAllByText("Turun");
-    fireEvent.click(downButtons[0]);
+    fireEvent.click(downButtons[0]!);
 
     await waitFor(() =>
       expect(actions.reorderEditorEvents).toHaveBeenCalledWith({
