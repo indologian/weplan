@@ -1,5 +1,6 @@
 import "server-only";
-import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
+import { createClient } from "@supabase/supabase-js";
+import { getPublicEnv } from "@/shared/lib/env/public";
 
 export type FeaturedThemeDTO = {
   id: string;
@@ -23,7 +24,10 @@ type FeaturedThemeRow = {
 };
 
 export async function getFeaturedThemes(limit: number = 4): Promise<FeaturedThemeDTO[]> {
-  const supabase = createSupabaseServiceClient();
+  const env = getPublicEnv();
+  const supabase = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
   const { data, error } = await supabase
     .from("themes")
     .select("id, name, slug, description, preview_image, category, tiers!inner(code, price_amount)")
