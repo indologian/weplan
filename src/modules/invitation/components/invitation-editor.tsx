@@ -5,6 +5,11 @@ import { useForm, useWatch } from "react-hook-form";
 import { SensitiveAuthForm } from "@/modules/auth/components/sensitive-auth-form";
 import type { IssueSensitiveAuthAction } from "@/modules/auth/types";
 import { AutosaveQueue, type AutosaveResult } from "../autosave-queue";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { Button } from "@/shared/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
+import { RefreshCw, CheckCircle2, AlertCircle, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import type {
   DeleteEditorEventAction,
   EditorDTO,
@@ -165,88 +170,123 @@ export function InvitationEditor({
   };
 
   return (
-    <>
-      <form onSubmit={handleEditorSubmit}>
-        <header>
-          <p>Editor undangan</p>
-          <h1>{initialData.slug}</h1>
-          <p aria-live="polite">
-            {saveState === "saving" && "Menyimpan..."}
-            {saveState === "saved" && "Tersimpan"}
-            {saveState === "dirty" && "Ada perubahan"}
-            {saveState === "error" && "Gagal menyimpan"}
-            {saveState === "conflict" && "Perubahan di tempat lain"}
-          </p>
-        </header>
-        {saveState === "conflict" && (
-          <div role="alert">
-            <p>Undangan berubah di tab atau perangkat lain.</p>
-            {!confirmReload ? (
-              <button type="button" onClick={() => setConfirmReload(true)}>
-                Muat versi terbaru
-              </button>
-            ) : (
-              <div>
-                <p>
-                  Perubahan lokal yang belum tersimpan akan diganti versi
-                  server.
-                </p>
-                <button type="button" onClick={() => window.location.reload()}>
-                  Lanjutkan
-                </button>
-                <button type="button" onClick={() => setConfirmReload(false)}>
-                  Batal
-                </button>
-              </div>
-            )}
+    <div className="space-y-8 pb-10">
+      <form onSubmit={handleEditorSubmit} className="space-y-8">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold tracking-tight">Editor Konten</h1>
+            <div className="flex items-center gap-2 text-sm bg-muted/50 px-3 py-1.5 rounded-full" aria-live="polite">
+              {saveState === "saving" && <><RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /> <span className="text-muted-foreground font-medium">Menyimpan...</span></>}
+              {saveState === "saved" && <><CheckCircle2 className="h-4 w-4 text-green-600" /> <span className="text-muted-foreground font-medium">Tersimpan</span></>}
+              {saveState === "dirty" && <span className="text-muted-foreground font-medium italic">Ada perubahan...</span>}
+              {saveState === "error" && <><AlertCircle className="h-4 w-4 text-destructive" /> <span className="text-destructive font-medium">Gagal menyimpan</span></>}
+              {saveState === "conflict" && <><AlertCircle className="h-4 w-4 text-orange-500" /> <span className="text-orange-500 font-medium">Konflik versi</span></>}
+            </div>
           </div>
+          <p className="text-muted-foreground">Sesuaikan informasi undangan pernikahan Anda di bawah ini. Perubahan akan disimpan secara otomatis.</p>
+        </div>
+
+        {saveState === "conflict" && (
+          <Card className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
+            <CardContent className="pt-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                  <AlertCircle className="h-5 w-5" />
+                  <p className="font-semibold">Undangan telah diubah di perangkat atau tab lain.</p>
+                </div>
+                {!confirmReload ? (
+                  <Button type="button" variant="outline" className="w-fit" onClick={() => setConfirmReload(true)}>
+                    Muat versi terbaru
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-orange-700 dark:text-orange-300">
+                      Perubahan lokal Anda yang belum tersimpan akan tertimpa dengan versi terbaru dari server. Apakah Anda yakin?
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Button type="button" variant="destructive" onClick={() => window.location.reload()}>
+                        Ya, Timpa Pekerjaan Saya
+                      </Button>
+                      <Button type="button" variant="outline" onClick={() => setConfirmReload(false)}>
+                        Batal
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         )}
-        <fieldset>
-          <legend>Profil mempelai</legend>
-          <label>
-            Nama mempelai pria
-            <input {...register("groomName")} />
-          </label>
-          <label>
-            Nama mempelai wanita
-            <input {...register("brideName")} />
-          </label>
-        </fieldset>
-        <fieldset>
-          <legend>Pembuka</legend>
-          <label>
-            Teks pembuka
-            <textarea {...register("openingText")} />
-          </label>
-          <label>
-            Kutipan atau doa
-            <textarea {...register("quoteText")} />
-          </label>
-        </fieldset>
-        <button type="submit" disabled={saveState === "saving"}>
-          Simpan sekarang
-        </button>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Profil Mempelai</CardTitle>
+            <CardDescription>Masukkan nama panggilan atau nama pendek kedua mempelai.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="groomName">Mempelai Pria</Label>
+              <Input id="groomName" {...register("groomName")} placeholder="Contoh: Romeo" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brideName">Mempelai Wanita</Label>
+              <Input id="brideName" {...register("brideName")} placeholder="Contoh: Juliet" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Pembuka</CardTitle>
+            <CardDescription>Teks sambutan dan kutipan (doa/puisi) di bagian atas undangan.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="openingText">Teks Pembuka</Label>
+              <textarea 
+                id="openingText" 
+                className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" 
+                {...register("openingText")} 
+                placeholder="Dengan memohon rahmat dan ridho Allah SWT..." 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="quoteText">Kutipan atau Doa</Label>
+              <textarea 
+                id="quoteText" 
+                className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" 
+                {...register("quoteText")} 
+                placeholder="Dan di antara tanda-tanda kekuasaan-Nya..." 
+              />
+            </div>
+          </CardContent>
+        </Card>
+        
+        <button type="submit" className="sr-only" disabled={saveState === "saving"}>Simpan sekarang</button>
       </form>
-      <InvitationEventsEditor
-        invitationId={initialData.invitationId}
-        initialEvents={initialData.events}
-        contentVersion={editorVersion}
-        saveEditorEvent={saveEditorEvent}
-        deleteEditorEvent={deleteEditorEvent}
-        reorderEditorEvents={reorderEditorEvents}
-        onVersionChange={(version) => {
-          setEditorVersion(version);
-        }}
-      />
-      <InvitationPrivacyEditor
-        invitationId={initialData.invitationId}
-        contentVersion={editorVersion}
-        initialIsPrivate={initialData.isPrivate}
-        issueSensitiveAuth={issueSensitiveAuth}
-        updateEditorPrivacy={updateEditorPrivacy}
-        onVersionChange={setEditorVersion}
-      />
-    </>
+
+      <div className="space-y-8">
+        <InvitationEventsEditor
+          invitationId={initialData.invitationId}
+          initialEvents={initialData.events}
+          contentVersion={editorVersion}
+          saveEditorEvent={saveEditorEvent}
+          deleteEditorEvent={deleteEditorEvent}
+          reorderEditorEvents={reorderEditorEvents}
+          onVersionChange={(version) => {
+            setEditorVersion(version);
+          }}
+        />
+        <InvitationPrivacyEditor
+          invitationId={initialData.invitationId}
+          contentVersion={editorVersion}
+          initialIsPrivate={initialData.isPrivate}
+          issueSensitiveAuth={issueSensitiveAuth}
+          updateEditorPrivacy={updateEditorPrivacy}
+          onVersionChange={setEditorVersion}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -293,46 +333,69 @@ function InvitationPrivacyEditor({
   };
 
   return (
-    <section>
-      <h2>Privasi undangan</h2>
-      <label>
-        <input
-          type="checkbox"
-          checked={isPrivate}
-          onChange={(event) => {
-            setIsPrivate(event.target.checked);
-            setAuthenticated(false);
-          }}
-        />
-        Gunakan PIN untuk undangan ini
-      </label>
-      {isPrivate && (
-        <label>
-          PIN baru (opsional jika memakai PIN lama)
+    <Card>
+      <CardHeader>
+        <CardTitle>Privasi Undangan</CardTitle>
+        <CardDescription>Atur siapa saja yang dapat mengakses undangan Anda.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex items-center space-x-3">
           <input
-            value={pin}
-            inputMode="numeric"
-            autoComplete="new-password"
-            onChange={(event) => setPin(event.target.value)}
+            id="isPrivate"
+            type="checkbox"
+            className="h-4 w-4 rounded border-gray-300"
+            checked={isPrivate}
+            onChange={(event) => {
+              setIsPrivate(event.target.checked);
+              setAuthenticated(false);
+            }}
           />
-        </label>
-      )}
-      {!authenticated ? (
-        <SensitiveAuthForm
-          issueSensitiveAuth={issueSensitiveAuth}
-          onAuthenticated={() => setAuthenticated(true)}
-        />
-      ) : (
-        <button
-          type="button"
-          disabled={pending}
-          onClick={() => void updatePrivacy()}
-        >
-          {pending ? "Menyimpan..." : "Simpan pengaturan privasi"}
-        </button>
-      )}
-      <p aria-live="polite">{message}</p>
-    </section>
+          <Label htmlFor="isPrivate" className="font-medium">
+            Gunakan PIN Keamanan
+          </Label>
+        </div>
+
+        {isPrivate && (
+          <div className="space-y-2 border-l-2 border-muted pl-4 ml-1">
+            <Label htmlFor="pin">PIN Baru (Opsional jika ingin menggunakan PIN lama)</Label>
+            <Input
+              id="pin"
+              type="password"
+              className="max-w-xs"
+              value={pin}
+              inputMode="numeric"
+              autoComplete="new-password"
+              placeholder="Contoh: 123456"
+              onChange={(event) => setPin(event.target.value)}
+            />
+          </div>
+        )}
+
+        {message && (
+          <p className="text-sm font-medium text-green-600" aria-live="polite">{message}</p>
+        )}
+
+        <div className="pt-4 border-t">
+          {!authenticated ? (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">Verifikasi password Anda untuk menyimpan pengaturan keamanan ini.</p>
+              <SensitiveAuthForm
+                issueSensitiveAuth={issueSensitiveAuth}
+                onAuthenticated={() => setAuthenticated(true)}
+              />
+            </div>
+          ) : (
+            <Button
+              type="button"
+              disabled={pending}
+              onClick={() => void updatePrivacy()}
+            >
+              {pending ? "Menyimpan..." : "Simpan Pengaturan Privasi"}
+            </Button>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -451,112 +514,179 @@ function InvitationEventsEditor({
   };
 
   return (
-    <section>
-      <h2>Detail acara</h2>
-      <p aria-live="polite">{message}</p>
-      <button
-        type="button"
-        onClick={() =>
-          setEvents((current) => [
-            ...current,
-            {
-              localId: crypto.randomUUID(),
-              position: current.length,
-              title: "",
-              eventType: "other",
-              startsAt: null,
-              endsAt: null,
-              timezone: null,
-              venueName: "",
-              address: "",
-              latitude: null,
-              longitude: null,
-            },
-          ])
-        }
-      >
-        Tambah acara
-      </button>
-      {events.map((event, index) => (
-        <article key={event.localId}>
-          <label>
-            Nama acara
-            <input
-              value={event.title}
-              onChange={(change) =>
-                setEvents((current) =>
-                  current.map((item) =>
-                    item.localId === event.localId
-                      ? { ...item, title: change.target.value }
-                      : item,
-                  ),
-                )
-              }
-            />
-          </label>
-          <label>
-            Waktu ISO dengan offset
-            <input
-              value={event.startsAt ?? ""}
-              placeholder="2026-08-26T09:00:00+07:00"
-              onChange={(change) =>
-                setEvents((current) =>
-                  current.map((item) =>
-                    item.localId === event.localId
-                      ? { ...item, startsAt: change.target.value || null }
-                      : item,
-                  ),
-                )
-              }
-            />
-          </label>
-          <label>
-            Timezone IANA
-            <input
-              value={event.timezone ?? ""}
-              placeholder="Asia/Jakarta"
-              onChange={(change) =>
-                setEvents((current) =>
-                  current.map((item) =>
-                    item.localId === event.localId
-                      ? { ...item, timezone: change.target.value || null }
-                      : item,
-                  ),
-                )
-              }
-            />
-          </label>
-          <button type="button" onClick={() => void saveEvent(event)}>
-            Simpan acara
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              event.eventId
-                ? void removeEvent(event.eventId)
-                : setEvents((current) =>
-                    current.filter((_, itemIndex) => itemIndex !== index),
-                  )
-            }
-          >
-            Hapus acara
-          </button>
-          <button
-            type="button"
-            disabled={index === 0}
-            onClick={() => void moveEvent(index, -1)}
-          >
-            Naik
-          </button>
-          <button
-            type="button"
-            disabled={index === events.length - 1}
-            onClick={() => void moveEvent(index, 1)}
-          >
-            Turun
-          </button>
-        </article>
-      ))}
-    </section>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-4 border-b">
+        <div>
+          <CardTitle>Detail Acara</CardTitle>
+          <CardDescription>Atur jadwal akad, resepsi, dan rangkaian acara lainnya.</CardDescription>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          onClick={() =>
+            setEvents((current) => [
+              ...current,
+              {
+                localId: crypto.randomUUID(),
+                position: current.length,
+                title: "",
+                eventType: "other",
+                startsAt: null,
+                endsAt: null,
+                timezone: null,
+                venueName: "",
+                address: "",
+                latitude: null,
+                longitude: null,
+              },
+            ])
+          }
+          className="gap-1"
+        >
+          <Plus className="w-4 h-4" /> Tambah Acara
+        </Button>
+      </CardHeader>
+      <CardContent className="pt-6 space-y-6">
+        {message && (
+          <p className="text-sm font-medium text-green-600 mb-4" aria-live="polite">{message}</p>
+        )}
+        
+        {events.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+            Belum ada acara yang ditambahkan.
+          </div>
+        )}
+
+        <div className="space-y-6">
+          {events.map((event, index) => (
+            <div key={event.localId} className="border rounded-lg p-5 space-y-6 bg-card shadow-sm">
+              <div className="flex items-center justify-between border-b pb-4">
+                <h3 className="font-semibold text-lg">{event.title || "Acara Baru"}</h3>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={index === 0}
+                    onClick={() => void moveEvent(index, -1)}
+                    title="Geser ke atas"
+                  >
+                    <ArrowUp className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8"
+                    disabled={index === events.length - 1}
+                    onClick={() => void moveEvent(index, 1)}
+                    title="Geser ke bawah"
+                  >
+                    <ArrowDown className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="h-8 w-8 ml-2"
+                    onClick={() =>
+                      event.eventId
+                        ? void removeEvent(event.eventId)
+                        : setEvents((current) =>
+                            current.filter((_, itemIndex) => itemIndex !== index),
+                          )
+                    }
+                    title="Hapus Acara"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Nama Acara</Label>
+                  <Input
+                    value={event.title}
+                    placeholder="Contoh: Akad Nikah / Resepsi"
+                    onChange={(change) =>
+                      setEvents((current) =>
+                        current.map((item) =>
+                          item.localId === event.localId
+                            ? { ...item, title: change.target.value }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Waktu (ISO Format)</Label>
+                  <Input
+                    type="datetime-local"
+                    value={event.startsAt ? event.startsAt.slice(0, 16) : ""}
+                    onChange={(change) => {
+                      const dt = change.target.value;
+                      // Sangat sederhana untuk demo. Di sistem produksi gunakan DatePicker / library Waktu (Luxon/Date-fns)
+                      const isoStr = dt ? new Date(dt).toISOString() : null;
+                      setEvents((current) =>
+                        current.map((item) =>
+                          item.localId === event.localId
+                            ? { ...item, startsAt: isoStr }
+                            : item,
+                        ),
+                      );
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Nama Lokasi/Gedung</Label>
+                  <Input
+                    value={event.venueName || ""}
+                    placeholder="Contoh: Gedung Serbaguna Senayan"
+                    onChange={(change) =>
+                      setEvents((current) =>
+                        current.map((item) =>
+                          item.localId === event.localId
+                            ? { ...item, venueName: change.target.value }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Alamat Lengkap</Label>
+                  <Input
+                    value={event.address || ""}
+                    placeholder="Jl. Pintu Satu Senayan..."
+                    onChange={(change) =>
+                      setEvents((current) =>
+                        current.map((item) =>
+                          item.localId === event.localId
+                            ? { ...item, address: change.target.value }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button type="button" onClick={() => void saveEvent(event)}>
+                  Simpan Perubahan Acara
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
