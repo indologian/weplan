@@ -1,0 +1,85 @@
+"use client";
+
+import { useRef } from "react";
+import { Button } from "@/shared/components/ui/button";
+import { useMediaUpload } from "../hooks";
+import { Loader2, UploadCloud } from "lucide-react";
+import { toast } from "sonner";
+
+type Props = {
+  invitationId: string;
+  kind: "image" | "audio" | "video";
+  purpose: string;
+  onSuccess: (mediaId: string) => void;
+  label?: string;
+  accept?: string;
+};
+
+export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = "Upload", accept }: Props) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { upload, state, progress } = useMediaUpload({
+    invitationId,
+    kind,
+    purpose,
+    onComplete: (res) => {
+      onSuccess(res.mediaId);
+      toast.success("Upload berhasil!");
+    },
+    onError: (err) => {
+      toast.error(err);
+    }
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Validasi basic
+    if (kind === "image" && !file.type.startsWith("image/")) {
+      toast.error("Format file harus berupa gambar");
+      return;
+    }
+    if (kind === "audio" && !file.type.startsWith("audio/")) {
+      toast.error("Format file harus berupa audio");
+      return;
+    }
+    
+    upload(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2">
+      <input 
+        type="file" 
+        className="hidden" 
+        ref={fileInputRef} 
+        accept={accept || (kind === "image" ? "image/*" : kind === "audio" ? "audio/*" : "video/*")}
+        onChange={handleFileChange} 
+      />
+      
+      <Button 
+        type="button" 
+        variant="outline" 
+        onClick={() => fileInputRef.current?.click()}
+        disabled={state === "requesting" || state === "uploading" || state === "processing"}
+        className="w-full sm:w-auto flex gap-2"
+      >
+        {(state === "requesting" || state === "uploading" || state === "processing") ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Menyimpan... {progress}%
+          </>
+        ) : (
+          <>
+            <UploadCloud className="w-4 h-4" />
+            {label}
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}

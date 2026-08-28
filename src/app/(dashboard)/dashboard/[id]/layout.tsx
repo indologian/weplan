@@ -26,6 +26,8 @@ export default async function InvitationDashboardLayout({
         <div className="flex items-center space-x-2">
           <Link
             href={`/dashboard/${id}/preview`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm font-medium border rounded-md px-4 py-2 hover:bg-muted"
           >
             Preview

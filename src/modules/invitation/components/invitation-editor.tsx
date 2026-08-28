@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { SensitiveAuthForm } from "@/modules/auth/components/sensitive-auth-form";
 import type { IssueSensitiveAuthAction } from "@/modules/auth/types";
 import { AutosaveQueue, type AutosaveResult } from "../autosave-queue";
+import { MediaUploader } from "@/modules/storage/components/media-uploader";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
@@ -45,8 +46,12 @@ function formatForInput(isoString?: string | null) {
 type EditorForm = {
   groomName: string;
   brideName: string;
+  groomPhotoMediaId: string;
+  bridePhotoMediaId: string;
   openingText: string;
   quoteText: string;
+  backgroundAudioMediaId: string;
+  videoEmbedId: string; // Simplification: we'll store the first youtube id here
 };
 
 type Props = {
@@ -84,8 +89,12 @@ export function InvitationEditor({
     defaultValues: {
       groomName: initialData.couple.groom?.name ?? "",
       brideName: initialData.couple.bride?.name ?? "",
+      groomPhotoMediaId: initialData.couple.groom?.photoMediaId ?? "",
+      bridePhotoMediaId: initialData.couple.bride?.photoMediaId ?? "",
       openingText: initialData.settings.openingText ?? "",
       quoteText: initialData.settings.quoteText ?? "",
+      backgroundAudioMediaId: initialData.settings.backgroundAudioMediaId ?? "",
+      videoEmbedId: initialData.settings.videoEmbeds?.[0]?.externalId ?? "",
     },
   });
 
@@ -99,12 +108,14 @@ export function InvitationEditor({
             expectedVersion,
             couple: {
               ...initialData.couple,
-              groom: { ...initialData.couple.groom, name: snapshot.groomName },
-              bride: { ...initialData.couple.bride, name: snapshot.brideName },
+              groom: { ...initialData.couple.groom, name: snapshot.groomName, ...(snapshot.groomPhotoMediaId ? { photoMediaId: snapshot.groomPhotoMediaId } : {}) },
+              bride: { ...initialData.couple.bride, name: snapshot.brideName, ...(snapshot.bridePhotoMediaId ? { photoMediaId: snapshot.bridePhotoMediaId } : {}) },
             },
             settings: {
               ...initialData.settings,
               openingText: snapshot.openingText,
+              ...(snapshot.backgroundAudioMediaId ? { backgroundAudioMediaId: snapshot.backgroundAudioMediaId } : {}),
+              ...(snapshot.videoEmbedId ? { videoEmbeds: [{ id: crypto.randomUUID(), kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : {}),
               quoteText: snapshot.quoteText,
             },
           });
@@ -247,13 +258,74 @@ export function InvitationEditor({
             <CardDescription>Masukkan nama panggilan atau nama pendek kedua mempelai.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-6 sm:grid-cols-2">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="groomName">Mempelai Pria</Label>
+                <Input id="groomName" {...register("groomName")} placeholder="Contoh: Romeo" />
+              </div>
+              <div className="space-y-2">
+                <Label>Foto Mempelai Pria</Label>
+                <MediaUploader
+                  invitationId={initialData.invitationId}
+                  kind="image"
+                  purpose="groom_photo"
+                  label="Upload Foto Pria"
+                  onSuccess={(mediaId) => {
+                    setValue("groomPhotoMediaId", mediaId, { shouldDirty: true });
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="brideName">Mempelai Wanita</Label>
+                <Input id="brideName" {...register("brideName")} placeholder="Contoh: Juliet" />
+              </div>
+              <div className="space-y-2">
+                <Label>Foto Mempelai Wanita</Label>
+                <MediaUploader
+                  invitationId={initialData.invitationId}
+                  kind="image"
+                  purpose="bride_photo"
+                  label="Upload Foto Wanita"
+                  onSuccess={(mediaId) => {
+                    setValue("bridePhotoMediaId", mediaId, { shouldDirty: true });
+                  }}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Pengaturan Media</CardTitle>
+            <CardDescription>Tambahkan musik latar dan sematkan video YouTube.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="groomName">Mempelai Pria</Label>
-              <Input id="groomName" {...register("groomName")} placeholder="Contoh: Romeo" />
+              <Label>Audio Latar Belakang (BGM)</Label>
+              <MediaUploader
+                invitationId={initialData.invitationId}
+                kind="audio"
+                purpose="background_audio"
+                label="Upload Musik (MP3)"
+                onSuccess={(mediaId) => {
+                  setValue("backgroundAudioMediaId", mediaId, { shouldDirty: true });
+                }}
+              />
+              <p className="text-xs text-muted-foreground mt-1">Gunakan file MP3 maksimal 5MB.</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="brideName">Mempelai Wanita</Label>
-              <Input id="brideName" {...register("brideName")} placeholder="Contoh: Juliet" />
+              <Label htmlFor="videoEmbedId">Video YouTube (ID)</Label>
+              <Input 
+                id="videoEmbedId" 
+                {...register("videoEmbedId")} 
+                placeholder="Contoh: dQw4w9WgXcQ" 
+              />
+              <p className="text-xs text-muted-foreground mt-1">Masukkan 11 karakter ID video YouTube.</p>
             </div>
           </CardContent>
         </Card>
