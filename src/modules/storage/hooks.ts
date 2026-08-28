@@ -27,7 +27,24 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
     setProgress(0);
 
     try {
-      const slice = file.slice(0, 4100);
+      let fileToUpload = file;
+      
+      // Client-side image compression
+      if (kind === "image") {
+        try {
+          const imageCompression = (await import("browser-image-compression")).default;
+          const options = {
+            maxSizeMB: 1, // Compress to ~1MB
+            maxWidthOrHeight: 1920, // Max dimension
+            useWebWorker: true,
+          };
+          fileToUpload = await imageCompression(file, options) as File;
+        } catch (compressionError) {
+          console.warn("Gagal melakukan kompresi di peramban, menggunakan file asli", compressionError);
+        }
+      }
+
+      const slice = fileToUpload.slice(0, 4100);
       const arrayBuffer = await slice.arrayBuffer();
       const bytes = new Uint8Array(arrayBuffer);
       let binary = "";
@@ -44,9 +61,9 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
           invitationId,
           kind,
           purpose,
-          filename: file.name,
-          mimeType: file.type,
-          byteSize: file.size,
+          filename: fileToUpload.name || file.name,
+          mimeType: fileToUpload.type || file.type,
+          byteSize: fileToUpload.size,
           firstBytesBase64,
         }),
       });
@@ -78,8 +95,8 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
         });
         xhr.addEventListener("error", () => reject(new Error("Upload failed.")));
         xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.send(file);
+        xhr.setRequestHeader("Content-Type", fileToUpload.type || file.type);
+        xhr.send(fileToUpload);
       });
 
       setState("processing");
