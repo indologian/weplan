@@ -141,6 +141,10 @@ export function InvitationEditor({
   const brideName = useWatch({ control, name: "brideName" }) ?? "";
   const openingText = useWatch({ control, name: "openingText" }) ?? "";
   const quoteText = useWatch({ control, name: "quoteText" }) ?? "";
+  const groomPhotoMediaId = useWatch({ control, name: "groomPhotoMediaId" }) ?? "";
+  const bridePhotoMediaId = useWatch({ control, name: "bridePhotoMediaId" }) ?? "";
+  const backgroundAudioMediaId = useWatch({ control, name: "backgroundAudioMediaId" }) ?? "";
+  const videoEmbedId = useWatch({ control, name: "videoEmbedId" }) ?? "";
 
   const flushSaveQueue = useCallback(async () => {
     if (!autosaveQueue.state.pendingSave) return;
@@ -170,7 +174,7 @@ export function InvitationEditor({
     });
     setLocalEditGeneration(generation);
     setSaveState("dirty");
-  }, [autosaveQueue, groomName, brideName, openingText, quoteText]);
+  }, [autosaveQueue, groomName, brideName, groomPhotoMediaId, bridePhotoMediaId, openingText, quoteText, backgroundAudioMediaId, videoEmbedId]);
 
   useEffect(() => {
     if (localEditGeneration === 0 || saveState === "conflict") return;
