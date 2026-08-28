@@ -1,9 +1,9 @@
 import "server-only";
 
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
-import { createSnapTransaction, getTransactionStatus, cancelSnapTransaction, cancelMidtransTransaction, type CreateSnapRequest } from "../provider/midtrans/client";
+import { createSnapTransaction, getTransactionStatus, cancelMidtransTransaction, type CreateSnapRequest } from "../provider/midtrans/client";
 import type { PricingSnapshot, EntitlementSnapshot, TransactionRow } from "../types";
-import { assertValidTransition } from "../state-machine";
+import { evaluatePublishReadiness } from "@/modules/invitation/server/publish-readiness-evaluator";
 
 export class PaymentError extends Error {
   constructor(
@@ -43,22 +43,20 @@ export async function createCheckout(
     throw new PaymentError("Invitation already has entitlement", "ALREADY_ACTIVE");
   }
 
-  // 2. Check for active checkout
+  // 2. Check for active checkout & reuse
   const { data: activeTx } = await supabase
     .from("transactions")
-    .select("id")
+    .select("id, payment_state, amount_idr")
     .eq("invitation_id", invitationId)
-    .in("payment_state", ["creating", "provider_create_unknown", "awaiting_payment", "cancel_requested", "requires_review"])
+    .in("payment_state", ["creating", "provider_create_unknown", "awaiting_payment"])
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
-
-  if (activeTx) {
-    throw new PaymentError("Active checkout already exists", "ALREADY_ACTIVE");
-  }
 
   // 3. Get theme tier pricing
   const { data: theme } = await supabase
     .from("themes")
-    .select("tier_id")
+    .select("id, tier_id")
     .eq("id", invitation.theme_id)
     .maybeSingle();
 
@@ -66,13 +64,35 @@ export async function createCheckout(
 
   const { data: tier } = await supabase
     .from("tiers")
-    .select("id, code, tier_rank, price_amount, duration_months, gallery_limit, video_limit, bank_account_limit, audio_enabled, audio_size_limit_mb, watermark_enabled")
+    .select("*")
     .eq("id", theme.tier_id)
     .maybeSingle();
 
   if (!tier) throw new PaymentError("Tier not found", "NOT_FOUND");
 
-  // 4. Create transaction
+  if (activeTx) {
+    if (activeTx.payment_state === "awaiting_payment" && activeTx.amount_idr === tier.price_amount) {
+      const { data: activeAttempt } = await supabase
+        .from("payment_attempts")
+        .select("id, snap_token_ciphertext, redirect_url_ciphertext, page_expires_at")
+        .eq("transaction_id", activeTx.id)
+        .eq("create_state", "created")
+        .order("attempt_no", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (activeAttempt?.snap_token_ciphertext && activeAttempt.page_expires_at && new Date(activeAttempt.page_expires_at) > new Date()) {
+        return {
+          transactionId: activeTx.id,
+          snapToken: activeAttempt.snap_token_ciphertext,
+          redirectUrl: activeAttempt.redirect_url_ciphertext || ""
+        };
+      }
+    }
+    // If not reusable or amount changed, we should either cancel it or reject
+    throw new PaymentError("Active checkout already exists. Please cancel it first.", "ALREADY_ACTIVE");
+  }
+
   const pricingSnapshot: PricingSnapshot = {
     schema_version: 1,
     transaction_type: "initial_publish",
@@ -116,7 +136,8 @@ export async function createCheckout(
   if (txError) throw new PaymentError("Failed to create transaction", "DATABASE_ERROR");
 
   // 5. Create payment attempt
-  const orderId = `ntx_${crypto.randomUUID().replace(/-/g, "").slice(0, 26)}`;
+  const { randomUUID } = await import("crypto");
+  const orderId = `ntx_${randomUUID().replace(/-/g, "").slice(0, 26)}`;
   const now = new Date();
   const expiresAt = new Date(now.getTime() + CHECKOUT_EXPIRY_MINUTES * 60 * 1000);
 
@@ -174,6 +195,8 @@ export async function createCheckout(
       .from("payment_attempts")
       .update({
         create_state: "created",
+        snap_token_ciphertext: snapToken, // Storing for reuse
+        redirect_url_ciphertext: redirectUrl,
         updated_at: new Date().toISOString(),
       })
       .eq("id", attempt.id);
@@ -244,14 +267,9 @@ export async function cancelCheckout(
     throw new PaymentError("Transaction cannot be cancelled", "STATE_CONFLICT");
   }
 
-  await supabase
-    .from("transactions")
-    .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })
-    .eq("id", transactionId);
-
   const { data: attempt } = await supabase
     .from("payment_attempts")
-    .select("order_id, snap_token_ciphertext, create_state")
+    .select("order_id, create_state")
     .eq("transaction_id", transactionId)
     .order("attempt_no", { ascending: false })
     .limit(1)
@@ -265,27 +283,30 @@ export async function cancelCheckout(
     return;
   }
 
-  try {
-    if (attempt.create_state === "created" && !attempt.snap_token_ciphertext) {
-      const status = await getTransactionStatus(attempt.order_id);
-      if (status.transaction_status === "pending" || status.transaction_status === "authorize") {
-        await cancelMidtransTransaction(attempt.order_id);
-      } else if (status.transaction_status === "settlement" || (status.transaction_status === "capture" && status.fraud_status === "accept")) {
+  if (attempt.create_state === "created" || attempt.create_state === "unknown") {
+    try {
+      await cancelMidtransTransaction(attempt.order_id);
+    } catch (error: any) {
+      if (error?.httpStatus !== 412 && error?.httpStatus !== 404 && error?.providerStatusCode !== "412" && error?.providerStatusCode !== "404") {
         await supabase
           .from("transactions")
-          .update({ payment_state: "awaiting_payment", updated_at: new Date().toISOString() })
+          .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })
           .eq("id", transactionId);
-        return;
+        throw new PaymentError("Failed to cancel provider transaction", "PROVIDER_ERROR");
       }
     }
-  } catch {
-    // Provider cancel failed — leave in cancel_requested for reconciliation
   }
 
-  await supabase
-    .from("transactions")
-    .update({ payment_state: "cancelled", updated_at: new Date().toISOString() })
-    .eq("id", transactionId);
+  const { processPaymentStatusAtomically } = await import("./processing");
+  try {
+    await processPaymentStatusAtomically(attempt.order_id, "status_poll");
+  } catch (e) {
+    // If reconciliation fails or is already updated by webhook, fallback to simple cancel
+    await supabase
+      .from("transactions")
+      .update({ payment_state: "cancelled", updated_at: new Date().toISOString() })
+      .eq("id", transactionId);
+  }
 }
 
 export async function publishPaidDraft(
@@ -315,17 +336,10 @@ export async function publishPaidDraft(
     throw new PaymentError("Entitlement has expired", "STATE_CONFLICT");
   }
 
-  const { data: events } = await supabase
-    .from("invitation_events")
-    .select("title, starts_at, timezone")
-    .eq("invitation_id", invitationId);
-
-  const hasPublishableEvent = (events ?? []).some(
-    (e) => e.title && e.starts_at && e.timezone,
-  );
-
-  if (!hasPublishableEvent) {
-    throw new PaymentError("No publishable event", "INVITATION_NOT_READY");
+  // Use the canonical readiness validator
+  const readiness = await evaluatePublishReadiness(userId, invitationId);
+  if (!readiness.isReady) {
+    throw new PaymentError("Invitation is not ready to publish", "INVITATION_NOT_READY");
   }
 
   await supabase

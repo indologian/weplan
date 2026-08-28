@@ -2515,3 +2515,25 @@ Tidak ada Google Client ID/secret nyata, token OAuth, cookie session, PII, atau 
 
 `IMPLEMENTED_AND_AUTOMATED_VERIFIED`; live Google OAuth belum dapat dinyatakan `COMPLETE` sebelum external provider configuration dan end-to-end consent test tersedia.
 
+
+## 2026-08-28: M4/Midtrans Payment Security Remediation (P0)
+
+### Goal and canonical references
+Memperbaiki cacat arsitektur kritikal (P0) di modul pembayaran (M4) Midtrans terkait *Privilege Escalation* pada RPC \process_payment_webhook_atomic\, inkonsistensi *atomicity* rekonsiliasi, serta kegagalan rekonsiliasi *state* saat *create checkout* dan *cancel checkout*. Target perbaikan mengacu pada **File 01:3926** (RPC trustless) dan **File 07:54-63** (Atomicity State Machine).
+
+### Execution summary
+- Mengganti fungsi \process_payment_webhook_atomic\ yang rentan dengan \process_payment_webhook_atomic_v2\ melalui migration \20260828100000_fix_funded_transition_rpc.sql\. Operasi logika *merge entitlement* secara utuh dipindahkan ke PostgreSQL.
+- Menerapkan instruksi \REVOKE EXECUTE ON FUNCTION FROM PUBLIC\ serta \GRANT EXECUTE TO service_role\.
+- Menyesuaikan handler pada \processing.ts\ agar menggunakan validasi *server-side* SQL daripada mempercayai masukan caller.
+- Menulis ulang \ctions.ts\ untuk mengakomodir fitur idempoten (menggunakan ulang token \snap\ belum kadaluarsa saat *create checkout*) serta memanggil Status API resmi Midtrans sebagai verifikasi tunggal sebelum *cancel checkout*.
+- Menggunakan \evaluatePublishReadiness\ sebagai validator *publish readiness* standar sebelum status undangan diubah.
+
+### Security and data handling
+Tidak ada raw token, kredensial, PII pengguna, atau *Server Key* yang bocor melalui log maupun source code.
+
+### Commit / CI / deployment evidence
+- Telah lolos 270 unit tests lokal (Vitest).
+
+### Status
+\COMPLETE\
+
