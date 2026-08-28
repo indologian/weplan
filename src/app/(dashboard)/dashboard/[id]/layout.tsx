@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireUser } from "@/modules/auth/server/require-user";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
+import { CheckoutButton } from "./checkout-button";
 import { notFound } from "next/navigation";
 
 export default async function InvitationDashboardLayout({
@@ -32,14 +33,18 @@ export default async function InvitationDashboardLayout({
           >
             Preview
           </Link>
-          <a
-            href={`/${invitation.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium bg-primary text-primary-foreground rounded-md px-4 py-2 hover:opacity-90"
-          >
-            Buka Halaman Publik
-          </a>
+          {invitation.status === "published" ? (
+            <a
+              href={`/${invitation.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium bg-primary text-primary-foreground rounded-md px-4 py-2 hover:opacity-90"
+            >
+              Buka Halaman Publik
+            </a>
+          ) : (
+            <CheckoutButton invitationId={invitation.invitationId} />
+          )}
         </div>
       </div>
       

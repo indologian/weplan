@@ -349,8 +349,17 @@ export function InvitationEditor({
               <Label htmlFor="videoEmbedId">Video YouTube (ID)</Label>
               <Input 
                 id="videoEmbedId" 
-                {...register("videoEmbedId")} 
-                placeholder="Contoh: dQw4w9WgXcQ" 
+                {...register("videoEmbedId", {
+                  onChange: (e) => {
+                    const val = e.target.value;
+                    const match = val.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/i);
+                    if (match && match[1]) {
+                      e.target.value = match[1];
+                      setValue("videoEmbedId", match[1], { shouldDirty: true });
+                    }
+                  }
+                })} 
+                placeholder="Contoh: dQw4w9WgXcQ (ID atau Link URL YouTube)" 
               />
               <p className="text-xs text-muted-foreground mt-1">Masukkan 11 karakter ID video YouTube.</p>
               {videoEmbedId && videoEmbedId.length === 11 && (

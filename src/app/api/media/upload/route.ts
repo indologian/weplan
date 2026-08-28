@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { requireUser } from "@/modules/auth/server/require-user";
 import { ensureUserProfile } from "@/modules/auth/server/ensure-user-profile";
 import { requestUpload, completeUpload, StorageError } from "@/modules/storage/server/actions";
-import { enqueueMediaProcessing } from "@/modules/jobs/server/enqueue";
+import { processUploadedMedia } from "@/modules/storage/server/processing";
 import { validateMagicBytes } from "@/shared/lib/validation/magic-bytes";
 import type { MediaKind } from "@/modules/storage/types";
 
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       await completeUpload(user.id, { mediaId, invitationId });
 
       try {
-        await enqueueMediaProcessing(mediaId);
+        await processUploadedMedia(mediaId);
       } catch (err) {
         // Enqueueing failed, but upload is complete. We return 202 to indicate accepted but processing might be delayed or needs manual retry.
         return NextResponse.json({ success: true, warning: "Upload complete but processing queue failed." }, { status: 202 });

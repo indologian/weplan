@@ -43,6 +43,13 @@ const jobHandlers: Record<string, JobHandler> = {
       return { success: false, error: error instanceof Error ? error.message : "Reconciliation failed" };
     }
   },
+  process_media: async (event) => {
+    const { mediaId } = event.payload as { mediaId: string };
+    if (!mediaId) return { success: false, error: "Missing mediaId" };
+    const { processUploadedMedia } = await import("@/modules/storage/server/processing");
+    const result = await processUploadedMedia(mediaId);
+    return { success: result.success, error: result.error };
+  },
 };
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
