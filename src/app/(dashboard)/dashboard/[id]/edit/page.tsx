@@ -10,6 +10,7 @@ import {
 } from "@/modules/invitation/server/actions";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
 import { InvitationEditor } from "@/modules/invitation/components/invitation-editor";
+import { InvitationSlugEditor } from "@/modules/invitation/components/invitation-slug-editor";
 
 export default async function EditInvitationPage({
   params,
@@ -23,14 +24,17 @@ export default async function EditInvitationPage({
   if (editor.status === "expired" || editor.status === "trashed")
     redirect(`/dashboard/${id}`);
   return (
-    <InvitationEditor
-      initialData={editor}
-      saveEditorContent={actionSaveEditorContent}
-      saveEditorEvent={actionSaveEditorEvent}
-      deleteEditorEvent={actionDeleteEditorEvent}
-      reorderEditorEvents={actionReorderEditorEvents}
-      issueSensitiveAuth={actionIssueSensitiveAuth}
-      updateEditorPrivacy={actionUpdateEditorPrivacy}
-    />
+    <div className="space-y-6">
+      <InvitationSlugEditor invitationId={editor.invitationId} initialSlug={editor.slug} />
+      <InvitationEditor
+        initialData={editor}
+        saveEditorContent={actionSaveEditorContent}
+        saveEditorEvent={actionSaveEditorEvent}
+        deleteEditorEvent={actionDeleteEditorEvent}
+        reorderEditorEvents={actionReorderEditorEvents}
+        issueSensitiveAuth={actionIssueSensitiveAuth}
+        updateEditorPrivacy={actionUpdateEditorPrivacy}
+      />
+    </div>
   );
 }
