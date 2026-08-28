@@ -1,6 +1,8 @@
 import { requireUser } from "@/modules/auth/server/require-user";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
 import { notFound } from "next/navigation";
+import { InvitationBankAccountsEditor } from "@/modules/invitation/components/invitation-bank-accounts-editor";
+import { actionSaveEditorContent } from "@/modules/invitation/server/actions";
 
 export default async function RekeningPage({
   params,
@@ -21,12 +23,12 @@ export default async function RekeningPage({
         <p className="text-sm text-muted-foreground">Kelola rekening bank atau dompet digital untuk menerima hadiah.</p>
       </div>
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <p className="text-sm text-muted-foreground text-center py-12">
-          Halaman ini digunakan untuk menambah atau menghapus daftar rekening dan QRIS yang akan ditampilkan pada undangan Anda.
-          (Data aktual diatur dari dalam form Editor Tema).
-        </p>
-      </div>
+      <InvitationBankAccountsEditor
+        invitationId={invitation.invitationId}
+        initialVersion={invitation.contentVersion}
+        initialBankAccounts={invitation.bankAccounts}
+        saveEditorContent={actionSaveEditorContent}
+      />
     </div>
   );
 }

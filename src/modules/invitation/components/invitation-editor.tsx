@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 import { SensitiveAuthForm } from "@/modules/auth/components/sensitive-auth-form";
 import type { IssueSensitiveAuthAction } from "@/modules/auth/types";
 import { AutosaveQueue, type AutosaveResult } from "../autosave-queue";
@@ -386,7 +387,7 @@ function InvitationPrivacyEditor({
     setPin("");
     setAuthenticated(false);
     onVersionChange(result.data.contentVersion);
-    setMessage("Pengaturan privasi tersimpan.");
+    setMessage(""); toast.success("Pengaturan privasi tersimpan!");
   };
 
   return (
@@ -508,8 +509,11 @@ function InvitationEventsEditor({
     });
     if (!result.success) {
       setMessage(result.error);
+      toast.error(result.error);
       return;
     }
+    toast.success("Acara berhasil disimpan!");
+    setMessage("");
     onVersionChange(result.data.contentVersion);
     setEvents((current) =>
       current.map((item) =>
@@ -536,7 +540,7 @@ function InvitationEventsEditor({
     setEvents((current) =>
       current.filter((event) => event.eventId !== eventId),
     );
-    setMessage("Acara dihapus");
+    setMessage(""); toast.success("Acara dihapus!");
   };
 
   const moveEvent = async (index: number, direction: -1 | 1) => {
@@ -562,12 +566,14 @@ function InvitationEventsEditor({
     });
     if (!result.success) {
       setMessage(result.error);
+      toast.error(result.error);
       return;
     }
     const nextVersion = result.data.contentVersion;
     onVersionChange(nextVersion);
     setEvents(reordered.map((event, position) => ({ ...event, position })));
-    setMessage("Urutan acara tersimpan");
+    setMessage("");
+    toast.success("Urutan acara tersimpan!");
   };
 
   return (
