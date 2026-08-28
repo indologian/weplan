@@ -31,7 +31,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       enableSystem
       disableTransitionOnChange
     >
-      <div className="min-h-screen flex flex-col bg-background text-foreground transition-colors">
+      <div className="min-h-screen flex flex-col bg-background text-foreground">
         <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           <nav className="mx-auto flex max-w-5xl items-center justify-between p-4 sm:px-6" aria-label="Global">
             <div className="flex items-center gap-8">
