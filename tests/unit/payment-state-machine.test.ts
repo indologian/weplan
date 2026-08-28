@@ -47,9 +47,42 @@ describe("payment state machine", () => {
       expect(canTransition("expired", "paid")).toBe(false);
     });
 
-    it("rejects requires_review → anything", () => {
-      expect(canTransition("requires_review", "paid")).toBe(false);
-      expect(canTransition("requires_review", "cancelled")).toBe(false);
+    it.each([
+      "paid",
+      "failed",
+      "expired",
+      "cancelled",
+      "partially_reversed",
+      "reversed",
+    ] as const)("allows verified reconciliation requires_review → %s", (resolvedState) => {
+      expect(canTransition("requires_review", resolvedState)).toBe(true);
+    });
+
+    it.each([
+      "creating",
+      "provider_create_unknown",
+      "awaiting_payment",
+      "cancel_requested",
+    ] as const)("rejects unresolved requires_review → %s", (unresolvedState) => {
+      expect(canTransition("requires_review", unresolvedState)).toBe(false);
+    });
+
+    it.each(["awaiting_payment", "failed", "expired", "cancelled"] as const)(
+      "does not downgrade paid to %s without an explicit reversal/review",
+      (invalidState) => {
+        expect(canTransition("paid", invalidState)).toBe(false);
+      },
+    );
+
+    it.each(["partially_reversed", "reversed", "requires_review"] as const)(
+      "allows paid to move to explicit reversal/review state %s",
+      (allowedState) => {
+        expect(canTransition("paid", allowedState)).toBe(true);
+      },
+    );
+
+    it("still rejects requires_review self-transition", () => {
+      expect(canTransition("requires_review", "requires_review")).toBe(false);
     });
   });
 

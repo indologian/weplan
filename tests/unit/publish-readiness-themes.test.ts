@@ -7,8 +7,8 @@ describe("publish readiness with themes", () => {
     events: [
       { title: "Akad Nikah", startsAt: "2026-10-15T08:00:00+07:00", timezone: "Asia/Jakarta" },
     ],
-    usage: { bankAccounts: 1, videoEmbeds: 0, backgroundAudio: false },
-    allowance: { bankAccounts: 5, videoEmbeds: 1, audioEnabled: true },
+    usage: { galleryItems: 0, bankAccounts: 1, videoEmbeds: 0, backgroundAudio: false },
+    allowance: { galleryItems: 10, bankAccounts: 5, videoEmbeds: 1, audioEnabled: true },
     referencedMediaIds: [],
     readyMediaIds: new Set<string>(),
     isPrivate: false,

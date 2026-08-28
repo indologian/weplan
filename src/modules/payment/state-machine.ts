@@ -11,7 +11,7 @@ const VALID_TRANSITIONS: Record<PaymentState, readonly PaymentState[]> = {
   cancelled: ["requires_review"],
   partially_reversed: ["reversed", "requires_review"],
   reversed: ["requires_review"],
-  requires_review: [],
+  requires_review: ["paid", "failed", "expired", "cancelled", "partially_reversed", "reversed"],
 };
 
 export class InvalidStateTransitionError extends Error {

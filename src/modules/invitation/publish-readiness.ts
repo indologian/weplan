@@ -5,6 +5,7 @@ export type PublishReadinessIssueCode =
   | "GROOM_NAME_REQUIRED"
   | "PUBLISHABLE_EVENT_REQUIRED"
   | "THEME_NOT_AVAILABLE"
+  | "GALLERY_LIMIT_EXCEEDED"
   | "BANK_ACCOUNT_LIMIT_EXCEEDED"
   | "VIDEO_LIMIT_EXCEEDED"
   | "AUDIO_NOT_ALLOWED"
@@ -27,8 +28,8 @@ export type PublishReadinessSnapshot = {
   events: Array<{ title: string; startsAt?: string; timezone?: string }>;
   theme: { isActive: boolean; rendererKey: string; rendererConfigValid: boolean } | null;
   knownRendererKeys: ReadonlySet<string>;
-  usage: { bankAccounts: number; videoEmbeds: number; backgroundAudio: boolean };
-  allowance: { bankAccounts: number; videoEmbeds: number; audioEnabled: boolean };
+  usage: { galleryItems: number; bankAccounts: number; videoEmbeds: number; backgroundAudio: boolean };
+  allowance: { galleryItems: number; bankAccounts: number; videoEmbeds: number; audioEnabled: boolean };
   referencedMediaIds: readonly string[];
   readyMediaIds: ReadonlySet<string>;
   isPrivate: boolean;
@@ -72,6 +73,13 @@ export function evaluatePublishReadinessSnapshot(
     issues.push({ code: "RENDERER_CONFIG_INVALID", path: "theme", message: "Konfigurasi renderer tema tidak valid." });
   }
 
+  if (snapshot.usage.galleryItems > snapshot.allowance.galleryItems) {
+    issues.push({
+      code: "GALLERY_LIMIT_EXCEEDED",
+      path: "gallery",
+      message: "Jumlah foto galeri melebihi batas paket aktif.",
+    });
+  }
   if (snapshot.usage.bankAccounts > snapshot.allowance.bankAccounts) {
     issues.push({
       code: "BANK_ACCOUNT_LIMIT_EXCEEDED",

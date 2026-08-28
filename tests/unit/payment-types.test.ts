@@ -3,6 +3,7 @@ import {
   isFundedSuccess,
   mapProviderStatusToPaymentState,
   mergeEntitlements,
+  parseIdrAmount,
   type EntitlementSnapshot,
 } from "@/modules/payment/types";
 
@@ -62,6 +63,14 @@ describe("payment types", () => {
       expect(mapProviderStatusToPaymentState("expire")).toBe("expired");
     });
 
+    it("maps a full refund to reversed", () => {
+      expect(mapProviderStatusToPaymentState("refund")).toBe("reversed");
+    });
+
+    it("maps a partial refund to partially_reversed", () => {
+      expect(mapProviderStatusToPaymentState("partial_refund")).toBe("partially_reversed");
+    });
+
     it("maps unknown status to requires_review", () => {
       expect(mapProviderStatusToPaymentState("something_new")).toBe("requires_review");
     });
@@ -117,6 +126,45 @@ describe("payment types", () => {
     it("keeps incoming tier_code", () => {
       const result = mergeEntitlements(base, premium);
       expect(result.tier_code).toBe("premium");
+    });
+  });
+
+  describe("parseIdrAmount", () => {
+    it.each([
+      ["0", 0],
+      ["99000", 99000],
+      ["99000.00", 99000],
+      ["00125.0000", 125],
+      [String(Number.MAX_SAFE_INTEGER), Number.MAX_SAFE_INTEGER],
+    ])("parses exact IDR value %s", (input, expected) => {
+      expect(parseIdrAmount(input)).toEqual({ ok: true, amountIdr: expected });
+    });
+
+    it.each(["", " 99000.00", "99000.00 ", "+99000", "-1", "1.", ".00", "1,000", "NaN"])(
+      "rejects invalid decimal format %s",
+      (input) => {
+        expect(parseIdrAmount(input)).toMatchObject({
+          ok: false,
+          error: { code: "INVALID_FORMAT" },
+        });
+      },
+    );
+
+    it.each(["1.01", "99000.50", "0.0001"])(
+      "rejects fractional IDR value %s",
+      (input) => {
+        expect(parseIdrAmount(input)).toMatchObject({
+          ok: false,
+          error: { code: "FRACTIONAL_IDR" },
+        });
+      },
+    );
+
+    it("rejects values outside the safe integer range without rounding", () => {
+      expect(parseIdrAmount("9007199254740992.00")).toMatchObject({
+        ok: false,
+        error: { code: "OUT_OF_SAFE_RANGE" },
+      });
     });
   });
 });

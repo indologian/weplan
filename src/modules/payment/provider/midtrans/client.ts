@@ -1,31 +1,47 @@
 import "server-only";
 
 import crypto from "node:crypto";
+import { z } from "zod";
 import { getMidtransEnv } from "@/shared/lib/env/server";
 
 const MIDTRANS_ENDPOINTS = {
-  sandbox: "https://app.sandbox.midtrans.com",
-  production: "https://app.midtrans.com",
+  sandbox: {
+    snap: "https://app.sandbox.midtrans.com",
+    core: "https://api.sandbox.midtrans.com",
+  },
+  production: {
+    snap: "https://app.midtrans.com",
+    core: "https://api.midtrans.com",
+  },
 } as const;
 
+export const MIDTRANS_REQUEST_TIMEOUT_MS = 4_000;
+
+type MidtransApi = "snap" | "core";
+
 type MidtransConfig = {
-  baseUrl: string;
+  snapBaseUrl: string;
+  coreBaseUrl: string;
   serverKey: string;
-  merchantId: string;
 };
 
 function getConfig(): MidtransConfig {
   const env = getMidtransEnv();
+  const endpoints = MIDTRANS_ENDPOINTS[env.MIDTRANS_ENV];
+
   return {
-    baseUrl: MIDTRANS_ENDPOINTS[env.MIDTRANS_ENV],
+    snapBaseUrl: endpoints.snap,
+    coreBaseUrl: endpoints.core,
     serverKey: env.MIDTRANS_SERVER_KEY,
-    merchantId: env.MIDTRANS_MERCHANT_ID,
   };
 }
 
 function authHeader(serverKey: string): string {
   return `Basic ${Buffer.from(`${serverKey}:`).toString("base64")}`;
 }
+
+export type MidtransExpiryUnit = "minute" | "hour" | "day";
+export type MidtransExpiryUnitInput = MidtransExpiryUnit | `${MidtransExpiryUnit}s`;
 
 export type CreateSnapRequest = {
   transaction_details: {
@@ -50,34 +66,50 @@ export type CreateSnapRequest = {
   expiry?: {
     start_time?: string;
     duration: number;
-    unit: "minute" | "hour" | "day";
+    unit: MidtransExpiryUnitInput;
+  };
+  page_expiry?: {
+    duration: number;
+    unit: MidtransExpiryUnitInput;
   };
   callbacks?: {
     finish: string;
   };
 };
 
-export type CreateSnapResponse = {
-  token: string;
-  redirect_url: string;
-};
+const createSnapResponseSchema = z.object({
+  token: z.string().min(1),
+  redirect_url: z.url(),
+}).passthrough();
 
-export type MidtransStatusResponse = {
-  status_code: string;
-  status_message: string;
-  transaction_id: string;
-  order_id: string;
-  gross_amount: string;
-  currency?: string;
-  merchant_id?: string;
-  payment_type: string;
-  transaction_time: string;
-  transaction_status: string;
-  fraud_status?: string;
-  settlement_time?: string;
-  va_numbers?: Array<{ bank: string; va_number: string }>;
-  expiry_time?: string;
-};
+const midtransStatusResponseSchema = z.object({
+  status_code: z.string().regex(/^\d{3}$/),
+  status_message: z.string().min(1),
+  transaction_id: z.string().min(1),
+  order_id: z.string().min(1),
+  gross_amount: z.string().regex(/^(?:0|[1-9]\d*)\.00$/),
+  currency: z.string().length(3).optional(),
+  merchant_id: z.string().min(1).optional(),
+  payment_type: z.string().min(1),
+  transaction_time: z.string().min(1),
+  transaction_status: z.string().min(1),
+  fraud_status: z.string().min(1).optional(),
+  settlement_time: z.string().min(1).optional(),
+  va_numbers: z.array(z.object({
+    bank: z.string().min(1),
+    va_number: z.string().min(1),
+  }).passthrough()).optional(),
+  expiry_time: z.string().min(1).optional(),
+}).passthrough();
+
+const midtransCancelResponseSchema = z.object({
+  status_code: z.string().min(1),
+  status_message: z.string().min(1),
+}).passthrough();
+
+export type CreateSnapResponse = z.infer<typeof createSnapResponseSchema>;
+export type MidtransStatusResponse = z.infer<typeof midtransStatusResponseSchema>;
+export type MidtransCancelResponse = z.infer<typeof midtransCancelResponseSchema>;
 
 export type MidtransErrorResponse = {
   status_code: string;
@@ -85,78 +117,186 @@ export type MidtransErrorResponse = {
   error_messages?: string[];
 };
 
+export type MidtransClientErrorCode =
+  | "HTTP_ERROR"
+  | "INVALID_IDENTIFIER"
+  | "INVALID_RESPONSE"
+  | "NETWORK_ERROR"
+  | "TIMEOUT"
+  | "UNSUPPORTED_OPERATION";
+
+type MidtransClientErrorOptions = {
+  code: MidtransClientErrorCode;
+  retryable: boolean;
+  httpStatus?: number;
+  providerStatusCode?: string;
+};
+
 export class MidtransClientError extends Error {
-  constructor(
-    message: string,
-    public readonly statusCode?: string,
-    public readonly responseBody?: unknown,
-  ) {
+  public readonly code: MidtransClientErrorCode;
+  public readonly retryable: boolean;
+  public readonly httpStatus?: number;
+  public readonly providerStatusCode?: string;
+
+  constructor(message: string, options: MidtransClientErrorOptions) {
     super(message);
     this.name = "MidtransClientError";
+    this.code = options.code;
+    this.retryable = options.retryable;
+    this.httpStatus = options.httpStatus;
+    this.providerStatusCode = options.providerStatusCode;
   }
 }
 
+function getProviderStatusCode(body: unknown): string | undefined {
+  if (!body || typeof body !== "object" || !("status_code" in body)) return undefined;
+  const statusCode = (body as { status_code?: unknown }).status_code;
+  return typeof statusCode === "string" ? statusCode : undefined;
+}
+
+function isTimeoutError(error: unknown): boolean {
+  return error instanceof Error
+    && (error.name === "AbortError" || error.name === "TimeoutError");
+}
+
+function encodeIdentifier(identifier: string): string {
+  if (typeof identifier !== "string" || identifier.length === 0) {
+    throw new MidtransClientError("Midtrans identifier is required", {
+      code: "INVALID_IDENTIFIER",
+      retryable: false,
+    });
+  }
+
+  return encodeURIComponent(identifier);
+}
+
+async function readResponseBody(response: Response): Promise<unknown> {
+  let responseText: string;
+
+  try {
+    responseText = await response.text();
+  } catch (error) {
+    throw new MidtransClientError("Failed to read Midtrans response", {
+      code: isTimeoutError(error) ? "TIMEOUT" : "NETWORK_ERROR",
+      retryable: true,
+      httpStatus: response.status,
+    });
+  }
+
+  if (responseText.length === 0) return undefined;
+
+  try {
+    return JSON.parse(responseText) as unknown;
+  } catch {
+    return undefined;
+  }
+}
+
+function isRetryableHttpStatus(status: number): boolean {
+  return status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
 async function request<T>(
+  api: MidtransApi,
   path: string,
+  responseSchema: z.ZodType<T>,
   options: RequestInit = {},
 ): Promise<T> {
   const config = getConfig();
-  const url = `${config.baseUrl}${path}`;
+  const baseUrl = api === "snap" ? config.snapBaseUrl : config.coreBaseUrl;
+  const url = `${baseUrl}${path}`;
+  const headers = new Headers(options.headers);
 
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: authHeader(config.serverKey),
-      ...options.headers,
-    },
-  });
+  headers.set("Accept", "application/json");
+  headers.set("Content-Type", "application/json");
+  headers.set("Cache-Control", "no-store");
+  headers.set("Authorization", authHeader(config.serverKey));
 
-  const body = await response.json();
+  let response: Response;
 
-  if (!response.ok) {
+  try {
+    response = await fetch(url, {
+      ...options,
+      cache: "no-store",
+      headers,
+      redirect: "error",
+      signal: AbortSignal.timeout(MIDTRANS_REQUEST_TIMEOUT_MS),
+    });
+  } catch (error) {
     throw new MidtransClientError(
-      `Midtrans API error: ${response.status}`,
-      String(response.status),
-      body,
+      isTimeoutError(error) ? "Midtrans request timed out" : "Midtrans network request failed",
+      {
+        code: isTimeoutError(error) ? "TIMEOUT" : "NETWORK_ERROR",
+        retryable: true,
+      },
     );
   }
 
-  return body as T;
+  const body = await readResponseBody(response);
+
+  if (!response.ok) {
+    throw new MidtransClientError(`Midtrans API returned HTTP ${response.status}`, {
+      code: "HTTP_ERROR",
+      retryable: isRetryableHttpStatus(response.status),
+      httpStatus: response.status,
+      providerStatusCode: getProviderStatusCode(body),
+    });
+  }
+
+  const parsed = responseSchema.safeParse(body);
+  if (!parsed.success) {
+    throw new MidtransClientError("Midtrans returned an invalid response", {
+      code: "INVALID_RESPONSE",
+      retryable: false,
+      httpStatus: response.status,
+      providerStatusCode: getProviderStatusCode(body),
+    });
+  }
+
+  return parsed.data;
 }
 
 export async function createSnapTransaction(
   payload: CreateSnapRequest,
 ): Promise<CreateSnapResponse> {
-  return request<CreateSnapResponse>("/snap/v1/transactions", {
+  return request("snap", "/snap/v1/transactions", createSnapResponseSchema, {
     method: "POST",
     body: JSON.stringify(payload),
   });
 }
 
 export async function getTransactionStatus(
-  orderId: string,
+  identifier: string,
 ): Promise<MidtransStatusResponse> {
-  return request<MidtransStatusResponse>(
-    `/v2/${orderId}/status`,
+  return request(
+    "core",
+    `/v2/${encodeIdentifier(identifier)}/status`,
+    midtransStatusResponseSchema,
   );
 }
 
-export async function cancelSnapTransaction(
-  token: string,
-): Promise<{ status_code: string; status_message: string }> {
-  return request(`/snap/v1/transactions/${token}/cancel`, {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
+export async function cancelMidtransTransaction(
+  identifier: string,
+): Promise<MidtransCancelResponse> {
+  return request(
+    "core",
+    `/v2/${encodeIdentifier(identifier)}/cancel`,
+    midtransCancelResponseSchema,
+    {
+      method: "POST",
+      body: JSON.stringify({}),
+    },
+  );
 }
 
-export async function cancelMidtransTransaction(
-  orderId: string,
-): Promise<{ status_code: string; status_message: string }> {
-  return request(`/v2/${orderId}/cancel`, {
-    method: "POST",
-    body: JSON.stringify({}),
+/**
+ * @deprecated Midtrans does not provide an official Snap-token cancellation API.
+ * Retained temporarily so the existing out-of-scope payment action import fails closed.
+ */
+export async function cancelSnapTransaction(_token: string): Promise<never> {
+  throw new MidtransClientError("Snap-token cancellation is not supported by Midtrans", {
+    code: "UNSUPPORTED_OPERATION",
+    retryable: false,
   });
 }
 
@@ -167,12 +307,52 @@ export function verifyNotificationSignature(
   serverKey: string,
   signatureKey: string,
 ): boolean {
+  if (
+    typeof orderId !== "string"
+    || typeof statusCode !== "string"
+    || typeof grossAmount !== "string"
+    || typeof serverKey !== "string"
+    || typeof signatureKey !== "string"
+    || orderId.length === 0
+    || statusCode.length === 0
+    || grossAmount.length === 0
+    || serverKey.length === 0
+    || !/^[a-fA-F0-9]{128}$/.test(signatureKey)
+  ) {
+    return false;
+  }
+
   const expectedSignature = crypto
     .createHash("sha512")
     .update(`${orderId}${statusCode}${grossAmount}${serverKey}`)
     .digest("hex");
-  return crypto.timingSafeEqual(
-    Buffer.from(signatureKey, "hex"),
-    Buffer.from(expectedSignature, "hex"),
-  );
+  const actualBuffer = Buffer.from(signatureKey, "hex");
+  const expectedBuffer = Buffer.from(expectedSignature, "hex");
+
+  return actualBuffer.length === expectedBuffer.length
+    && crypto.timingSafeEqual(actualBuffer, expectedBuffer);
+}
+
+function padDatePart(value: number): string {
+  return value.toString().padStart(2, "0");
+}
+
+export function formatMidtransWibStartTime(date: Date): string {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+    throw new RangeError("A valid Date is required");
+  }
+
+  const wibDate = new Date(date.getTime() + 7 * 60 * 60 * 1_000);
+  const datePart = [
+    wibDate.getUTCFullYear(),
+    padDatePart(wibDate.getUTCMonth() + 1),
+    padDatePart(wibDate.getUTCDate()),
+  ].join("-");
+  const timePart = [
+    padDatePart(wibDate.getUTCHours()),
+    padDatePart(wibDate.getUTCMinutes()),
+    padDatePart(wibDate.getUTCSeconds()),
+  ].join(":");
+
+  return `${datePart} ${timePart} +0700`;
 }

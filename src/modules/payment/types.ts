@@ -87,6 +87,62 @@ export type PaymentAttemptRow = {
   updated_at: string;
 };
 
+export type IdrAmountParseErrorCode =
+  | "INVALID_FORMAT"
+  | "FRACTIONAL_IDR"
+  | "OUT_OF_SAFE_RANGE";
+
+export type IdrAmountParseError = {
+  code: IdrAmountParseErrorCode;
+  message: string;
+};
+
+export type IdrAmountParseResult =
+  | { ok: true; amountIdr: number }
+  | { ok: false; error: IdrAmountParseError };
+
+/**
+ * Parses an external decimal amount without floating-point arithmetic.
+ * IDR values may be integers or contain an all-zero fractional part only.
+ */
+export function parseIdrAmount(value: string): IdrAmountParseResult {
+  const match = /^(\d+)(?:\.(\d+))?$/.exec(value);
+
+  if (!match) {
+    return {
+      ok: false,
+      error: {
+        code: "INVALID_FORMAT",
+        message: "IDR amount must be an unsigned decimal string",
+      },
+    };
+  }
+
+  const fractionalPart = match[2];
+  if (fractionalPart && /[1-9]/.test(fractionalPart)) {
+    return {
+      ok: false,
+      error: {
+        code: "FRACTIONAL_IDR",
+        message: "IDR amount cannot contain a non-zero fractional value",
+      },
+    };
+  }
+
+  const integerAmount = BigInt(match[1]!);
+  if (integerAmount > BigInt(Number.MAX_SAFE_INTEGER)) {
+    return {
+      ok: false,
+      error: {
+        code: "OUT_OF_SAFE_RANGE",
+        message: "IDR amount exceeds the supported integer range",
+      },
+    };
+  }
+
+  return { ok: true, amountIdr: Number(integerAmount) };
+}
+
 export function isFundedSuccess(
   transactionStatus: string,
   statusCode: string,
@@ -118,7 +174,7 @@ export function mapProviderStatusToPaymentState(
   if (transactionStatus === "cancel") return "cancelled";
   if (transactionStatus === "expire") return "expired";
   if (transactionStatus === "failure") return "failed";
-  if (transactionStatus === "refund") return "partially_reversed";
+  if (transactionStatus === "refund") return "reversed";
   if (transactionStatus === "partial_refund") return "partially_reversed";
   if (transactionStatus === "chargeback") return "reversed";
   if (transactionStatus === "partial_chargeback") return "partially_reversed";
