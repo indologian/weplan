@@ -41,30 +41,8 @@ export default async function InvitationDashboardLayout({
         </div>
       </div>
       
-      <div className="flex flex-col md:flex-row gap-6">
-        <aside className="w-full md:w-64 shrink-0">
-          <nav className="flex md:flex-col gap-2 overflow-x-auto pb-2">
-            <Link 
-              href={`/dashboard/${id}/edit`} 
-              className="text-sm font-medium px-4 py-2 rounded-md hover:bg-muted flex-shrink-0"
-            >
-              Editor Tema
-            </Link>
-            <Link 
-              href={`/dashboard/${id}/tamu`} 
-              className="text-sm font-medium px-4 py-2 rounded-md hover:bg-muted flex-shrink-0"
-            >
-              Buku Tamu & RSVP
-            </Link>
-            <Link 
-              href={`/dashboard/${id}/rekening`} 
-              className="text-sm font-medium px-4 py-2 rounded-md hover:bg-muted flex-shrink-0"
-            >
-              Manajemen Rekening (Gift)
-            </Link>
-          </nav>
-        </aside>
-        <main className="flex-1 min-w-0">
+      <div className="flex flex-col gap-6">
+        <main className="w-full min-w-0">
           {children}
         </main>
       </div>
