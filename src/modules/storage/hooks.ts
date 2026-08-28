@@ -27,6 +27,15 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
     setProgress(0);
 
     try {
+      const slice = file.slice(0, 4100);
+      const arrayBuffer = await slice.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
+      let binary = "";
+      for (let i = 0; i < bytes.byteLength; i++) {
+        binary += String.fromCharCode(bytes[i] ?? 0);
+      }
+      const firstBytesBase64 = window.btoa(binary);
+
       const requestResponse = await fetch("/api/media/upload", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,6 +47,7 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
           filename: file.name,
           mimeType: file.type,
           byteSize: file.size,
+          firstBytesBase64,
         }),
       });
 

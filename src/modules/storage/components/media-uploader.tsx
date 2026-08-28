@@ -13,9 +13,10 @@ type Props = {
   onSuccess: (mediaId: string) => void;
   label?: string;
   accept?: string;
+  currentMediaId?: string;
 };
 
-export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = "Upload", accept }: Props) {
+export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = "Upload", accept, currentMediaId }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { upload, state, progress } = useMediaUpload({
@@ -52,7 +53,15 @@ export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = 
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      {currentMediaId && kind === "image" && (
+        <div className="relative w-32 h-32 rounded-lg overflow-hidden border">
+          <img src={`/api/media/${currentMediaId}/medium`} alt="Preview" className="object-cover w-full h-full" />
+        </div>
+      )}
+      {currentMediaId && kind === "audio" && (
+        <audio controls src={`/api/media/${currentMediaId}`} className="w-full h-10" />
+      )}
       <input 
         type="file" 
         className="hidden" 
@@ -76,7 +85,7 @@ export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = 
         ) : (
           <>
             <UploadCloud className="w-4 h-4" />
-            {label}
+            {currentMediaId ? "Ganti File" : label}
           </>
         )}
       </Button>

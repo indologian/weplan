@@ -45,6 +45,8 @@ function formatForInput(isoString?: string | null) {
 }
 
 type EditorForm = {
+  groomParentNames: string;
+  brideParentNames: string;
   groomName: string;
   brideName: string;
   groomPhotoMediaId: string;
@@ -89,7 +91,9 @@ export function InvitationEditor({
   const { control, register, setValue } = useForm<EditorForm>({
     defaultValues: {
       groomName: initialData.couple.groom?.name ?? "",
+      groomParentNames: initialData.couple.groom?.parentNames?.join(", ") ?? "",
       brideName: initialData.couple.bride?.name ?? "",
+      brideParentNames: initialData.couple.bride?.parentNames?.join(", ") ?? "",
       groomPhotoMediaId: initialData.couple.groom?.photoMediaId ?? "",
       bridePhotoMediaId: initialData.couple.bride?.photoMediaId ?? "",
       openingText: initialData.settings.openingText ?? "",
@@ -109,8 +113,8 @@ export function InvitationEditor({
             expectedVersion,
             couple: {
               ...initialData.couple,
-              groom: { ...initialData.couple.groom, name: snapshot.groomName, ...(snapshot.groomPhotoMediaId ? { photoMediaId: snapshot.groomPhotoMediaId } : {}) },
-              bride: { ...initialData.couple.bride, name: snapshot.brideName, ...(snapshot.bridePhotoMediaId ? { photoMediaId: snapshot.bridePhotoMediaId } : {}) },
+              groom: { ...initialData.couple.groom, name: snapshot.groomName, parentNames: snapshot.groomParentNames.split(",").map(n => n.trim()).filter(Boolean), ...(snapshot.groomPhotoMediaId ? { photoMediaId: snapshot.groomPhotoMediaId } : {}) },
+              bride: { ...initialData.couple.bride, name: snapshot.brideName, parentNames: snapshot.brideParentNames.split(",").map(n => n.trim()).filter(Boolean), ...(snapshot.bridePhotoMediaId ? { photoMediaId: snapshot.bridePhotoMediaId } : {}) },
             },
             settings: {
               ...initialData.settings,
@@ -138,6 +142,8 @@ export function InvitationEditor({
   );
 
   const groomName = useWatch({ control, name: "groomName" }) ?? "";
+  const groomParentNames = useWatch({ control, name: "groomParentNames" }) ?? "";
+  const brideParentNames = useWatch({ control, name: "brideParentNames" }) ?? "";
   const brideName = useWatch({ control, name: "brideName" }) ?? "";
   const openingText = useWatch({ control, name: "openingText" }) ?? "";
   const quoteText = useWatch({ control, name: "quoteText" }) ?? "";
@@ -169,6 +175,8 @@ export function InvitationEditor({
     const generation = autosaveQueue.markDirty({
       groomName,
       brideName,
+      groomParentNames,
+      brideParentNames,
       groomPhotoMediaId,
       bridePhotoMediaId,
       openingText,
@@ -178,7 +186,7 @@ export function InvitationEditor({
     });
     setLocalEditGeneration(generation);
     setSaveState("dirty");
-  }, [autosaveQueue, groomName, brideName, groomPhotoMediaId, bridePhotoMediaId, openingText, quoteText, backgroundAudioMediaId, videoEmbedId]);
+  }, [autosaveQueue, groomName, brideName, groomParentNames, brideParentNames, groomPhotoMediaId, bridePhotoMediaId, openingText, quoteText, backgroundAudioMediaId, videoEmbedId]);
   useEffect(() => {
     if (localEditGeneration === 0 || saveState === "conflict") return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
@@ -272,12 +280,17 @@ export function InvitationEditor({
                 <Input id="groomName" {...register("groomName")} placeholder="Contoh: Romeo" />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="groomParentNames">Nama Orang Tua Pria</Label>
+                <Input id="groomParentNames" {...register("groomParentNames")} placeholder="Contoh: Bpk. X, Ibu Y" />
+              </div>
+              <div className="space-y-2">
                 <Label>Foto Mempelai Pria</Label>
                 <MediaUploader
                   invitationId={initialData.invitationId}
                   kind="image"
-                  purpose="groom_photo"
+                  purpose="couple_portrait"
                   label="Upload Foto Pria"
+                  currentMediaId={groomPhotoMediaId}
                   onSuccess={(mediaId) => {
                     setValue("groomPhotoMediaId", mediaId, { shouldDirty: true });
                   }}
@@ -291,12 +304,17 @@ export function InvitationEditor({
                 <Input id="brideName" {...register("brideName")} placeholder="Contoh: Juliet" />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="brideParentNames">Nama Orang Tua Wanita</Label>
+                <Input id="brideParentNames" {...register("brideParentNames")} placeholder="Contoh: Bpk. A, Ibu B" />
+              </div>
+              <div className="space-y-2">
                 <Label>Foto Mempelai Wanita</Label>
                 <MediaUploader
                   invitationId={initialData.invitationId}
                   kind="image"
-                  purpose="bride_photo"
+                  purpose="couple_portrait"
                   label="Upload Foto Wanita"
+                  currentMediaId={bridePhotoMediaId}
                   onSuccess={(mediaId) => {
                     setValue("bridePhotoMediaId", mediaId, { shouldDirty: true });
                   }}
@@ -320,6 +338,7 @@ export function InvitationEditor({
                 kind="audio"
                 purpose="background_audio"
                 label="Upload Musik (MP3)"
+                currentMediaId={backgroundAudioMediaId}
                 onSuccess={(mediaId) => {
                   setValue("backgroundAudioMediaId", mediaId, { shouldDirty: true });
                 }}
@@ -334,6 +353,19 @@ export function InvitationEditor({
                 placeholder="Contoh: dQw4w9WgXcQ" 
               />
               <p className="text-xs text-muted-foreground mt-1">Masukkan 11 karakter ID video YouTube.</p>
+              {videoEmbedId && videoEmbedId.length === 11 && (
+                <div className="mt-3 relative w-full aspect-video rounded-lg overflow-hidden border">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src={`https://www.youtube.com/embed/${videoEmbedId}`} 
+                    title="YouTube video player" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  />
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -885,6 +917,46 @@ function InvitationEventsEditor({
                       )
                     }
                   />
+                </div>
+              </div>
+
+              <div className="grid gap-6 sm:grid-cols-2 mt-4">
+                <div className="space-y-2">
+                  <Label>Latitude (Titik Koordinat Peta)</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={event.latitude === null ? "" : event.latitude}
+                    placeholder="-6.2088"
+                    onChange={(change) =>
+                      setEvents((current) =>
+                        current.map((item) =>
+                          item.localId === event.localId
+                            ? { ...item, latitude: change.target.value === "" ? null : parseFloat(change.target.value) }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Longitude (Titik Koordinat Peta)</Label>
+                  <Input
+                    type="number"
+                    step="any"
+                    value={event.longitude === null ? "" : event.longitude}
+                    placeholder="106.8456"
+                    onChange={(change) =>
+                      setEvents((current) =>
+                        current.map((item) =>
+                          item.localId === event.localId
+                            ? { ...item, longitude: change.target.value === "" ? null : parseFloat(change.target.value) }
+                            : item,
+                        ),
+                      )
+                    }
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Dapatkan dari Google Maps (Klik Kanan pada peta).</p>
                 </div>
               </div>
 
