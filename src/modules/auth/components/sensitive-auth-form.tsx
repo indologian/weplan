@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import type { IssueSensitiveAuthAction } from "../types";
+import { Input } from "@/shared/components/ui/input";
+import { Label } from "@/shared/components/ui/label";
+import { Button } from "@/shared/components/ui/button";
 
 export function SensitiveAuthForm({
   issueSensitiveAuth,
@@ -30,24 +33,27 @@ export function SensitiveAuthForm({
   };
 
   return (
-    <section>
-      <h2>Verifikasi tindakan sensitif</h2>
-      <form onSubmit={submit}>
-        <label>
-          Password akun
-          <input
+    <div className="space-y-4">
+      <form onSubmit={submit} className="flex flex-col sm:flex-row items-end gap-3 max-w-sm">
+        <div className="space-y-2 flex-1 w-full">
+          <Label htmlFor="sensitive_password">Password Akun</Label>
+          <Input
+            id="sensitive_password"
             type="password"
             value={password}
             autoComplete="current-password"
+            placeholder="Masukkan password..."
             onChange={(event) => setPassword(event.target.value)}
             required
           />
-        </label>
-        <button type="submit" disabled={pending}>
+        </div>
+        <Button type="submit" disabled={pending} className="w-full sm:w-auto">
           {pending ? "Memverifikasi..." : "Verifikasi"}
-        </button>
+        </Button>
       </form>
-      <p aria-live="polite">{message}</p>
-    </section>
+      {message && (
+        <p className="text-sm font-medium text-destructive" aria-live="polite">{message}</p>
+      )}
+    </div>
   );
 }

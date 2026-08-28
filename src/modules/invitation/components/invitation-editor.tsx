@@ -19,6 +19,20 @@ import type {
   UpdateEditorPrivacyAction,
 } from "../types";
 
+const OPENING_TEMPLATES = [
+  { label: "Formal", value: "Dengan memohon rahmat dan ridho Allah SWT, kami bermaksud menyelenggarakan acara pernikahan putra-putri kami:" },
+  { label: "Hangat", value: "Dengan penuh rasa syukur dan sukacita, kami bermaksud mengundang Bapak/Ibu/Saudara/i untuk hadir pada acara pernikahan kami:" },
+  { label: "Santai", value: "Tanpa mengurangi rasa hormat, kami mengundang teman-teman sekalian untuk hadir dan merayakan hari bahagia pernikahan kami:" },
+  { label: "Kristen/Katolik", value: "Dalam kasih karunia Tuhan, kami bermaksud menyelenggarakan pemberkatan dan perayaan pernikahan putra-putri kami:" }
+];
+
+const QUOTE_TEMPLATES = [
+  { label: "Islami", value: "\"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu isteri-isteri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan dijadikan-Nya diantaramu rasa kasih dan sayang. Sesungguhnya pada yang demikian itu benar-benar terdapat tanda-tanda bagi kaum yang berfikir.\" (QS. Ar-Rum: 21)" },
+  { label: "Kristen", value: "\"Demikianlah mereka bukan lagi dua, melainkan satu. Karena itu, apa yang telah dipersatukan Allah, tidak boleh diceraikan manusia.\" (Matius 19:6)" },
+  { label: "Katolik", value: "\"Cinta itu sabar; cinta itu murah hati; ia tidak cemburu. Ia tidak memegahkan diri dan tidak sombong.\" (1 Korintus 13:4)" },
+  { label: "Umum / Romantis", value: "\"Dua jiwa namun satu pikiran, dua hati namun satu perasaan.\"" }
+];
+
 type EditorForm = {
   groomName: string;
   brideName: string;
@@ -57,7 +71,7 @@ export function InvitationEditor({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialized = useRef(false);
 
-  const { control, register } = useForm<EditorForm>({
+  const { control, register, setValue } = useForm<EditorForm>({
     defaultValues: {
       groomName: initialData.couple.groom?.name ?? "",
       brideName: initialData.couple.bride?.name ?? "",
@@ -240,9 +254,26 @@ export function InvitationEditor({
             <CardTitle>Pembuka</CardTitle>
             <CardDescription>Teks sambutan dan kutipan (doa/puisi) di bagian atas undangan.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="openingText">Teks Pembuka</Label>
+          <CardContent className="space-y-8">
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <Label htmlFor="openingText">Teks Pembuka</Label>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs text-muted-foreground self-center mr-1">Generator:</span>
+                  {OPENING_TEMPLATES.map((tmpl) => (
+                    <Button 
+                      key={tmpl.label} 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-7 text-xs"
+                      onClick={() => setValue("openingText", tmpl.value, { shouldDirty: true, shouldTouch: true })}
+                    >
+                      {tmpl.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
               <textarea 
                 id="openingText" 
                 className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" 
@@ -250,8 +281,26 @@ export function InvitationEditor({
                 placeholder="Dengan memohon rahmat dan ridho Allah SWT..." 
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="quoteText">Kutipan atau Doa</Label>
+            
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <Label htmlFor="quoteText">Kutipan atau Doa</Label>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs text-muted-foreground self-center mr-1">Generator:</span>
+                  {QUOTE_TEMPLATES.map((tmpl) => (
+                    <Button 
+                      key={tmpl.label} 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      className="h-7 text-xs"
+                      onClick={() => setValue("quoteText", tmpl.value, { shouldDirty: true, shouldTouch: true })}
+                    >
+                      {tmpl.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
               <textarea 
                 id="quoteText" 
                 className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" 
@@ -604,32 +653,31 @@ function InvitationEventsEditor({
                 </div>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Nama Acara</Label>
+                <Input
+                  value={event.title}
+                  placeholder="Contoh: Akad Nikah / Resepsi"
+                  onChange={(change) =>
+                    setEvents((current) =>
+                      current.map((item) =>
+                        item.localId === event.localId
+                          ? { ...item, title: change.target.value }
+                          : item,
+                      ),
+                    )
+                  }
+                />
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Nama Acara</Label>
-                  <Input
-                    value={event.title}
-                    placeholder="Contoh: Akad Nikah / Resepsi"
-                    onChange={(change) =>
-                      setEvents((current) =>
-                        current.map((item) =>
-                          item.localId === event.localId
-                            ? { ...item, title: change.target.value }
-                            : item,
-                        ),
-                      )
-                    }
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Waktu (ISO Format)</Label>
+                  <Label>Waktu Mulai</Label>
                   <Input
                     type="datetime-local"
                     value={event.startsAt ? event.startsAt.slice(0, 16) : ""}
                     onChange={(change) => {
                       const dt = change.target.value;
-                      // Sangat sederhana untuk demo. Di sistem produksi gunakan DatePicker / library Waktu (Luxon/Date-fns)
                       const isoStr = dt ? new Date(dt).toISOString() : null;
                       setEvents((current) =>
                         current.map((item) =>
@@ -640,6 +688,43 @@ function InvitationEventsEditor({
                       );
                     }}
                   />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Waktu Selesai (Opsional)</Label>
+                  <Input
+                    type="datetime-local"
+                    value={event.endsAt ? event.endsAt.slice(0, 16) : ""}
+                    onChange={(change) => {
+                      const dt = change.target.value;
+                      const isoStr = dt ? new Date(dt).toISOString() : null;
+                      setEvents((current) =>
+                        current.map((item) =>
+                          item.localId === event.localId
+                            ? { ...item, endsAt: isoStr }
+                            : item,
+                        ),
+                      );
+                    }}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Zona Waktu</Label>
+                  <select 
+                    className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    value={event.timezone || "Asia/Jakarta"}
+                    onChange={(change) => {
+                       setEvents((current) =>
+                        current.map((item) => item.localId === event.localId ? { ...item, timezone: change.target.value } : item)
+                      );
+                    }}
+                  >
+                    <option value="Asia/Jakarta">WIB (Asia/Jakarta)</option>
+                    <option value="Asia/Makassar">WITA (Asia/Makassar)</option>
+                    <option value="Asia/Jayapura">WIT (Asia/Jayapura)</option>
+                    <option value="UTC">UTC</option>
+                  </select>
                 </div>
               </div>
 
