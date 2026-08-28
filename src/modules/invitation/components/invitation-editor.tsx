@@ -33,6 +33,14 @@ const QUOTE_TEMPLATES = [
   { label: "Umum / Romantis", value: "\"Dua jiwa namun satu pikiran, dua hati namun satu perasaan.\"" }
 ];
 
+function formatForInput(isoString?: string | null) {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return "";
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 type EditorForm = {
   groomName: string;
   brideName: string;
@@ -675,7 +683,7 @@ function InvitationEventsEditor({
                   <Label>Waktu Mulai</Label>
                   <Input
                     type="datetime-local"
-                    value={event.startsAt ? event.startsAt.slice(0, 16) : ""}
+                    value={formatForInput(event.startsAt)}
                     onChange={(change) => {
                       const dt = change.target.value;
                       const isoStr = dt ? new Date(dt).toISOString() : null;
@@ -691,10 +699,33 @@ function InvitationEventsEditor({
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Waktu Selesai (Opsional)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Waktu Selesai</Label>
+                    <div className="flex items-center gap-1.5">
+                      <input 
+                        type="checkbox" 
+                        id={`until-finish-${event.localId}`}
+                        checked={event.endsAt === null}
+                        onChange={(e) => {
+                          setEvents((current) =>
+                            current.map((item) =>
+                              item.localId === event.localId
+                                ? { ...item, endsAt: e.target.checked ? null : item.startsAt }
+                                : item,
+                            ),
+                          );
+                        }}
+                        className="h-3.5 w-3.5 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <label htmlFor={`until-finish-${event.localId}`} className="text-xs text-muted-foreground cursor-pointer">
+                        Selesai
+                      </label>
+                    </div>
+                  </div>
                   <Input
                     type="datetime-local"
-                    value={event.endsAt ? event.endsAt.slice(0, 16) : ""}
+                    value={formatForInput(event.endsAt)}
+                    disabled={event.endsAt === null}
                     onChange={(change) => {
                       const dt = change.target.value;
                       const isoStr = dt ? new Date(dt).toISOString() : null;

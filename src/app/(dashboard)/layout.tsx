@@ -1,6 +1,7 @@
 import { DashboardSidebar } from "./_components/dashboard-sidebar";
 import { requireUser } from "@/modules/auth/server/require-user";
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
+import { ThemeProvider } from "@/app/(marketing)/_components/theme-provider";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireUser();
@@ -16,13 +17,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const invitations = data ?? [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <DashboardSidebar invitations={invitations} />
-      <main className="ml-0 lg:ml-[260px] min-h-screen">
-        <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
-    </div>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <DashboardSidebar invitations={invitations} />
+        <main className="ml-0 lg:ml-[260px] min-h-screen">
+          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }
