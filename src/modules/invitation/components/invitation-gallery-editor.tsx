@@ -98,7 +98,7 @@ export function InvitationGalleryEditor({
               <MediaUploader
                 invitationId={invitationId}
                 kind="image"
-                purpose="gallery_photo"
+                purpose="gallery"
                 label="Tambah Foto"
                 onSuccess={addPhoto}
               />
