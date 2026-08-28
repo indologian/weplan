@@ -367,7 +367,7 @@ export function InvitationEditor({
                   <iframe 
                     width="100%" 
                     height="100%" 
-                    src={`https://www.youtube.com/embed/${videoEmbedId}`} 
+                    src={`https://www.youtube-nocookie.com/embed/${videoEmbedId}`} 
                     title="YouTube video player" 
                     frameBorder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

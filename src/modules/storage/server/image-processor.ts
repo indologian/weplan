@@ -1,8 +1,7 @@
 import "server-only";
 
-import sharp from "sharp";
-import { IMAGE_VARIANT_SIZES } from "../types";
-
+// Cloudflare Workers do not support sharp.
+// For the MVP, we bypass image resizing and just return the original buffer.
 type ProcessImageResult = {
   original: Buffer;
   thumbnail: Buffer;
@@ -15,45 +14,14 @@ type ProcessImageResult = {
 export async function processImage(
   inputBuffer: Buffer,
 ): Promise<ProcessImageResult> {
-  const metadata = await sharp(inputBuffer).metadata();
-  const width = metadata.width ?? 0;
-  const height = metadata.height ?? 0;
-
-  const original = await sharp(inputBuffer)
-    .rotate() // auto-rotate based on EXIF, then strip all metadata
-    .toBuffer();
-
-  const thumbnail = await sharp(inputBuffer)
-    .rotate()
-    .resize({
-      width: IMAGE_VARIANT_SIZES.thumbnail.width,
-      height: IMAGE_VARIANT_SIZES.thumbnail.height,
-      fit: "cover",
-      withoutEnlargement: true,
-    })
-    .toBuffer();
-
-  const medium = await sharp(inputBuffer)
-    .rotate()
-    .resize({
-      width: IMAGE_VARIANT_SIZES.medium.width,
-      height: IMAGE_VARIANT_SIZES.medium.height,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .toBuffer();
-
-  const large = await sharp(inputBuffer)
-    .rotate()
-    .resize({
-      width: IMAGE_VARIANT_SIZES.large.width,
-      height: IMAGE_VARIANT_SIZES.large.height,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .toBuffer();
-
-  return { original, thumbnail, medium, large, width, height };
+  return {
+    original: inputBuffer,
+    thumbnail: inputBuffer,
+    medium: inputBuffer,
+    large: inputBuffer,
+    width: 0,
+    height: 0,
+  };
 }
 
 export function detectImageFormat(buffer: Buffer): string | null {
