@@ -169,13 +169,16 @@ export function InvitationEditor({
     const generation = autosaveQueue.markDirty({
       groomName,
       brideName,
+      groomPhotoMediaId,
+      bridePhotoMediaId,
       openingText,
       quoteText,
+      backgroundAudioMediaId,
+      videoEmbedId,
     });
     setLocalEditGeneration(generation);
     setSaveState("dirty");
   }, [autosaveQueue, groomName, brideName, groomPhotoMediaId, bridePhotoMediaId, openingText, quoteText, backgroundAudioMediaId, videoEmbedId]);
-
   useEffect(() => {
     if (localEditGeneration === 0 || saveState === "conflict") return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
