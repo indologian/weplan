@@ -7,6 +7,7 @@ import { SensitiveAuthForm } from "@/modules/auth/components/sensitive-auth-form
 import type { IssueSensitiveAuthAction } from "@/modules/auth/types";
 import { AutosaveQueue, type AutosaveResult } from "../autosave-queue";
 import { MediaUploader } from "@/modules/storage/components/media-uploader";
+import { InvitationGalleryEditor } from "./invitation-gallery-editor";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
@@ -407,6 +408,14 @@ export function InvitationEditor({
             setEditorVersion(version);
           }}
         />
+
+        <InvitationGalleryEditor
+          invitationId={initialData.invitationId}
+          initialVersion={editorVersion}
+          initialGallery={initialData.loveStory}
+          saveEditorContent={saveEditorContent}
+        />
+
         <InvitationPrivacyEditor
           invitationId={initialData.invitationId}
           contentVersion={editorVersion}
