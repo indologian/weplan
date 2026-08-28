@@ -2537,3 +2537,34 @@ Tidak ada raw token, kredensial, PII pengguna, atau *Server Key* yang bocor mela
 ### Status
 \COMPLETE\
 
+
+
+## 2026-08-29: Editor Enhancements, Cloudflare Bugfixes, and Payment/Slug Controls
+
+### Goal and canonical references
+Menyelesaikan request pengguna terkait editor (foto/audio/video preview, lat/long input), memperbaiki bug kritis "Unexpected end of JSON input" saat upload file di environment Cloudflare, serta menambahkan kontrol kustomisasi tautan (*slug*) secara realtime dan penyelesaian alur tombol pembayaran.
+
+### Execution summary
+- **Media Previews & Upload Fix**: 
+  - Mengubah `useMediaUpload` agar secara manual mengambil byte pertama (`window.btoa`) untuk lolos *magic bytes validation*.
+  - Menyisipkan *image* & *audio player preview* jika `currentMediaId` telah terisi di `MediaUploader`.
+  - Mengubah `api/media/upload/route.ts` menjadi *inline synchronous processing* alih-alih melemparnya ke antrean background (karena `cron` dispatcher tidak berjalan instan).
+  - Melepas penggunaan pustaka `sharp` dari `image-processor.ts` karena tidak kompatibel dengan Cloudflare Workers environment dan menyebabkan 500 error (*Unexpected end of JSON input*).
+- **Editor Data Fields**:
+  - Menambahkan input numerik Latitude & Longitude di komponen `InvitationEventsEditor`.
+  - Menggunakan ekstraksi *regex* otomatis untuk URL YouTube dan memperbaiki domain `iframe` menjadi `youtube-nocookie.com` agar sesuai dengan *Content-Security-Policy* (CSP).
+- **Custom Slug (Tautan Publik)**:
+  - Membuat `actionCheckSlugAvailability` & `actionUpdateEditorSlug` dengan validasi karakter, batas panjang, dan pencegahan duplikasi *realtime* (debounce 500ms).
+  - Menyematkan `InvitationSlugEditor` di bagian atas halaman Edit Undangan.
+- **Payment Call to Action**:
+  - Mengganti tautan "Buka Halaman Publik" statis menjadi dinamis. Jika status `"draft"`, memunculkan `CheckoutButton` yang memanggil `actionCreateCheckout` dan mengalihkan pengguna ke pembayaran Midtrans `redirectUrl`.
+
+### Security and data handling
+Tidak ada raw token, kredensial, atau PII pengguna yang ter-log. Proses pengecekan duplikasi tautan menggunakan validasi otorisasi di Supabase.
+
+### Commit / CI / deployment evidence
+- Berhasil melewati build Next.js (TSC Typechecking) di eksekusi mesin lokal.
+- Di-commit dalam beberapa rekam jejak (`9c6f662`, `d2d4602`, `a4372d6`) dan seluruh *history* dipush ke branch `main`.
+
+### Status
+`COMPLETE`
