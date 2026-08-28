@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowserClient } from "@/shared/lib/supabase/browser-client";
+import { createOrSyncInvitation } from "@/modules/invitation/server/actions";
 
 type Theme = {
   id: string;
@@ -49,25 +50,24 @@ export default function CreatePage() {
     setError("");
 
     try {
-      const response = await fetch("/api/invitation/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          themeId: selectedThemeId,
-          couple: {
-            groom: { name: groomName.trim() },
-            bride: { name: brideName.trim() },
-          },
-        }),
+      const clientRef = crypto.randomUUID();
+      const response = await createOrSyncInvitation({
+        clientRef,
+        themeId: selectedThemeId,
+        couple: {
+          groom: { name: groomName.trim() },
+          bride: { name: brideName.trim() },
+        },
       });
 
-      const data = await response.json();
-      if (!data.success) {
-        setError(data.error || "Gagal membuat undangan.");
+      if (!response.success) {
+        setError(response.error || "Gagal membuat undangan.");
         return;
       }
 
-      router.push(`/dashboard/${data.data.invitationId}/edit`);
+      if (response.data) {
+        router.push(`/dashboard/${response.data.invitationId}/edit`);
+      }
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
