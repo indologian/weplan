@@ -45,59 +45,9 @@ function getThemeStyle(invitation: PublicInvitationDTO): React.CSSProperties {
   return style as React.CSSProperties;
 }
 
-function VideoSection({ invitation }: { invitation: PublicInvitationDTO }) {
-  const embeds = invitation.settings.videoEmbeds ?? [];
-  if (embeds.length === 0) return null;
-  return (
-    <section className="theme-generic-section" aria-labelledby="video-title">
-      <p className="theme-overline">Siaran & Video</p>
-      <h2 id="video-title">Saksikan Momen Kami</h2>
-      <div className="theme-video-list">
-        {embeds.map((embed) => (
-          <div key={embed.id} className="theme-video-frame">
-            <iframe
-              src={`https://www.youtube-nocookie.com/embed/${embed.externalId}`}
-              title={embed.title ?? (embed.kind === "live" ? "Siaran langsung pernikahan" : "Video pernikahan")}
-              loading="lazy"
-              allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function Wishes({ invitation }: { invitation: PublicInvitationDTO }) {
-  if (invitation.wishes.length === 0) return null;
-  return (
-    <section className="theme-generic-section" aria-labelledby="wishes-title">
-      <p className="theme-overline">Ucapan & Doa</p>
-      <h2 id="wishes-title">Dari Tamu</h2>
-      <div className="theme-wishes">
-        {invitation.wishes.map((wish) => (
-          <blockquote key={`${wish.name}-${wish.createdAt}`}>
-            <p>{wish.wishMessage}</p><footer>— {wish.name}</footer>
-          </blockquote>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function PhysicalGift({ invitation }: { invitation: PublicInvitationDTO }) {
-  const gift = invitation.settings.physicalGift;
-  if (!gift?.enabled || (!gift.recipient && !gift.address)) return null;
-  return (
-    <section className="theme-generic-section" aria-labelledby="physical-gift-title">
-      <p className="theme-overline">Kirim Hadiah</p>
-      <h2 id="physical-gift-title">Alamat Penerima</h2>
-      {gift.recipient && <p>{gift.recipient}</p>}
-      {gift.address && <address>{gift.address}</address>}
-    </section>
-  );
-}
+import { VideoSection } from "./primitives/video-section";
+import { Wishes } from "./primitives/wishes";
+import { PhysicalGift } from "./primitives/physical-gift";
 
 export function createRenderer(sections: ThemeSectionRenderers) {
   function ThemeRenderer({ invitation, guestName }: RendererProps) {
