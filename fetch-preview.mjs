@@ -1,1 +1,0 @@
-const res = await fetch('https://weplan.web.id/preview/30538da2-0b90-4422-8017-1bba18ef7a4b', { headers: { 'Cookie': 'YOUR_SESSION_COOKIE_HERE_IF_NEEDED' }}); console.log(res.status); const text = await res.text(); console.log(text.includes('theme-portrait')); console.log(text.includes('beni'));
