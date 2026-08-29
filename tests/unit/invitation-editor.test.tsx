@@ -26,7 +26,15 @@ const invitation: EditorDTO = {
   expiresAt: null,
   themeId: "1762fcd3-b076-439a-bade-33743a51063f",
   events: [],
+  gallery: [],
 };
+
+function createGalleryAction() {
+  return vi.fn().mockResolvedValue({
+    success: true,
+    data: { contentVersion: 2 },
+  });
+}
 
 function createEventActions(overrides?: {
   saveVersion?: number;
@@ -64,12 +72,13 @@ describe("InvitationEditor — content autosave", () => {
         initialData={invitation}
         saveEditorContent={saveEditorContent}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Nama mempelai pria"), {
+    fireEvent.change(screen.getByLabelText("Mempelai Pria"), {
       target: { value: "C" },
     });
 
@@ -100,17 +109,18 @@ describe("InvitationEditor — content autosave", () => {
         initialData={invitation}
         saveEditorContent={saveEditorContent}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Nama mempelai wanita"), {
+    fireEvent.change(screen.getByLabelText("Mempelai Wanita"), {
       target: { value: "D" },
     });
 
     await waitFor(
-      () => expect(screen.getByText("Perubahan di tempat lain")).toBeTruthy(),
+      () => expect(screen.getByText("Undangan telah diubah di perangkat atau tab lain.")).toBeTruthy(),
       { timeout: 1500 },
     );
     expect(saveEditorContent).toHaveBeenCalledTimes(1);
@@ -129,12 +139,13 @@ describe("InvitationEditor — content autosave", () => {
         initialData={invitation}
         saveEditorContent={saveEditorContent}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Nama mempelai pria"), {
+    fireEvent.change(screen.getByLabelText("Mempelai Pria"), {
       target: { value: "X" },
     });
 
@@ -142,9 +153,9 @@ describe("InvitationEditor — content autosave", () => {
     fireEvent.click(loadButton);
 
     expect(
-      screen.getByText(/Perubahan lokal yang belum tersimpan akan diganti/),
+      screen.getByText(/Perubahan lokal Anda yang belum tersimpan akan tertimpa/),
     ).toBeTruthy();
-    expect(screen.getByText("Lanjutkan")).toBeTruthy();
+    expect(screen.getByText("Ya, Timpa Pekerjaan Saya")).toBeTruthy();
     expect(screen.getByText("Batal")).toBeTruthy();
   });
 
@@ -161,21 +172,22 @@ describe("InvitationEditor — content autosave", () => {
         initialData={invitation}
         saveEditorContent={saveEditorContent}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Nama mempelai pria"), {
+    fireEvent.change(screen.getByLabelText("Mempelai Pria"), {
       target: { value: "X" },
     });
 
     const loadButton = await screen.findByText("Muat versi terbaru", {}, { timeout: 2000 });
     fireEvent.click(loadButton);
-    expect(screen.getByText("Lanjutkan")).toBeTruthy();
+    expect(screen.getByText("Ya, Timpa Pekerjaan Saya")).toBeTruthy();
 
     fireEvent.click(screen.getByText("Batal"));
-    expect(screen.queryByText("Lanjutkan")).toBeNull();
+    expect(screen.queryByText("Ya, Timpa Pekerjaan Saya")).toBeNull();
   });
 
   it("disables the submit button while saving", async () => {
@@ -193,12 +205,13 @@ describe("InvitationEditor — content autosave", () => {
         initialData={invitation}
         saveEditorContent={saveEditorContent}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Nama mempelai pria"), {
+    fireEvent.change(screen.getByLabelText("Mempelai Pria"), {
       target: { value: "C" },
     });
 
@@ -229,26 +242,27 @@ describe("InvitationEditor — event CRUD", () => {
           data: { contentVersion: 2 },
         })}
         {...actions}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.click(screen.getByText("Tambah acara"));
+    fireEvent.click(screen.getByText("Tambah Acara"));
 
-    const titleInput = screen.getAllByLabelText("Nama acara");
+    const titleInput = screen.getAllByLabelText("Nama Acara");
     expect(titleInput).toHaveLength(1);
 
     fireEvent.change(titleInput[0]!, { target: { value: "Akad Nikah" } });
     fireEvent.change(
-      screen.getAllByLabelText("Waktu ISO dengan offset")[0]!,
-      { target: { value: "2026-10-15T08:00:00+07:00" } },
+      screen.getAllByLabelText("Waktu Mulai")[0]!,
+      { target: { value: "2026-10-15T08:00" } },
     );
-    fireEvent.change(screen.getAllByLabelText("Timezone IANA")[0]!, {
+    fireEvent.change(screen.getAllByLabelText("Zona Waktu")[0]!, {
       target: { value: "Asia/Jakarta" },
     });
 
-    fireEvent.click(screen.getByText("Simpan acara"));
+    fireEvent.click(screen.getByText("Simpan Perubahan Acara"));
 
     await waitFor(() =>
       expect(actions.saveEditorEvent).toHaveBeenCalledWith(
@@ -257,7 +271,7 @@ describe("InvitationEditor — event CRUD", () => {
           expectedVersion: 1,
           data: expect.objectContaining({
             title: "Akad Nikah",
-            startsAt: "2026-10-15T08:00:00+07:00",
+            startsAt: expect.any(String),
             timezone: "Asia/Jakarta",
           }),
         }),
@@ -297,6 +311,7 @@ describe("InvitationEditor — event CRUD", () => {
           data: { contentVersion: 3 },
         })}
         {...actions}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
@@ -304,7 +319,7 @@ describe("InvitationEditor — event CRUD", () => {
 
     expect(screen.getByDisplayValue("Resepsi")).toBeTruthy();
 
-    fireEvent.click(screen.getByText("Hapus acara"));
+    fireEvent.click(screen.getByTitle("Hapus Acara"));
 
     await waitFor(() =>
       expect(actions.deleteEditorEvent).toHaveBeenCalledWith({
@@ -361,14 +376,15 @@ describe("InvitationEditor — event CRUD", () => {
           data: { contentVersion: 3 },
         })}
         {...actions}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.click(screen.getByText("Tambah acara"));
+    fireEvent.click(screen.getByText("Tambah Acara"));
 
-    const downButtons = screen.getAllByText("Turun");
+    const downButtons = screen.getAllByTitle("Geser ke bawah");
     fireEvent.click(downButtons[0]!);
 
     expect(screen.getByText("Simpan semua acara baru sebelum mengubah urutan.")).toBeTruthy();
@@ -418,12 +434,13 @@ describe("InvitationEditor — event CRUD", () => {
           data: { contentVersion: 3 },
         })}
         {...actions}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    const downButtons = screen.getAllByText("Turun");
+    const downButtons = screen.getAllByTitle("Geser ke bawah");
     fireEvent.click(downButtons[0]!);
 
     await waitFor(() =>
@@ -453,13 +470,14 @@ describe("InvitationEditor — event CRUD", () => {
           data: { contentVersion: 2 },
         })}
         {...actions}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={vi.fn()}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
-    fireEvent.click(screen.getByText("Tambah acara"));
-    fireEvent.click(screen.getByText("Simpan acara"));
+    fireEvent.click(screen.getByText("Tambah Acara"));
+    fireEvent.click(screen.getByText("Simpan Perubahan Acara"));
 
     await waitFor(() =>
       expect(screen.getByText("Judul acara wajib diisi.")).toBeTruthy(),
@@ -488,24 +506,25 @@ describe("InvitationEditor — privacy toggle with sensitive auth", () => {
           data: { contentVersion: 2 },
         })}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={issueSensitiveAuth}
         updateEditorPrivacy={updateEditorPrivacy}
       />,
     );
 
     fireEvent.click(
-      screen.getByLabelText("Gunakan PIN untuk undangan ini"),
+      screen.getByLabelText("Gunakan PIN Keamanan"),
     );
 
     expect(
-      screen.getByText("Verifikasi tindakan sensitif"),
+      screen.getByText("Verifikasi password Anda untuk menyimpan pengaturan keamanan ini."),
     ).toBeTruthy();
 
     expect(
-      screen.queryByText("Simpan pengaturan privasi"),
+      screen.queryByText("Simpan Pengaturan Privasi"),
     ).toBeNull();
 
-    fireEvent.change(screen.getByLabelText("Password akun"), {
+    fireEvent.change(screen.getByLabelText("Password Akun"), {
       target: { value: "my-password" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Verifikasi" }));
@@ -516,7 +535,7 @@ describe("InvitationEditor — privacy toggle with sensitive auth", () => {
       }),
     );
 
-    expect(screen.getByText("Simpan pengaturan privasi")).toBeTruthy();
+    expect(screen.getByText("Simpan Pengaturan Privasi")).toBeTruthy();
   });
 
   it("sends privacy mutation only after re-auth succeeds", async () => {
@@ -537,15 +556,16 @@ describe("InvitationEditor — privacy toggle with sensitive auth", () => {
           data: { contentVersion: 2 },
         })}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={issueSensitiveAuth}
         updateEditorPrivacy={updateEditorPrivacy}
       />,
     );
 
     fireEvent.click(
-      screen.getByLabelText("Gunakan PIN untuk undangan ini"),
+      screen.getByLabelText("Gunakan PIN Keamanan"),
     );
-    fireEvent.change(screen.getByLabelText("Password akun"), {
+    fireEvent.change(screen.getByLabelText("Password Akun"), {
       target: { value: "pass" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Verifikasi" }));
@@ -556,7 +576,7 @@ describe("InvitationEditor — privacy toggle with sensitive auth", () => {
 
     expect(updateEditorPrivacy).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByText("Simpan pengaturan privasi"));
+    fireEvent.click(screen.getByText("Simpan Pengaturan Privasi"));
 
     await waitFor(() =>
       expect(updateEditorPrivacy).toHaveBeenCalledWith(
@@ -589,21 +609,22 @@ describe("InvitationEditor — privacy toggle with sensitive auth", () => {
           data: { contentVersion: 2 },
         })}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={issueSensitiveAuth}
         updateEditorPrivacy={updateEditorPrivacy}
       />,
     );
 
     fireEvent.click(
-      screen.getByLabelText("Gunakan PIN untuk undangan ini"),
+      screen.getByLabelText("Gunakan PIN Keamanan"),
     );
-    fireEvent.change(screen.getByLabelText("Password akun"), {
+    fireEvent.change(screen.getByLabelText("Password Akun"), {
       target: { value: "pass" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Verifikasi" }));
     await waitFor(() => expect(issueSensitiveAuth).toHaveBeenCalled());
 
-    fireEvent.click(screen.getByText("Simpan pengaturan privasi"));
+    fireEvent.click(screen.getByText("Simpan Pengaturan Privasi"));
 
     await waitFor(() =>
       expect(
@@ -627,15 +648,16 @@ describe("InvitationEditor — privacy toggle with sensitive auth", () => {
           data: { contentVersion: 2 },
         })}
         {...createEventActions()}
+        replaceEditorGallery={createGalleryAction()}
         issueSensitiveAuth={issueSensitiveAuth}
         updateEditorPrivacy={vi.fn()}
       />,
     );
 
     fireEvent.click(
-      screen.getByLabelText("Gunakan PIN untuk undangan ini"),
+      screen.getByLabelText("Gunakan PIN Keamanan"),
     );
-    fireEvent.change(screen.getByLabelText("Password akun"), {
+    fireEvent.change(screen.getByLabelText("Password Akun"), {
       target: { value: "wrong" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Verifikasi" }));

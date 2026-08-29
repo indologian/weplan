@@ -41,6 +41,13 @@ const editorEventSchema = z.object({
   longitude: z.number().nullable(),
 }).strict();
 
+const editorGalleryItemSchema = z.object({
+  id: z.uuid(),
+  media_asset_id: z.uuid(),
+  position: z.number().int().min(0),
+  caption: z.string().nullable(),
+}).strict();
+
 export async function getEditorDTO(userId: string, invitationId: string): Promise<EditorDTO | null> {
   const supabase = createSupabaseServiceClient();
   const { data: rawInvitation, error: invitationError } = await supabase
@@ -54,14 +61,24 @@ export async function getEditorDTO(userId: string, invitationId: string): Promis
   if (!rawInvitation) return null;
 
   const invitation = editorInvitationSchema.parse(rawInvitation);
-  const { data: rawEvents, error: eventsError } = await supabase
-    .from("invitation_events")
-    .select("id,position,event_type,title,starts_at,ends_at,timezone,venue_name,address,latitude,longitude")
-    .eq("invitation_id", invitationId)
-    .order("position", { ascending: true });
+  const [eventsResult, galleryResult] = await Promise.all([
+    supabase
+      .from("invitation_events")
+      .select("id,position,event_type,title,starts_at,ends_at,timezone,venue_name,address,latitude,longitude")
+      .eq("invitation_id", invitationId)
+      .order("position", { ascending: true }),
+    supabase
+      .from("invitation_gallery_items")
+      .select("id,media_asset_id,position,caption")
+      .eq("invitation_id", invitationId)
+      .order("position", { ascending: true }),
+  ]);
 
-  if (eventsError) throw new EditorMutationError("Unable to load editor events", "TEMPORARY_ERROR");
-  const events = z.array(editorEventSchema).parse(rawEvents ?? []);
+  if (eventsResult.error || galleryResult.error) {
+    throw new EditorMutationError("Unable to load editor relations", "TEMPORARY_ERROR");
+  }
+  const events = z.array(editorEventSchema).parse(eventsResult.data ?? []);
+  const gallery = z.array(editorGalleryItemSchema).parse(galleryResult.data ?? []);
 
   return {
     invitationId: invitation.id,
@@ -89,6 +106,12 @@ export async function getEditorDTO(userId: string, invitationId: string): Promis
       address: event.address,
       latitude: event.latitude,
       longitude: event.longitude,
+    })),
+    gallery: gallery.map((item) => ({
+      galleryItemId: item.id,
+      mediaAssetId: item.media_asset_id,
+      position: item.position,
+      ...(item.caption ? { caption: item.caption } : {}),
     })),
   };
 }

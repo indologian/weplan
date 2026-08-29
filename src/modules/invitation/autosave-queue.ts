@@ -42,12 +42,17 @@ export class AutosaveQueue<T> {
         return result;
       }
 
-      this.version = result.contentVersion;
+      this.version = Math.max(this.version, result.contentVersion);
       this.acknowledgedGeneration = requestGeneration;
       if (this.generation > requestGeneration) this.pending = true;
     }
     this.active = false;
     return result;
+  }
+
+  adoptServerVersion(contentVersion: number): void {
+    if (!Number.isInteger(contentVersion) || contentVersion < 1) return;
+    this.version = Math.max(this.version, contentVersion);
   }
 
   get state() {

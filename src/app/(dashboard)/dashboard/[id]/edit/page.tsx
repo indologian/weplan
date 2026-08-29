@@ -3,6 +3,7 @@ import { requireUser } from "@/modules/auth/server/require-user";
 import { actionIssueSensitiveAuth } from "@/modules/auth/server/sensitive-auth-actions";
 import {
   actionDeleteEditorEvent,
+  actionReplaceEditorGallery,
   actionReorderEditorEvents,
   actionSaveEditorContent,
   actionSaveEditorEvent,
@@ -32,6 +33,7 @@ export default async function EditInvitationPage({
         saveEditorEvent={actionSaveEditorEvent}
         deleteEditorEvent={actionDeleteEditorEvent}
         reorderEditorEvents={actionReorderEditorEvents}
+        replaceEditorGallery={actionReplaceEditorGallery}
         issueSensitiveAuth={actionIssueSensitiveAuth}
         updateEditorPrivacy={actionUpdateEditorPrivacy}
       />

@@ -194,6 +194,22 @@ export const editorContentAutosaveSchema = z.object({
 
 export type EditorContentAutosaveInput = z.infer<typeof editorContentAutosaveSchema>;
 
+export const editorGalleryReplaceSchema = z.object({
+  invitationId: z.uuid(),
+  expectedVersion: z.number().int().min(1),
+  mediaAssetIds: z.array(z.uuid()).max(100),
+}).strict().superRefine((input, context) => {
+  if (new Set(input.mediaAssetIds).size !== input.mediaAssetIds.length) {
+    context.addIssue({
+      code: "custom",
+      message: "Galeri tidak boleh memuat media yang sama lebih dari sekali.",
+      path: ["mediaAssetIds"],
+    });
+  }
+});
+
+export type EditorGalleryReplaceInput = z.infer<typeof editorGalleryReplaceSchema>;
+
 export const editorEventSaveSchema = z.object({
   invitationId: z.uuid(),
   expectedVersion: z.number().int().min(1),

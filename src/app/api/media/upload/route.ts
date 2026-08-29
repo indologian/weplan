@@ -4,7 +4,6 @@ import { ensureUserProfile } from "@/modules/auth/server/ensure-user-profile";
 import { requestUpload, completeUpload, StorageError } from "@/modules/storage/server/actions";
 import { processUploadedMedia } from "@/modules/storage/server/processing";
 import { validateMagicBytes } from "@/shared/lib/validation/magic-bytes";
-import type { MediaKind } from "@/modules/storage/types";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -31,14 +30,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
 
       const firstBytes = Buffer.from(firstBytesBase64, "base64");
-      // Bypassed validateMagicBytes for MVP to avoid friction with browser-image-compression changing MIMEs and various audio formats.
-      // const validation = validateMagicBytes(firstBytes, mimeType, kind as "image" | "audio");
-      // if (!validation.valid) {
-      //   return NextResponse.json(
-      //     { success: false, error: validation.error },
-      //     { status: 400 },
-      //   );
-      // }
+      const validation = validateMagicBytes(
+        firstBytes,
+        mimeType,
+        kind as "image" | "audio",
+      );
+      if (!validation.valid) {
+        return NextResponse.json(
+          { success: false, error: "Isi file tidak cocok dengan format yang dipilih." },
+          { status: 400 },
+        );
+      }
 
       const result = await requestUpload(user.id, {
         invitationId,
@@ -63,14 +65,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       await completeUpload(user.id, { mediaId, invitationId });
 
-      try {
-        await processUploadedMedia(mediaId);
-      } catch (err) {
-        // Enqueueing failed, but upload is complete. We return 202 to indicate accepted but processing might be delayed or needs manual retry.
-        return NextResponse.json({ success: true, warning: "Upload complete but processing queue failed." }, { status: 202 });
+      const processingResult = await processUploadedMedia(mediaId);
+      if (!processingResult.success) {
+        return NextResponse.json(
+          { success: false, error: "File berhasil diunggah, tetapi gagal diproses. Silakan coba unggah kembali." },
+          { status: 500 },
+        );
       }
 
-      return NextResponse.json({ success: true }, { status: 202 });
+      return NextResponse.json({ success: true });
     }
 
     return NextResponse.json(

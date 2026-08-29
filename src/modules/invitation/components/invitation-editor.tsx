@@ -16,6 +16,7 @@ import { RefreshCw, CheckCircle2, AlertCircle, Plus, Trash2, ArrowUp, ArrowDown 
 import type {
   DeleteEditorEventAction,
   EditorDTO,
+  ReplaceEditorGalleryAction,
   ReorderEditorEventsAction,
   SaveEditorContentAction,
   SaveEditorEventAction,
@@ -63,6 +64,7 @@ type Props = {
   saveEditorEvent: SaveEditorEventAction;
   deleteEditorEvent: DeleteEditorEventAction;
   reorderEditorEvents: ReorderEditorEventsAction;
+  replaceEditorGallery: ReplaceEditorGalleryAction;
   issueSensitiveAuth: IssueSensitiveAuthAction;
   updateEditorPrivacy: UpdateEditorPrivacyAction;
 };
@@ -73,6 +75,7 @@ export function InvitationEditor({
   saveEditorEvent,
   deleteEditorEvent,
   reorderEditorEvents,
+  replaceEditorGallery,
   issueSensitiveAuth,
   updateEditorPrivacy,
 }: Props) {
@@ -218,6 +221,11 @@ export function InvitationEditor({
     event.preventDefault();
     void flushSaveQueue();
   };
+
+  const handleExternalVersionChange = useCallback((version: number) => {
+    autosaveQueue.adoptServerVersion(version);
+    setEditorVersion(version);
+  }, [autosaveQueue]);
 
   return (
     <div className="space-y-8 pb-10">
@@ -453,16 +461,16 @@ export function InvitationEditor({
           deleteEditorEvent={deleteEditorEvent}
           reorderEditorEvents={reorderEditorEvents}
           onVersionChange={(version) => {
-            setEditorVersion(version);
+            handleExternalVersionChange(version);
           }}
         />
 
         <InvitationGalleryEditor
           invitationId={initialData.invitationId}
           contentVersion={editorVersion}
-          initialGallery={initialData.loveStory}
-          saveEditorContent={saveEditorContent}
-          onVersionChange={(version) => setEditorVersion(version)}
+          initialGallery={initialData.gallery}
+          replaceEditorGallery={replaceEditorGallery}
+          onVersionChange={handleExternalVersionChange}
         />
 
         <InvitationPrivacyEditor
@@ -471,7 +479,7 @@ export function InvitationEditor({
           initialIsPrivate={initialData.isPrivate}
           issueSensitiveAuth={issueSensitiveAuth}
           updateEditorPrivacy={updateEditorPrivacy}
-          onVersionChange={setEditorVersion}
+          onVersionChange={handleExternalVersionChange}
         />
       </div>
     </div>
@@ -517,7 +525,8 @@ function InvitationPrivacyEditor({
     setPin("");
     setAuthenticated(false);
     onVersionChange(result.data.contentVersion);
-    setMessage(""); toast.success("Pengaturan privasi tersimpan!");
+    setMessage("Pengaturan privasi tersimpan.");
+    toast.success("Pengaturan privasi tersimpan!");
   };
 
   return (
@@ -670,7 +679,8 @@ function InvitationEventsEditor({
     setEvents((current) =>
       current.filter((event) => event.eventId !== eventId),
     );
-    setMessage(""); toast.success("Acara dihapus!");
+    setMessage("Acara dihapus");
+    toast.success("Acara dihapus!");
   };
 
   const moveEvent = async (index: number, direction: -1 | 1) => {
@@ -702,7 +712,7 @@ function InvitationEventsEditor({
     const nextVersion = result.data.contentVersion;
     onVersionChange(nextVersion);
     setEvents(reordered.map((event, position) => ({ ...event, position })));
-    setMessage("");
+    setMessage("Urutan acara tersimpan");
     toast.success("Urutan acara tersimpan!");
   };
 
@@ -798,8 +808,9 @@ function InvitationEventsEditor({
               </div>
 
               <div className="space-y-2">
-                <Label>Nama Acara</Label>
+                <Label htmlFor={`event-title-${event.localId}`}>Nama Acara</Label>
                 <Input
+                  id={`event-title-${event.localId}`}
                   value={event.title}
                   placeholder="Contoh: Akad Nikah / Resepsi"
                   onChange={(change) =>
@@ -816,8 +827,9 @@ function InvitationEventsEditor({
 
               <div className="grid gap-6 md:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Waktu Mulai</Label>
+                  <Label htmlFor={`event-starts-at-${event.localId}`}>Waktu Mulai</Label>
                   <Input
+                    id={`event-starts-at-${event.localId}`}
                     type="datetime-local"
                     value={formatForInput(event.startsAt)}
                     onChange={(change) => {
@@ -836,7 +848,7 @@ function InvitationEventsEditor({
                 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label>Waktu Selesai</Label>
+                    <Label htmlFor={`event-ends-at-${event.localId}`}>Waktu Selesai</Label>
                     <div className="flex items-center gap-1.5">
                       <input 
                         type="checkbox" 
@@ -860,6 +872,7 @@ function InvitationEventsEditor({
                   </div>
                   {event.endsAt === null ? (
                       <Input
+                        id={`event-ends-at-${event.localId}`}
                         type="text"
                         value="Selesai"
                         disabled
@@ -867,6 +880,7 @@ function InvitationEventsEditor({
                       />
                     ) : (
                       <Input
+                        id={`event-ends-at-${event.localId}`}
                         type="datetime-local"
                         value={formatForInput(event.endsAt)}
                         onChange={(change) => {
@@ -885,8 +899,9 @@ function InvitationEventsEditor({
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Zona Waktu</Label>
+                  <Label htmlFor={`event-timezone-${event.localId}`}>Zona Waktu</Label>
                   <select 
+                    id={`event-timezone-${event.localId}`}
                     className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     value={event.timezone || "Asia/Jakarta"}
                     onChange={(change) => {

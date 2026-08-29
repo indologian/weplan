@@ -44,6 +44,12 @@ export type EditorDTO = {
     latitude: number | null;
     longitude: number | null;
   }>;
+  gallery: Array<{
+    galleryItemId: string;
+    mediaAssetId: string;
+    position: number;
+    caption?: string;
+  }>;
 };
 
 export type SaveEditorContentAction = (
@@ -53,6 +59,10 @@ export type SaveEditorContentAction = (
 export type SaveEditorEventAction = (
   input: z.input<typeof editorEventSaveSchema>,
 ) => Promise<ActionResult<{ contentVersion: number; eventId: string }>>;
+
+export type ReplaceEditorGalleryAction = (
+  input: unknown,
+) => Promise<ActionResult<{ contentVersion: number }>>;
 
 export type DeleteEditorEventAction = (
   input: z.input<typeof editorEventDeleteSchema>,

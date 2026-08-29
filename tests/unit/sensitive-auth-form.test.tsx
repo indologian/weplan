@@ -26,7 +26,7 @@ describe("SensitiveAuthForm", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Password akun"), {
+    fireEvent.change(screen.getByLabelText("Password Akun"), {
       target: { value: "correct-password" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Verifikasi" }));
@@ -38,7 +38,7 @@ describe("SensitiveAuthForm", () => {
     );
     expect(onAuthenticated).toHaveBeenCalledOnce();
     expect(
-      (screen.getByLabelText("Password akun") as HTMLInputElement).value,
+      (screen.getByLabelText("Password Akun") as HTMLInputElement).value,
     ).toBe("");
     expect(
       screen.getByText(/Re-authentication berhasil/).textContent,
@@ -59,7 +59,7 @@ describe("SensitiveAuthForm", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText("Password akun"), {
+    fireEvent.change(screen.getByLabelText("Password Akun"), {
       target: { value: "wrong-password" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Verifikasi" }));
@@ -71,7 +71,7 @@ describe("SensitiveAuthForm", () => {
     );
     expect(onAuthenticated).not.toHaveBeenCalled();
     expect(
-      (screen.getByLabelText("Password akun") as HTMLInputElement).value,
+      (screen.getByLabelText("Password Akun") as HTMLInputElement).value,
     ).toBe("wrong-password");
   });
 });

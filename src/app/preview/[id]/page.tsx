@@ -33,11 +33,14 @@ async function getOwnerInvitation(
   if (invitation.deleted_at) return null;
   if (invitation.status === "expired" || invitation.status === "trashed") return null;
 
-  const { data: events } = await supabase
+  const { data: events, error: eventsError } = await supabase
     .from("invitation_events")
     .select("id,position,event_type,title,starts_at,ends_at,timezone,venue_name,address,latitude,longitude")
     .eq("invitation_id", invitation.id)
     .order("position", { ascending: true });
+  if (eventsError) {
+    throw new Error("Unable to load preview events");
+  }
 
   const themeRaw = invitation.themes as unknown as Record<string, unknown>;
   const theme = {
@@ -45,8 +48,11 @@ async function getOwnerInvitation(
     designTokens: (themeRaw.design_tokens ?? {}) as Record<string, unknown>,
     layoutConfig: (themeRaw.layout_config ?? {}) as Record<string, unknown>,
   };
-  const { data: galleryItems } = await supabase.from("invitation_gallery_items")
+  const { data: galleryItems, error: galleryError } = await supabase.from("invitation_gallery_items")
     .select("media_asset_id,caption,position").eq("invitation_id", invitation.id).order("position");
+  if (galleryError) {
+    throw new Error("Unable to load preview gallery");
+  }
   const referencedIds = new Set<string>([
     ...((galleryItems ?? []).map((item) => item.media_asset_id)),
     invitation.couple?.groom?.photoMediaId,
@@ -55,11 +61,14 @@ async function getOwnerInvitation(
     ...((invitation.bank_accounts ?? []).map((item: PublicInvitationDTO["bankAccounts"][number]) => item.qrisMediaId)),
     invitation.settings?.backgroundAudioMediaId,
   ].filter((value): value is string => typeof value === "string"));
-  const { data: assets } = referencedIds.size > 0
+  const { data: assets, error: assetsError } = referencedIds.size > 0
     ? await supabase.from("media_assets")
         .select("id,kind,purpose,width,height,focus_x,focus_y")
         .eq("invitation_id", invitation.id).eq("status", "ready").in("id", [...referencedIds])
-    : { data: [] };
+    : { data: [], error: null };
+  if (assetsError) {
+    throw new Error("Unable to load preview media");
+  }
   const galleryMetadata = new Map((galleryItems ?? []).map((item) => [item.media_asset_id, item]));
   const media = (assets ?? []).map((asset) => {
     const variant = asset.kind === "image" ? "medium" : "original";
@@ -71,10 +80,13 @@ async function getOwnerInvitation(
       caption: galleryMetadata.get(asset.id)?.caption ?? undefined,
     };
   });
-  const { data: wishes } = await supabase.from("guests")
+  const { data: wishes, error: wishesError } = await supabase.from("guests")
     .select("name,wish_message,created_at").eq("invitation_id", invitation.id)
     .eq("wish_status", "approved").not("wish_message", "is", null)
     .order("created_at", { ascending: false }).limit(20);
+  if (wishesError) {
+    throw new Error("Unable to load preview wishes");
+  }
 
   return {
     invitationId: invitation.id,

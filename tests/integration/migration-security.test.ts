@@ -6,6 +6,10 @@ const boundaries = readFileSync("supabase/migrations/20260825171629_security_bou
 const creation = readFileSync("supabase/migrations/20260825171631_creation_rpc.sql", "utf8");
 const editor = readFileSync("supabase/migrations/20260826011900_editor_mutations.sql", "utf8");
 const sensitive = readFileSync("supabase/migrations/20260826012800_sensitive_actions.sql", "utf8");
+const mediaProjection = readFileSync(
+  "supabase/migrations/20260829131741_fix_media_projection_and_gallery.sql",
+  "utf8",
+);
 
 describe("M1 migration security contracts", () => {
   it("enables RLS on every M1 public table", () => {
@@ -43,5 +47,21 @@ describe("M1 migration security contracts", () => {
     expect(editor).toContain("v_row.status not in ('draft', 'published')");
     expect(editor).toContain("v_input_count <> v_event_count");
     expect(editor).not.toContain("position = position + 10000");
+  });
+
+  it("exposes only owner-filtered media reads and keeps gallery writes service-only", () => {
+    expect(mediaProjection).toMatch(
+      /grant select on table public\.media_assets, public\.invitation_gallery_items\s+to authenticated/i,
+    );
+    expect(mediaProjection).toMatch(
+      /revoke insert, update, delete, truncate, references, trigger\s+on table public\.media_assets, public\.invitation_gallery_items\s+from authenticated/i,
+    );
+    expect(mediaProjection).not.toMatch(/security definer/i);
+    expect(mediaProjection).toMatch(
+      /revoke all on function public\.replace_invitation_gallery[\s\S]*from public, anon, authenticated/i,
+    );
+    expect(mediaProjection).toMatch(
+      /grant execute on function public\.replace_invitation_gallery[\s\S]*to service_role/i,
+    );
   });
 });

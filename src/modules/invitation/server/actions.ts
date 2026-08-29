@@ -15,6 +15,7 @@ import {
   editorEventDeleteSchema,
   editorEventReorderSchema,
   editorEventSaveSchema,
+  editorGalleryReplaceSchema,
   editorUpdatePrivacySchema,
   editorUpdateRsvpConfigSchema,
   editorUpdateThemeSchema,
@@ -29,6 +30,7 @@ import {
   getPinCredentialContext,
   InvitationCreationError,
   reorderEditorEvents,
+  replaceEditorGallery,
   saveEditorContent,
   saveEditorEvent,
   updateEditorPrivacy,
@@ -213,6 +215,19 @@ export async function actionSaveEditorEvent(
     const user = await requireUser();
     const validated = editorEventSaveSchema.parse(input);
     return { success: true, data: await saveEditorEvent(user.id, validated) };
+  } catch (error) {
+    return handleEditorError(error);
+  }
+}
+
+export async function actionReplaceEditorGallery(
+  input: unknown,
+): Promise<ActionResult<{ contentVersion: number }>> {
+  try {
+    const user = await requireUser();
+    const validated = editorGalleryReplaceSchema.parse(input);
+    const contentVersion = await replaceEditorGallery(user.id, validated);
+    return { success: true, data: { contentVersion } };
   } catch (error) {
     return handleEditorError(error);
   }

@@ -2568,3 +2568,102 @@ Tidak ada raw token, kredensial, atau PII pengguna yang ter-log. Proses pengecek
 
 ### Status
 `COMPLETE`
+
+## [2026-08-29] WP-MEDIA-PROJECTION-01: Owner Preview Media and Canonical Gallery Repair
+
+### Goal
+
+Memulihkan foto mempelai, galeri, dan audio latar pada owner preview tanpa meminta pengguna mengunggah ulang, serta menutup penyebab struktural pada Data API projection, penyimpanan galeri, dan status penyelesaian upload.
+
+### Canonical references
+
+- File 01 §§4.15, 10, dan 14 — media boundary, dependency direction, dan organisasi module.
+- File 02 — validasi upload, private media access, dan least-privilege Data API access.
+- File 06 M6 — media lifecycle dan acceptance criteria media ready.
+- File 07 — canonical `media_assets` dan `invitation_gallery_items` domain relation.
+- File 08 §22–22.1 — completion evidence dan persistent implementation record.
+
+### Existing implementation
+
+- File media draft telah berada di private storage dan row `media_assets` yang direferensikan sudah berstatus `ready`.
+- Owner preview memakai authenticated Supabase client, tetapi `media_assets` dan `invitation_gallery_items` hanya memiliki RLS policy tanpa table grant untuk role `authenticated`; query gagal dengan insufficient privilege lalu sebelumnya diperlakukan sebagai array kosong.
+- Editor galeri menyimpan media ID sebagai item `love_story`, bukan ke relasi canonical `invitation_gallery_items`.
+- Upload completion mengabaikan hasil `{ success: false }` dari inline processor dan tetap mengembalikan respons sukses.
+
+### Implemented scope
+
+- Menambahkan grant `SELECT` minimum untuk role `authenticated` pada metadata media dan urutan galeri, mempertahankan RLS owner policy, menolak direct writes, dan mempertahankan anon tanpa akses.
+- Memindahkan legacy gallery references yang valid dan `ready` dari `love_story` ke `invitation_gallery_items`, membersihkan placeholder legacy, serta menaikkan `content_version` satu kali untuk invitation yang dimigrasikan.
+- Menambahkan RPC invoker-rights `replace_invitation_gallery` yang service-role-only, owner-scoped, CAS-aware, tier-limit-aware, menolak duplikasi, dan hanya menerima media image/purpose gallery/status ready milik invitation yang sama.
+- Mengubah editor DTO/query/action/repository/komponen galeri agar memakai relasi canonical dan menyinkronkan revision autosave dengan mutation acara, galeri, dan privasi.
+- Mengubah preview agar error query relation/media tidak lagi disamarkan menjadi konten kosong.
+- Mengubah upload completion agar hanya sukses setelah processor mengembalikan status sukses; kegagalan pemrosesan sekarang menghasilkan respons gagal yang dapat ditindaklanjuti.
+- Mengaktifkan kembali magic-byte validation sebelum upload reservation dibuat.
+- Memperbarui aksesibilitas label field acara dan menyesuaikan test fixture dengan copy UI aktual.
+
+### Files
+
+- `supabase/migrations/20260829131741_fix_media_projection_and_gallery.sql`
+- `supabase/tests/004_media_projection.test.sql`
+- `src/app/(dashboard)/dashboard/[id]/edit/page.tsx`
+- `src/app/api/media/upload/route.ts`
+- `src/app/preview/[id]/page.tsx`
+- `src/modules/invitation/{autosave-queue.ts,schemas.ts,types.ts}`
+- `src/modules/invitation/server/{actions.ts,queries.ts,repository.ts}`
+- `src/modules/invitation/components/{invitation-editor.tsx,invitation-gallery-editor.tsx}`
+- `tests/integration/{media-upload-route.test.ts,migration-security.test.ts}`
+- `tests/unit/{autosave-queue.test.ts,invitation-editor.test.tsx,sensitive-auth-form.test.tsx}`
+
+### Migrations and deployment evidence
+
+- `supabase db push --linked --dry-run`: PASS; hanya migration baru yang terdeteksi.
+- `supabase db push --linked`: PASS; migration diterapkan ke linked project.
+- `supabase migration list --linked`: PASS; local dan remote sama sampai migration `20260829131741`.
+- `supabase db lint --linked --level error`: PASS; 0 finding.
+- Tidak ada secret, credential, token, PII, production object path, atau raw production payload ditulis ke source maupun record.
+
+### Tests and verification evidence
+
+- `npm run typecheck`: PASS.
+- `npm test -- --reporter=dot`: PASS — 35 files, 275 tests.
+- `npm run verify:migrations`: PASS.
+- `npm run verify:structure`: PASS.
+- Targeted ESLint pada seluruh file TypeScript/TSX yang berubah: PASS dengan 0 error; tiga warning existing/acceptable tetap dilaporkan.
+- `npm run functions:check`: PASS — Deno check dan 3/3 PIN crypto tests.
+- `npm run build`: PASS — Next.js 16.3.3 production build compiled, typechecked, dan menghasilkan route preview/media tanpa build error.
+- Browser verification pada owner preview production setelah migration: 10/10 image nodes loaded; dua portrait tersedia; empat gallery asset unik tersedia pada responsive compositions; audio node tersedia.
+- Browser interaction verification: setelah `Buka Undangan`, audio `paused=false`, `readyState=4`, `currentTime` bertambah, dan music control tampil.
+
+### Security and edge-case evidence
+
+- Authenticated hanya mendapat table-level `SELECT`; direct insert/update/delete tetap dicabut dan row visibility tetap ditentukan RLS owner policy.
+- Anon tidak mendapat table grant media/gallery.
+- Gallery mutation tidak dapat dipanggil role browser dan memvalidasi owner, invitation, purpose, kind, ready status, duplicate input, tier limit, serta expected revision di transaction yang sama.
+- Spoofed image bytes ditolak sebelum upload reservation; processing failure tidak lagi menjadi false-success.
+- Draft yang sudah ada pulih tanpa re-upload melalui backfill forward-only dan grant correction.
+
+### Known limitations and manual verification
+
+- `supabase test db --linked supabase/tests/004_media_projection.test.sql` tidak dapat memulai pgTAP runner karena Docker Desktop tidak tersedia pada mesin ini; contract test tetap ditambahkan untuk CI/local environment yang memiliki Docker. Remote schema lint, successful migration application, RLS-backed owner preview, dan browser runtime memberikan evidence pengganti untuk work package ini.
+- Full repository `npm run lint` masih gagal pada baseline di luar scope: tracked root debug `.cjs`, beberapa `no-explicit-any`/React effect findings, dan warning lama. Targeted lint untuk perubahan ini tidak memiliki error.
+- Boundary verifier exit code 0 tetapi masih melaporkan empat existing client-to-server action imports di luar file yang diubah oleh work package ini.
+- Browser membuktikan pemutaran audio secara teknis; penilaian volume/kualitas suara tetap memerlukan pendengaran manual pengguna.
+- Warning build existing untuk deprecated middleware/Edge Runtime dan `metadataBase` tetap menjadi backlog terpisah.
+
+### Spec deviations
+
+Tidak ada business rule baru. Gallery limit tetap berasal dari entitlement snapshot atau tier canonical, media tetap private, dan browser tidak memperoleh write authority baru.
+
+### Commit / CI evidence
+
+- Commit: belum dibuat pada saat record ditulis.
+- CI: belum dijalankan; verification lokal, linked database, dan browser production dicatat di atas.
+- Code deployment: belum dijalankan pada work package ini; database migration sudah diterapkan ke linked project dan memperbaiki draft production yang diverifikasi.
+
+### Recommended next work package
+
+Perbaiki baseline lint/boundary violations dalam work package terpisah, lalu jalankan pgTAP suite pada CI/Docker-enabled environment dan deploy source changes melalui pipeline normal.
+
+### Status
+
+`COMPLETE` untuk pemulihan owner-preview media dan canonical gallery path; repository-wide launch gate tetap mengikuti known limitations di atas.

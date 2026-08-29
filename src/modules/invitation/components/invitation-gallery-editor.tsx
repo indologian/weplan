@@ -2,17 +2,17 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Trash2, Image as ImageIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
 import { MediaUploader } from "@/modules/storage/components/media-uploader";
-import type { EditorDTO, SaveEditorContentAction } from "../types";
+import type { EditorDTO, ReplaceEditorGalleryAction } from "../types";
 
 type Props = {
   invitationId: string;
   contentVersion: number;
-  initialGallery: EditorDTO["loveStory"];
-  saveEditorContent: SaveEditorContentAction;
+  initialGallery: EditorDTO["gallery"];
+  replaceEditorGallery: ReplaceEditorGalleryAction;
   onVersionChange: (version: number) => void;
 };
 
@@ -20,36 +20,32 @@ export function InvitationGalleryEditor({
   invitationId,
   contentVersion,
   initialGallery,
-  saveEditorContent,
+  replaceEditorGallery,
   onVersionChange,
 }: Props) {
-  const [gallery, setGallery] = useState(initialGallery);
+  const [gallery, setGallery] = useState(
+    () => initialGallery.map((item) => ({ mediaAssetId: item.mediaAssetId })),
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const addPhoto = (mediaId: string) => {
     setGallery((current) => [
       ...current,
-      {
-        id: crypto.randomUUID(),
-        photoMediaId: mediaId,
-        date: "",
-        title: "",
-        body: "",
-      },
+      { mediaAssetId: mediaId },
     ]);
     toast.success("Foto ditambahkan ke galeri, tekan Simpan untuk memperbarui.");
   };
 
-  const removePhoto = (id: string) => {
-    setGallery((current) => current.filter((item) => item.id !== id));
+  const removePhoto = (mediaAssetId: string) => {
+    setGallery((current) => current.filter((item) => item.mediaAssetId !== mediaAssetId));
   };
 
   const saveGallery = async () => {
     setIsSaving(true);
-    const result = await saveEditorContent({
+    const result = await replaceEditorGallery({
       invitationId,
       expectedVersion: contentVersion,
-      loveStory: gallery,
+      mediaAssetIds: gallery.map((item) => item.mediaAssetId),
     });
     setIsSaving(false);
 
@@ -71,11 +67,11 @@ export function InvitationGalleryEditor({
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             {gallery.map((item, index) => (
-              <div key={item.id} className="relative aspect-square bg-muted rounded-lg border flex items-center justify-center overflow-hidden group">
-                {item.photoMediaId ? (
-                  <img 
-                    src={`/api/media/${item.photoMediaId}`} 
-                    alt={`Gallery ${index + 1}`} 
+              <div key={item.mediaAssetId} className="relative aspect-square bg-muted rounded-lg border flex items-center justify-center overflow-hidden group">
+                {item.mediaAssetId ? (
+                  <img
+                    src={`/api/media/${item.mediaAssetId}`}
+                    alt={`Gallery ${index + 1}`}
                     className="object-cover w-full h-full"
                   />
                 ) : (
@@ -86,7 +82,7 @@ export function InvitationGalleryEditor({
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => removePhoto(item.id)}
+                    onClick={() => removePhoto(item.mediaAssetId)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Hapus

@@ -8,6 +8,7 @@ import type {
   EditorEventDeleteInput,
   EditorEventReorderInput,
   EditorEventSaveInput,
+  EditorGalleryReplaceInput,
   EditorUpdatePrivacyInput,
   EditorUpdateRsvpConfigInput,
   EditorUpdateThemeInput,
@@ -166,6 +167,21 @@ export async function saveEditorEvent(
     throw new EditorMutationError("Event mutation returned invalid data", "TEMPORARY_ERROR");
   }
   return { contentVersion: requireVersion(data.content_version), eventId: data.event_id };
+}
+
+export async function replaceEditorGallery(
+  userId: string,
+  input: EditorGalleryReplaceInput,
+): Promise<number> {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase.rpc("replace_invitation_gallery", {
+    p_user_id: userId,
+    p_invitation_id: input.invitationId,
+    p_expected_version: input.expectedVersion,
+    p_media_asset_ids: input.mediaAssetIds,
+  });
+  if (error) throw mapEditorMutationError(error);
+  return requireVersion(data);
 }
 
 export async function deleteEditorEvent(

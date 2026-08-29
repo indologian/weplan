@@ -134,4 +134,17 @@ describe("autosave queue", () => {
     expect(persist).toHaveBeenNthCalledWith(2, "second", 5);
     expect(queue.state.contentVersion).toBe(6);
   });
+
+  it("adopts a newer version returned by a sibling editor mutation", async () => {
+    const persist = vi.fn().mockResolvedValue({ success: true, contentVersion: 8 });
+    const queue = new AutosaveQueue(6, persist);
+
+    queue.adoptServerVersion(7);
+    queue.adoptServerVersion(5);
+    queue.markDirty("after gallery save");
+    await queue.flush();
+
+    expect(persist).toHaveBeenCalledWith("after gallery save", 7);
+    expect(queue.state.contentVersion).toBe(8);
+  });
 });
