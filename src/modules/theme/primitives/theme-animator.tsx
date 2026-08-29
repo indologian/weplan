@@ -17,9 +17,8 @@ export function ThemeAnimator() {
       const animatables = section.querySelectorAll(".me-animate");
       if (animatables.length > 0) {
         gsap.set(animatables, { 
-          y: 60, 
+          y: 40, 
           opacity: 0,
-          clipPath: "inset(10% 0 0 0)",
         });
 
         ScrollTrigger.create({
@@ -28,10 +27,9 @@ export function ThemeAnimator() {
           animation: gsap.to(animatables, {
             y: 0,
             opacity: 1,
-            clipPath: "inset(0% 0 0 0)",
-            duration: 1.5,
-            stagger: 0.2,
-            ease: "expo.out",
+            duration: 1.2,
+            stagger: 0.15,
+            ease: "power3.out",
           }),
           toggleActions: "play none none reverse", 
         });

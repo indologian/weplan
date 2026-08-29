@@ -149,15 +149,19 @@
 }
 .modern-editorial .me-event-card {
   text-align: center;
-  padding: 2rem;
-  background: var(--me-surface);
+  padding: 1.5rem 1rem;
+  background: var(--me-bg);
   border: 1px solid var(--me-border);
+  border-radius: 0.5rem;
 }
 .modern-editorial .me-divider-vertical {
   display: none;
   background: var(--me-border);
 }
 @media (min-width: 768px) {
+  .modern-editorial .me-event-card {
+    padding: 2.5rem;
+  }
   .modern-editorial .me-divider-vertical { display: block; }
 }
 .modern-editorial .me-icon {

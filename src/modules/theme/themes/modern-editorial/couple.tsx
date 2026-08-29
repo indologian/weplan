@@ -25,8 +25,8 @@ export function Couple({ invitation }: SectionRendererProps) {
           )}
         </div>
         
-        <div className="me-animate me-delay-3 flex items-center justify-center">
-          <span style={{ fontFamily: "var(--me-font-display)", fontSize: "4rem", color: "var(--me-accent)", fontStyle: "italic", lineHeight: 1 }}>
+        <div className="me-animate flex items-center justify-center">
+          <span style={{ fontFamily: "var(--me-font-display)", fontSize: "4rem", color: "var(--me-accent)", fontStyle: "italic", lineHeight: 1.3 }}>
             &
           </span>
         </div>
