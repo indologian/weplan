@@ -45,27 +45,19 @@ export async function processUploadedMedia(mediaId: string): Promise<ProcessResu
     }
 
     if (media.kind === "image") {
-      // Use standard Web API to get bytes to avoid Node Buffer issues on Cloudflare Edge
-      const arrayBuffer = await fileData.arrayBuffer();
-      const firstBytes = new Uint8Array(arrayBuffer.slice(0, 16));
-      
-      const ext = detectImageFormat(firstBytes) ?? "jpg";
-      const contentType = `image/${ext === "jpg" ? "jpeg" : ext}`;
-      const basePath = `${media.owner_id}/${media.invitation_id}/${media.purpose}/${mediaId}`;
-      const finalPath = `${basePath}.${ext}`;
+      try {
+        const arrayBuffer = await fileData.arrayBuffer();
+        const firstBytes = new Uint8Array(arrayBuffer.slice(0, 16));
+        
+        const ext = detectImageFormat(firstBytes) ?? "jpg";
+        const contentType = `image/${ext === "jpg" ? "jpeg" : ext}`;
+        const basePath = `${media.owner_id}/${media.invitation_id}/${media.purpose}/${mediaId}`;
+        const finalPath = `${basePath}.${ext}`;
 
-      const uploads = [
-        { path: finalPath, label: "original" },
-        { path: `${basePath}_thumbnail.${ext}`, label: "thumbnail" },
-        { path: `${basePath}_medium.${ext}`, label: "medium" },
-        { path: `${basePath}_large.${ext}`, label: "large" },
-      ];
-
-      for (const upload of uploads) {
-        // Upload the Blob directly! Supabase Storage API fully supports it and it avoids Node Buffer corruption.
+        // Upload original only for MVP (no variants) to prevent Edge Function timeout
         const { error: uploadError } = await supabase.storage
           .from(FINAL_BUCKET)
-          .upload(upload.path, fileData, {
+          .upload(finalPath, arrayBuffer, {
             contentType,
             upsert: true,
           });
@@ -73,36 +65,45 @@ export async function processUploadedMedia(mediaId: string): Promise<ProcessResu
         if (uploadError) {
           await supabase
             .from("media_assets")
-            .update({ status: "rejected", failure_code: `UPLOAD_${upload.label.toUpperCase()}_FAILED` })
+            .update({ status: "rejected", failure_code: `UPLOAD_ORIGINAL_FAILED` })
             .eq("id", mediaId);
-          return { success: false, error: `Failed to upload ${upload.label} variant.` };
+          return { success: false, error: `Failed to upload original variant.` };
         }
+
+        const { error: dbError } = await supabase
+          .from("media_assets")
+          .update({
+            status: "ready",
+            final_path: finalPath,
+            detected_mime: contentType,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", mediaId);
+        
+        if (dbError) {
+          throw new Error(`Database error: ${dbError.message}`);
+        }
+
+        await supabase.storage.from(QUARANTINE_BUCKET).remove([media.quarantine_path]).catch(() => {});
+
+        return { success: true, finalPath, width: null, height: null };
+      } catch (innerError) {
+        await supabase
+          .from("media_assets")
+          .update({ status: "rejected", failure_code: String(innerError).substring(0, 50) })
+          .eq("id", mediaId);
+        return { success: false, error: String(innerError) };
       }
-
-      await supabase
-        .from("media_assets")
-        .update({
-          status: "ready",
-          final_path: finalPath,
-          detected_mime: contentType,
-          width: 0,
-          height: 0,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", mediaId);
-
-      await supabase.storage.from(QUARANTINE_BUCKET).remove([media.quarantine_path]).catch(() => {});
-
-      return { success: true, finalPath, width: 0, height: 0 };
     }
 
     // Audio / Other
+    const arrayBuffer = await fileData.arrayBuffer();
     const ext = media.original_filename?.split(".").pop() ?? "bin";
     const finalPath = `${media.owner_id}/${media.invitation_id}/${media.purpose}/${mediaId}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from(FINAL_BUCKET)
-      .upload(finalPath, fileData, { upsert: true });
+      .upload(finalPath, arrayBuffer, { upsert: true });
 
     if (uploadError) {
       await supabase
