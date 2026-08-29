@@ -26,7 +26,7 @@ export default async function InvitationDashboardLayout({
         <h1 className="text-2xl font-semibold tracking-tight">Manajemen Undangan</h1>
         <div className="flex items-center space-x-2">
           <Link
-            href={`/dashboard/${id}/preview`}
+            href={`/preview/${id}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm font-medium border rounded-md px-4 py-2 hover:bg-muted"
