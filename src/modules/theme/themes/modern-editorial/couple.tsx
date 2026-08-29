@@ -12,6 +12,7 @@ export function Couple({ invitation }: SectionRendererProps) {
       
       <div className="me-couple-container">
         <div className="me-person me-animate me-delay-2">
+          {/* DEBUG: {JSON.stringify(invitation.media)} - groomMedia: {groom?.photoMediaId} */}
           <div className="me-person-photo-wrapper">
             <Portrait invitation={invitation} mediaId={groom?.photoMediaId} name={groom?.name} variant="arch" />
           </div>

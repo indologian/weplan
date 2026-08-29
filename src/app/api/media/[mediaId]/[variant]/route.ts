@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getMediaServingUrl, StorageError } from "@/modules/storage/server/actions";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ mediaId: string; variant: string }> },

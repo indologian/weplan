@@ -2,6 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getMediaServingUrl, StorageError } from "@/modules/storage/server/actions";
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ mediaId: string }> },
