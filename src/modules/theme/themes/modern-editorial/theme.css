@@ -22,21 +22,8 @@
   overflow-x: hidden;
 }
 
-/* Animations */
-.modern-editorial .me-animate {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity var(--me-animation-speed) cubic-bezier(0.25, 1, 0.5, 1),
-              transform var(--me-animation-speed) cubic-bezier(0.25, 1, 0.5, 1);
-}
-.modern-editorial .me-animate.me-delay-1 { transition-delay: 0.1s; }
-.modern-editorial .me-animate.me-delay-2 { transition-delay: 0.2s; }
-.modern-editorial .me-animate.me-delay-3 { transition-delay: 0.3s; }
-
-.modern-editorial .me-animate.me-animate-in {
-  opacity: 1;
-  transform: translateY(0);
-}
+/* GSAP handles animations now, so no base opacity: 0 or transitions are needed in pure CSS.
+   This guarantees fallback visibility if JS is disabled. */
 
 .modern-editorial section {
   padding: 5rem 1.5rem;
