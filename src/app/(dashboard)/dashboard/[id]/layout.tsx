@@ -27,9 +27,9 @@ export default async function InvitationDashboardLayout({
 
   return (
     <div className="flex flex-col space-y-6">
-      <div className="flex items-center justify-between border-b pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
         <h1 className="text-2xl font-semibold tracking-tight">Manajemen Undangan</h1>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <ThemeChangerModal 
             invitationId={invitation.invitationId} 
             currentThemeId={invitation.themeId}

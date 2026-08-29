@@ -25,7 +25,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     >
       <div className="min-h-screen bg-background text-foreground flex flex-col">
         <DashboardSidebar invitations={invitations} />
-        <main className="ml-0 lg:ml-[260px] min-h-screen">
+        <main className="ml-0 lg:ml-[260px] min-h-screen pt-14 lg:pt-0">
           <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
             {children}
           </div>
