@@ -1,0 +1,1 @@
+import { createClient } from '@supabase/supabase-js'; const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL; const supabaseKey = process.env.SUPABASE_SECRET_KEY; const supabase = createClient(supabaseUrl, supabaseKey); const { data } = await supabase.from('media_assets').select('id, status, invitation_id, owner_id'); console.log(JSON.stringify(data, null, 2));

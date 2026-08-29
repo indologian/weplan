@@ -3,6 +3,9 @@ import { createSupabaseServerClient } from "@/shared/lib/supabase/server-client"
 import { WeddingRenderer } from "@/modules/theme/wedding-renderer";
 import type { PublicInvitationDTO } from "@/modules/invitation/types";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ theme?: string }>;

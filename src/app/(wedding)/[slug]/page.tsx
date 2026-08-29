@@ -5,6 +5,9 @@ import { WeddingRenderer } from "@/modules/theme/wedding-renderer";
 import { PinGate } from "@/modules/guest/components/pin-gate";
 import { verifyPrivateSessionFromCookie, resolveGuestFromToken } from "@/modules/guest/server/pin-session";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 type Props = {
   params: Promise<{ slug: string }>;
   searchParams: Promise<{ guest?: string }>;
