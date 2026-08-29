@@ -44,7 +44,7 @@ export function GiftCard({
       <p>{accountNumber}</p>
       <p>{accountHolder}</p>
       {qris && (
-        <Image
+        <Image unoptimized
           src={qris.url}
           alt={`Kode QRIS atas nama ${accountHolder}`}
           width={qris.width ?? 600}

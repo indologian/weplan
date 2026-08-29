@@ -42,7 +42,7 @@ export function Lightbox({ src, alt, className, width, height, focusX = 0.5, foc
         className={className}
         aria-label={`Perbesar: ${alt}`}
       >
-        <Image
+        <Image unoptimized
           src={src}
           alt={alt}
           width={width ?? 800}
@@ -64,7 +64,7 @@ export function Lightbox({ src, alt, className, width, height, focusX = 0.5, foc
           padding: 0,
         }}
       >
-        <Image
+        <Image unoptimized
           src={src}
           alt={alt}
           width={width ?? 1200}

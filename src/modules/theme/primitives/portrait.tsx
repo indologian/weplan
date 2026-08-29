@@ -13,7 +13,7 @@ export function Portrait({ invitation, mediaId, name, variant }: Props) {
   if (!media) return null;
   return (
     <div className={`theme-portrait theme-portrait-${variant}`}>
-      <Image
+      <Image unoptimized
         src={media.url}
         alt={`Potret ${name ?? "mempelai"}`}
         width={media.width ?? 600}
