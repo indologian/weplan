@@ -230,9 +230,7 @@ export async function getMediaServingUrl(
     throw new StorageError(`Invalid variant '${variant}' for kind '${media.kind}'.`, "INVALID_FILE");
   }
 
-  const filePath = variant === "original"
-    ? media.final_path
-    : media.final_path.replace(/(\.[^.]+)$/, `_${variant}$1`);
+  const filePath = media.final_path; // For MVP, bypass variants since sharp is disabled
 
   const { data: urlData, error } = await supabase.storage
     .from(FINAL_BUCKET)

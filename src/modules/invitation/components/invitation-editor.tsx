@@ -857,22 +857,30 @@ function InvitationEventsEditor({
                       </label>
                     </div>
                   </div>
-                  <Input
-                    type="datetime-local"
-                    value={formatForInput(event.endsAt)}
-                    disabled={event.endsAt === null}
-                    onChange={(change) => {
-                      const dt = change.target.value;
-                      const isoStr = dt ? new Date(dt).toISOString() : null;
-                      setEvents((current) =>
-                        current.map((item) =>
-                          item.localId === event.localId
-                            ? { ...item, endsAt: isoStr }
-                            : item,
-                        ),
-                      );
-                    }}
-                  />
+                  {event.endsAt === null ? (
+                      <Input
+                        type="text"
+                        value="Selesai"
+                        disabled
+                        className="bg-muted text-muted-foreground"
+                      />
+                    ) : (
+                      <Input
+                        type="datetime-local"
+                        value={formatForInput(event.endsAt)}
+                        onChange={(change) => {
+                          const dt = change.target.value;
+                          const isoStr = dt ? new Date(dt).toISOString() : null;
+                          setEvents((current) =>
+                            current.map((item) =>
+                              item.localId === event.localId
+                                ? { ...item, endsAt: isoStr }
+                                : item,
+                            ),
+                          );
+                        }}
+                      />
+                    )}
                 </div>
 
                 <div className="space-y-2">
