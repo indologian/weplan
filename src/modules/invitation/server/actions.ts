@@ -1,6 +1,7 @@
 "use server";
 
 import { ZodError } from "zod";
+import { createSupabaseServerClient } from "@/shared/lib/supabase/server-client";
 import { AuthorizationError } from "@/modules/auth/server/authorization";
 import { ensureUserProfile } from "@/modules/auth/server/ensure-user-profile";
 import { AuthenticationError, requireUser } from "@/modules/auth/server/require-user";
@@ -120,6 +121,28 @@ export async function actionUpdateEditorTheme(
     return { success: true, data: { contentVersion } };
   } catch (error) {
     return handleEditorError(error);
+  }
+}
+
+export async function actionDeleteInvitation(
+  invitationId: string,
+): Promise<ActionResult<{ success: boolean }>> {
+  try {
+    const user = await requireUser();
+    const supabase = createSupabaseServerClient();
+    
+    // Perform soft delete
+    const { error } = await supabase
+      .from("invitations")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", invitationId)
+      .eq("user_id", user.id);
+
+    if (error) throw error;
+    
+    return { success: true, data: { success: true } };
+  } catch (error) {
+    return { success: false, error: "Gagal menghapus undangan." };
   }
 }
 

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { requireUser } from "@/modules/auth/server/require-user";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
+import { getAllThemes } from "@/modules/theme/server/queries";
 import { CheckoutButton } from "./checkout-button";
+import { ThemeChangerModal } from "../../_components/theme-changer-modal";
 import { notFound } from "next/navigation";
 
 export default async function InvitationDashboardLayout({
@@ -14,7 +16,10 @@ export default async function InvitationDashboardLayout({
   const user = await requireUser();
   const { id } = await params;
 
-  const invitation = await getEditorDTO(user.id, id);
+  const [invitation, themes] = await Promise.all([
+    getEditorDTO(user.id, id),
+    getAllThemes()
+  ]);
 
   if (!invitation) {
     notFound();
@@ -25,6 +30,12 @@ export default async function InvitationDashboardLayout({
       <div className="flex items-center justify-between border-b pb-4">
         <h1 className="text-2xl font-semibold tracking-tight">Manajemen Undangan</h1>
         <div className="flex items-center space-x-2">
+          <ThemeChangerModal 
+            invitationId={invitation.invitationId} 
+            currentThemeId={invitation.themeId}
+            expectedVersion={invitation.contentVersion}
+            themes={themes}
+          />
           <Link
             href={`/preview/${id}`}
             target="_blank"

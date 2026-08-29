@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeleteInvitationButton } from "./delete-invitation-button";
 
 type Invitation = {
   id: string;
@@ -56,16 +57,18 @@ export function DashboardInvitationCard({ inv }: { inv: Invitation }) {
           Preview
         </a>
         {isPublished && (
-          <a
-            href={`/${inv.slug}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium text-[#6b7280] hover:text-[#1a1a1a]"
-          >
-            Lihat +-
-          </a>
-        )}
-      </div>
+                <a
+          href={`/${inv.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center rounded-lg px-3 py-1.5 text-xs font-medium text-[#6b7280] hover:text-[#1a1a1a]"
+        >
+          Lihat +-
+        </a>
+      )}
+      <div className="flex-1" />
+      <DeleteInvitationButton id={inv.id} />
     </div>
-  );
+  </div>
+);
 }
