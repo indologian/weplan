@@ -5,52 +5,34 @@ export function Story({ invitation }: SectionRendererProps) {
   if (validStories.length === 0) return null;
 
   return (
-    <section
-      className="modern-editorial"
-      style={{ background: "var(--me-bg)", textAlign: "center" }}
-    >
-      <p className="me-overline">Cerita Cinta</p>
-      <hr className="me-rule" style={{ marginBottom: "2rem" }} />
-      {validStories.map((item, index) => (
-        <article
-          key={item.id}
-          style={{
-            borderTop: index > 0 ? "1px solid var(--me-border)" : "none",
-            padding: "2rem 0",
-          }}
-        >
-          {item.date && (
-            <p
-              style={{
-                fontSize: "0.75rem",
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
-                color: "var(--me-muted)",
-                margin: "0 0 0.5rem",
-              }}
-            >
-              {item.date}
-            </p>
-          )}
-          {item.title && (
-            <h3
-              style={{
-                fontFamily: "var(--me-font-display)",
-                fontSize: "1.25rem",
-                fontWeight: 400,
-                margin: "0 0 0.75rem",
-              }}
-            >
-              {item.title}
-            </h3>
-          )}
-          {item.body && (
-            <p style={{ maxWidth: "32ch", margin: "0 auto", lineHeight: 1.7 }}>
-              {item.body}
-            </p>
-          )}
-        </article>
-      ))}
+    <section className="modern-editorial" style={{ background: "var(--me-surface)", textAlign: "center" }}>
+      <p className="me-overline me-animate">Cerita Cinta</p>
+      <hr className="me-rule me-animate me-delay-1" style={{ marginBottom: "2rem" }} />
+      
+      <div className="me-story-container">
+        {validStories.map((item, index) => (
+          <article
+            key={item.id}
+            className={`me-story-article me-animate me-delay-${(index % 3) + 1}`}
+          >
+            {item.date && (
+              <p className="me-story-date">
+                {item.date}
+              </p>
+            )}
+            {item.title && (
+              <h3 className="me-story-title">
+                {item.title}
+              </h3>
+            )}
+            {item.body && (
+              <p className="me-story-body">
+                {item.body}
+              </p>
+            )}
+          </article>
+        ))}
+      </div>
     </section>
   );
 }

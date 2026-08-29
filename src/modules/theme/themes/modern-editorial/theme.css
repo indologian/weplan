@@ -10,6 +10,7 @@
 
   --me-font-display: var(--font-wedding-display), Georgia, serif;
   --me-font-body: var(--font-jakarta), system-ui, sans-serif;
+  --me-animation-speed: 0.8s;
 }
 
 .wedding-theme.modern-editorial {
@@ -18,10 +19,34 @@
   font-family: var(--me-font-body);
   line-height: 1.6;
   min-height: 100svh;
+  overflow-x: hidden;
+}
+
+/* Animations */
+.modern-editorial .me-animate {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity var(--me-animation-speed) cubic-bezier(0.25, 1, 0.5, 1),
+              transform var(--me-animation-speed) cubic-bezier(0.25, 1, 0.5, 1);
+}
+.modern-editorial .me-animate.me-delay-1 { transition-delay: 0.1s; }
+.modern-editorial .me-animate.me-delay-2 { transition-delay: 0.2s; }
+.modern-editorial .me-animate.me-delay-3 { transition-delay: 0.3s; }
+
+.modern-editorial .me-animate.me-animate-in {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .modern-editorial section {
-  padding: 3rem 1.5rem;
+  padding: 5rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .modern-editorial section {
+    padding: 8rem 3rem;
+  }
 }
 
 .modern-editorial h1,
@@ -30,30 +55,206 @@
   font-family: var(--me-font-display);
   font-weight: 400;
   letter-spacing: -0.02em;
+  margin: 0;
 }
 
 .modern-editorial .me-rule {
   border: none;
   border-top: 1px solid var(--me-border);
-  margin: 0 auto;
-  max-width: 80px;
+  margin: 2rem auto;
+  width: 100%;
+  max-width: 120px;
 }
 
 .modern-editorial .me-overline {
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.25em;
   color: var(--me-muted);
   margin-bottom: 0.5rem;
 }
 
-.modern-editorial.me-cover { min-height: 100svh; display: grid; align-content: center; grid-template-columns: 2.5rem 1fr; gap: 1rem; padding: 3rem 2rem; text-align: left; }
-.modern-editorial .me-cover-index { grid-column: 1 / -1; font-size: 0.65rem; letter-spacing: 0.18em; }
-.modern-editorial .me-cover-rule { width: 1px; height: 100%; min-height: 17rem; background: var(--me-accent); }
-.modern-editorial.me-cover > :not(.me-cover-rule, .me-cover-index) { grid-column: 2; }
-.modern-editorial.me-cover h1 { display: grid; gap: 0.2rem; margin: 0; font-size: clamp(2.7rem, 11vw, 4.7rem); line-height: 0.92; }
-.modern-editorial .me-cover-and { margin-left: 1.5rem; color: var(--me-accent); font-size: 0.65em; font-style: italic; }
-.modern-editorial .me-cover-caption { max-width: 24ch; color: var(--me-muted); font-size: 0.85rem; }
+/* Cover Styling */
+.modern-editorial.me-cover { 
+  min-height: 100svh; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: center;
+  align-items: center; 
+  text-align: center;
+  padding: 2rem; 
+  position: relative;
+}
+.modern-editorial .me-cover-ornament {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150vw; max-width: 800px;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+.modern-editorial .me-cover-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+.modern-editorial.me-cover h1 { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 0.5rem; 
+  font-size: clamp(3rem, 12vw, 6rem); 
+  line-height: 1; 
+}
+.modern-editorial .me-cover-and { 
+  color: var(--me-accent); 
+  font-size: 0.5em; 
+  font-style: italic; 
+}
+
+/* Couple Styling */
+.modern-editorial .me-couple-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .modern-editorial .me-couple-container {
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 2rem;
+  }
+}
+.modern-editorial .me-person {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.modern-editorial .me-person-photo {
+  width: 200px;
+  height: 250px;
+  object-fit: cover;
+  border-radius: 100rem 100rem 0 0; /* Arch shape */
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--me-border);
+  padding: 0.5rem;
+  background: var(--me-surface);
+}
+
+/* Events Styling */
+.modern-editorial .me-events-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .modern-editorial .me-events-grid {
+    grid-template-columns: 1fr 1px 1fr;
+  }
+}
+.modern-editorial .me-event-card {
+  text-align: center;
+  padding: 2rem;
+  background: var(--me-surface);
+  border: 1px solid var(--me-border);
+}
+.modern-editorial .me-divider-vertical {
+  display: none;
+  background: var(--me-border);
+}
+@media (min-width: 768px) {
+  .modern-editorial .me-divider-vertical { display: block; }
+}
+.modern-editorial .me-icon {
+  color: var(--me-accent);
+  width: 32px; height: 32px;
+  margin: 0 auto 1.5rem;
+}
+
+/* Gallery Styling */
+.modern-editorial .me-gallery-editorial {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .modern-editorial .me-gallery-editorial {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.modern-editorial .me-gallery-item {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3/4;
+}
+.modern-editorial .me-gallery-item:nth-child(3n+1) {
+  aspect-ratio: 1/1; /* Break the grid monotonously */
+}
+.modern-editorial .me-gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+.modern-editorial .me-gallery-item:hover img {
+  transform: scale(1.05);
+}
+
+/* Story Styling */
+.modern-editorial .me-story-container {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.modern-editorial .me-story-article {
+  position: relative;
+  text-align: center;
+  padding: 0 1rem;
+}
+.modern-editorial .me-story-article::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 2rem;
+  background: var(--me-border);
+}
+.modern-editorial .me-story-article:first-child::before {
+  display: none;
+}
+.modern-editorial .me-story-date {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--me-muted);
+  margin-top: 3rem;
+  margin-bottom: 0.5rem;
+}
+.modern-editorial .me-story-title {
+  font-family: var(--me-font-display);
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 0 0 1rem;
+}
+.modern-editorial .me-story-body {
+  max-width: 40ch;
+  margin: 0 auto;
+  line-height: 1.8;
+  color: var(--me-text);
+}
 
 @media (prefers-reduced-motion: reduce) {
   .modern-editorial * {
@@ -61,5 +262,4 @@
     transition: none !important;
   }
 }
-
 }

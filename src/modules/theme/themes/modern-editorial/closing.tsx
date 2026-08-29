@@ -8,16 +8,17 @@ export function Closing({ invitation }: SectionRendererProps) {
     <section
       className="modern-editorial"
       style={{
-        padding: "4rem 1.5rem",
+        padding: "6rem 1.5rem",
         textAlign: "center",
         background: "var(--me-bg)",
       }}
     >
-      <hr className="me-rule" style={{ marginBottom: "2rem" }} />
+      <hr className="me-rule me-animate" style={{ marginBottom: "2rem" }} />
       <p
+        className="me-animate me-delay-1"
         style={{
           fontFamily: "var(--me-font-display)",
-          fontSize: "1.125rem",
+          fontSize: "1.25rem",
           fontStyle: "italic",
           color: "var(--me-muted)",
           marginBottom: "1.5rem",
@@ -26,9 +27,10 @@ export function Closing({ invitation }: SectionRendererProps) {
         Terima kasih telah menjadi bagian dari hari bahagia kami.
       </p>
       <p
+        className="me-animate me-delay-2"
         style={{
           fontFamily: "var(--me-font-display)",
-          fontSize: "1.5rem",
+          fontSize: "2rem",
           fontWeight: 400,
         }}
       >
