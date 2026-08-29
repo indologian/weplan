@@ -2719,3 +2719,8 @@ Melengkapi pengaturan RSVP serta pengelolaan tamu dan wedding gift berdasarkan F
 ### Status
 
 `COMPLETE` untuk pengelolaan manual RSVP/tamu dan wedding gift dashboard; bulk CSV import tetap menjadi work package lanjutan.
+
+### Commit evidence addendum
+
+- Primary implementation commit: `1c864f6` (`feat(dashboard): manage guests RSVP and wedding gifts`).
+- GitHub push, CI, dan deployment belum dijalankan pada saat addendum ini ditulis.
