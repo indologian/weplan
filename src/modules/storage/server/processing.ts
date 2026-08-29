@@ -98,12 +98,21 @@ export async function processUploadedMedia(mediaId: string): Promise<ProcessResu
 
     // Audio / Other
     const arrayBuffer = await fileData.arrayBuffer();
-    const ext = media.original_filename?.split(".").pop() ?? "bin";
+    const ext = media.original_filename?.split(".").pop() ?? "mp3";
     const finalPath = `${media.owner_id}/${media.invitation_id}/${media.purpose}/${mediaId}.${ext}`;
+    
+    // Simple mime type detection for audio
+    let contentType = "audio/mpeg";
+    if (ext === "m4a") contentType = "audio/mp4";
+    else if (ext === "ogg") contentType = "audio/ogg";
+    else if (ext === "wav") contentType = "audio/wav";
 
     const { error: uploadError } = await supabase.storage
       .from(FINAL_BUCKET)
-      .upload(finalPath, arrayBuffer, { upsert: true });
+      .upload(finalPath, arrayBuffer, { 
+        contentType,
+        upsert: true 
+      });
 
     if (uploadError) {
       await supabase
