@@ -129,7 +129,7 @@ export async function actionDeleteInvitation(
 ): Promise<ActionResult<{ success: boolean }>> {
   try {
     const user = await requireUser();
-    const supabase = createSupabaseServerClient();
+    const supabase = await createSupabaseServerClient();
     
     // Perform soft delete
     const { error } = await supabase
@@ -142,7 +142,7 @@ export async function actionDeleteInvitation(
     
     return { success: true, data: { success: true } };
   } catch (error) {
-    return { success: false, error: "Gagal menghapus undangan." };
+    return { success: false, code: "TEMPORARY_ERROR", error: "Gagal menghapus undangan." };
   }
 }
 
