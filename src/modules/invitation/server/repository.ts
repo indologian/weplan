@@ -126,13 +126,6 @@ export async function saveEditorContent(
   userId: string,
   input: EditorContentAutosaveInput,
 ): Promise<number> {
-  if (containsUnsupportedM2Content(input)) {
-    throw new EditorMutationError(
-      "Media references and theme overrides remain disabled until their owning milestones",
-      "INVALID_STATE",
-    );
-  }
-
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase.rpc("save_invitation_content", {
     p_user_id: userId,
