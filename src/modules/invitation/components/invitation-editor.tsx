@@ -120,7 +120,7 @@ export function InvitationEditor({
               ...initialData.settings,
               openingText: snapshot.openingText,
               ...(snapshot.backgroundAudioMediaId ? { backgroundAudioMediaId: snapshot.backgroundAudioMediaId } : {}),
-              ...(snapshot.videoEmbedId ? { videoEmbeds: [{ id: crypto.randomUUID(), kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : {}),
+              ...(snapshot.videoEmbedId && snapshot.videoEmbedId.length === 11 ? { videoEmbeds: [{ id: crypto.randomUUID(), kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : {}),
               quoteText: snapshot.quoteText,
             },
           });
