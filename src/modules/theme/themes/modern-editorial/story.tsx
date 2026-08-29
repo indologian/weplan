@@ -1,7 +1,8 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
 
 export function Story({ invitation }: SectionRendererProps) {
-  if (invitation.loveStory.length === 0) return null;
+  const validStories = invitation.loveStory.filter((item) => item.date || item.title || item.body);
+  if (validStories.length === 0) return null;
 
   return (
     <section
@@ -10,7 +11,7 @@ export function Story({ invitation }: SectionRendererProps) {
     >
       <p className="me-overline">Cerita Cinta</p>
       <hr className="me-rule" style={{ marginBottom: "2rem" }} />
-      {invitation.loveStory.map((item, index) => (
+      {validStories.map((item, index) => (
         <article
           key={item.id}
           style={{

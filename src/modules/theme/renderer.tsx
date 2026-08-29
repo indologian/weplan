@@ -104,7 +104,7 @@ export function createRenderer(sections: ThemeSectionRenderers) {
     const sectionProps = { invitation, guestName };
     const audioUrl = invitation.media.find((media) => media.mediaId === invitation.settings.backgroundAudioMediaId)?.url;
     const displayGuestName = invitation.guestName ?? guestName ?? "Tamu Kehormatan";
-    const showStory = invitation.loveStory.length > 0 && isVisible(invitation, "loveStory");
+    const showStory = invitation.loveStory.some((item) => item.date || item.title || item.body) && isVisible(invitation, "loveStory");
     const showGallery = invitation.media.some((media) => media.purpose === "gallery") && isVisible(invitation, "gallery");
     const showVideo = (invitation.settings.videoEmbeds?.length ?? 0) > 0 && isVisible(invitation, "video");
     const showRsvp = invitation.rsvpMode === "open" && isVisible(invitation, "rsvp");
@@ -126,7 +126,7 @@ export function createRenderer(sections: ThemeSectionRenderers) {
             <p className="theme-overline">Dengan penuh sukacita</p>
             <h2 id="opening-title" className="sr-only">Pembuka</h2>
             {invitation.settings.openingText && <p>{invitation.settings.openingText}</p>}
-            {invitation.settings.quoteText && <blockquote><q>{invitation.settings.quoteText}</q></blockquote>}
+            {invitation.settings.quoteText && <blockquote>{invitation.settings.quoteText}</blockquote>}
           </section>
         )}
         <div id="couple"><sections.Couple {...sectionProps} /></div>
