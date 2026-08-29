@@ -100,10 +100,9 @@ export function ThemeAnimator() {
       if (couplePhotos.length > 0) {
         couplePhotos.forEach((photo) => {
           gsap.fromTo(photo,
-            { scale: 0.9, filter: "grayscale(50%)" },
+            { scale: 0.9 },
             {
               scale: 1,
-              filter: "grayscale(0%)",
               duration: 1.5,
               ease: "power2.out",
               scrollTrigger: {

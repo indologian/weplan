@@ -42,13 +42,10 @@ export function Lightbox({ src, alt, className, width, height, focusX = 0.5, foc
         className={className}
         aria-label={`Perbesar: ${alt}`}
       >
-        <Image unoptimized
+        <img
           src={src}
           alt={alt}
-          width={width ?? 800}
-          height={height ?? 600}
-          sizes="(max-width: 480px) 50vw, 240px"
-          style={{ width: "100%", height: "auto", aspectRatio: "4 / 5", objectFit: "cover", objectPosition: `${focusX * 100}% ${focusY * 100}%` }}
+          style={{ width: "100%", height: "auto", aspectRatio: "4 / 5", objectFit: "cover", objectPosition: `${focusX * 100}% ${focusY * 100}%`, display: "block" }}
         />
       </button>
       <dialog
@@ -64,13 +61,10 @@ export function Lightbox({ src, alt, className, width, height, focusX = 0.5, foc
           padding: 0,
         }}
       >
-        <Image unoptimized
+        <img
           src={src}
           alt={alt}
-          width={width ?? 1200}
-          height={height ?? 900}
-          sizes="90vw"
-          style={{ width: "auto", height: "auto", maxWidth: "90vw", maxHeight: "80vh", objectFit: "contain" }}
+          style={{ width: "auto", height: "auto", maxWidth: "90vw", maxHeight: "80vh", objectFit: "contain", display: "block" }}
         />
         <div style={{ textAlign: "center", marginTop: "0.5rem" }}>
           <button type="button" onClick={close} aria-label="Tutup">

@@ -69,7 +69,7 @@ export function InvitationShell({ children, className, guestName, audioUrl, styl
             ref={audioRef}
             src={audioUrl}
             loop
-            preload="metadata"
+            preload="auto"
             onPlay={() => setPlaying(true)}
             onPause={() => setPlaying(false)}
           />

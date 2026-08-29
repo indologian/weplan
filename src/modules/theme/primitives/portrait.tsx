@@ -13,13 +13,10 @@ export function Portrait({ invitation, mediaId, name, variant }: Props) {
   if (!media) return null;
   return (
     <div className={`theme-portrait theme-portrait-${variant}`}>
-      <Image unoptimized
+      <img
         src={media.url}
         alt={`Potret ${name ?? "mempelai"}`}
-        width={media.width ?? 600}
-        height={media.height ?? 750}
-        sizes="(max-width: 480px) 44vw, 210px"
-        style={{ objectPosition: `${media.focusX * 100}% ${media.focusY * 100}%` }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: `${media.focusX * 100}% ${media.focusY * 100}%` }}
       />
     </div>
   );
