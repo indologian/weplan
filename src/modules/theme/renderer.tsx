@@ -50,14 +50,14 @@ import { Wishes } from "./primitives/wishes";
 import { PhysicalGift } from "./primitives/physical-gift";
 
 export function createRenderer(sections: ThemeSectionRenderers) {
-  function ThemeRenderer({ invitation, guestName }: RendererProps) {
+  function ThemeRenderer({ invitation, guestName, guestToken }: RendererProps) {
     const sectionProps = { invitation, guestName };
     const audioUrl = invitation.media.find((media) => media.mediaId === invitation.settings.backgroundAudioMediaId)?.url;
     const displayGuestName = invitation.guestName ?? guestName ?? "Tamu Kehormatan";
     const showStory = invitation.loveStory.some((item) => item.date || item.title || item.body) && isVisible(invitation, "loveStory");
     const showGallery = invitation.media.some((media) => media.purpose === "gallery") && isVisible(invitation, "gallery");
     const showVideo = (invitation.settings.videoEmbeds?.length ?? 0) > 0 && isVisible(invitation, "video");
-    const showRsvp = invitation.rsvpMode === "open" && isVisible(invitation, "rsvp");
+    const showRsvp = (invitation.rsvpMode === "open" || Boolean(guestToken)) && isVisible(invitation, "rsvp");
     const showWishes = invitation.wishes.length > 0 && isVisible(invitation, "guestbook");
     const showGift = (invitation.bankAccounts.length > 0 || invitation.settings.physicalGift?.enabled) && isVisible(invitation, "gift");
     const navigation = [
@@ -84,7 +84,7 @@ export function createRenderer(sections: ThemeSectionRenderers) {
         {showStory && <div id="story"><sections.Story {...sectionProps} /></div>}
         {showGallery && <div id="gallery"><sections.Gallery {...sectionProps} /></div>}
         {showVideo && <div id="video"><VideoSection invitation={invitation} /></div>}
-        {showRsvp && <div id="rsvp"><RsvpForm invitationId={invitation.invitationId} guestName={invitation.guestName ?? guestName} className="theme-generic-section theme-rsvp" /></div>}
+        {showRsvp && <div id="rsvp"><RsvpForm invitationId={invitation.invitationId} guestName={invitation.guestName ?? guestName} guestToken={guestToken} className="theme-generic-section theme-rsvp" /></div>}
         {showWishes && <div id="wishes"><Wishes invitation={invitation} /></div>}
         {showGift && <div id="gift"><sections.Gift {...sectionProps} /><PhysicalGift invitation={invitation} /></div>}
         <sections.Closing {...sectionProps} />

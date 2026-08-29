@@ -1,6 +1,9 @@
 import { requireUser } from "@/modules/auth/server/require-user";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
 import { notFound } from "next/navigation";
+import { getManagedGuests } from "@/modules/guest/server/management";
+import { GuestManager } from "@/modules/guest/components/guest-manager";
+import { RsvpSettings } from "@/modules/guest/components/rsvp-settings";
 
 export default async function TamuPage({
   params,
@@ -10,7 +13,7 @@ export default async function TamuPage({
   const user = await requireUser();
   const { id } = await params;
 
-  const invitation = await getEditorDTO(user.id, id);
+  const [invitation, guests] = await Promise.all([getEditorDTO(user.id, id), getManagedGuests(user.id, id)]);
 
   if (!invitation) notFound();
 
@@ -21,11 +24,8 @@ export default async function TamuPage({
         <p className="text-sm text-muted-foreground">Kelola daftar tamu dan ucapan dari pengunjung.</p>
       </div>
 
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <p className="text-sm text-muted-foreground text-center py-12">
-          Fitur manajemen tamu akan segera hadir. Anda dapat mengelola mode RSVP (Public/Private) melalui menu pengaturan utama.
-        </p>
-      </div>
+      <RsvpSettings invitationId={invitation.invitationId} initialVersion={invitation.contentVersion} initialMode={invitation.rsvpMode} initialModeration={invitation.guestbookModeration}/>
+      <GuestManager invitationId={invitation.invitationId} guests={guests}/>
     </div>
   );
 }

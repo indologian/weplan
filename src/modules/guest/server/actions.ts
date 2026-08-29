@@ -2,7 +2,8 @@ import "server-only";
 
 import { z } from "zod";
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
-import { hashGuestToken, createGuestToken, hashRsvpEditToken, createRsvpEditToken } from "./token";
+import { hashRsvpEditToken, createRsvpEditToken, verifyRsvpEditToken } from "./token";
+import { resolveGuestFromToken } from "./pin-session";
 
 const RSVP_SECRET = process.env.GUEST_TOKEN_HMAC_SECRET ?? "";
 
@@ -23,6 +24,8 @@ const rsvpSubmissionSchema = z.object({
   attendance: z.enum(["confirmed", "declined"]),
   guestCount: z.number().int().min(0).max(10),
   wishMessage: z.string().max(500).optional(),
+  guestToken: z.string().length(64).optional(),
+  editToken: z.string().length(64).optional(),
 }).strict().superRefine((input, context) => {
   if (input.attendance === "confirmed" && input.guestCount < 1) {
     context.addIssue({ code: "custom", path: ["guestCount"], message: "Confirmed attendance requires at least one guest" });
@@ -43,17 +46,18 @@ export async function submitRsvp(input: unknown): Promise<{ guestId: string; edi
 
   const { data: invitation } = await supabase
     .from("invitations")
-    .select("id, rsvp_mode, status")
+    .select("id, rsvp_mode, status, guestbook_moderation, is_private")
     .eq("id", validated.invitationId)
     .eq("status", "published")
     .maybeSingle();
 
   if (!invitation) throw new GuestError("Invitation not found", "NOT_FOUND");
-  if (invitation.rsvp_mode !== "open") throw new GuestError("RSVP is not open", "INVITATION_NOT_OPEN");
+  const personalGuest = validated.guestToken ? await resolveGuestFromToken(validated.invitationId, validated.guestToken) : null;
+  if (invitation.rsvp_mode !== "open" && !personalGuest) throw new GuestError("RSVP hanya tersedia melalui tautan personal", "INVITATION_NOT_OPEN");
 
   const normalizedPhone = normalizePhone(validated.phone);
 
-  const { data: existingGuest } = await supabase
+  const { data: existingGuest } = personalGuest ? { data: { id: personalGuest.guestId } } : await supabase
     .from("guests")
     .select("id")
     .eq("invitation_id", validated.invitationId)
@@ -64,13 +68,19 @@ export async function submitRsvp(input: unknown): Promise<{ guestId: string; edi
 
   if (existingGuest) {
     guestId = existingGuest.id;
+    if (!personalGuest) {
+      const { data: credential } = await supabase.from("guest_credentials").select("rsvp_edit_token_hash").eq("guest_id", guestId).maybeSingle();
+      if (!validated.editToken || !credential?.rsvp_edit_token_hash || !verifyRsvpEditToken(validated.editToken, credential.rsvp_edit_token_hash, RSVP_SECRET)) {
+        throw new GuestError("RSVP untuk nomor ini sudah ada. Gunakan perangkat yang sama atau tautan personal.", "INVITATION_NOT_OPEN");
+      }
+    }
     await supabase
       .from("guests")
       .update({
         rsvp_status: validated.attendance,
         attendance: validated.guestCount,
         wish_message: validated.wishMessage || null,
-        wish_status: validated.wishMessage ? "approved" : "pending",
+        wish_status: validated.wishMessage ? (invitation.guestbook_moderation === "auto" ? "approved" : "pending") : "pending",
         updated_at: new Date().toISOString(),
       })
       .eq("id", guestId);
@@ -79,14 +89,14 @@ export async function submitRsvp(input: unknown): Promise<{ guestId: string; edi
       .from("guests")
       .insert({
         invitation_id: validated.invitationId,
-        name: validated.name,
+        name: personalGuest?.name ?? validated.name,
         phone: validated.phone,
         normalized_phone: normalizedPhone,
         guest_source: "public_rsvp",
         rsvp_status: validated.attendance,
         attendance: validated.guestCount,
         wish_message: validated.wishMessage || null,
-        wish_status: validated.wishMessage ? "approved" : "pending",
+        wish_status: validated.wishMessage ? (invitation.guestbook_moderation === "auto" ? "approved" : "pending") : "pending",
       })
       .select("id")
       .single();

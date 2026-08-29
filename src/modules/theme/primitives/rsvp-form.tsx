@@ -8,9 +8,10 @@ type Props = {
   invitationId: string;
   guestName?: string;
   className?: string;
+  guestToken?: string;
 };
 
-export function RsvpForm({ invitationId, guestName, className }: Props) {
+export function RsvpForm({ invitationId, guestName, guestToken, className }: Props) {
   const [name, setName] = useState(guestName ?? "");
   const [phone, setPhone] = useState("");
   const [attendance, setAttendance] = useState<Attendance>("confirmed");
@@ -27,7 +28,7 @@ export function RsvpForm({ invitationId, guestName, className }: Props) {
       const response = await fetch("/api/guest/rsvp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ invitationId, name, phone, attendance, guestCount: attendance === "declined" ? 0 : guestCount, wishMessage }),
+        body: JSON.stringify({ invitationId, name, phone, attendance, guestCount: attendance === "declined" ? 0 : guestCount, wishMessage, guestToken }),
       });
       if (!response.ok) throw new Error("RSVP submission failed");
       setMessage("Terima kasih atas konfirmasi Anda!");

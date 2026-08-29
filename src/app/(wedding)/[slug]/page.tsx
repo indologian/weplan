@@ -132,7 +132,7 @@ export default async function WeddingPage({ params, searchParams }: Props) {
     }
     return (
       <div style={{ width: "100%", maxWidth: "480px", margin: "0 auto" }}>
-        <WeddingRenderer invitation={publicInvitation} guestName={guestName} />
+        <WeddingRenderer invitation={publicInvitation} guestName={guestName} guestToken={guestName ? guestToken : undefined} />
       </div>
     );
   }
@@ -148,7 +148,7 @@ export default async function WeddingPage({ params, searchParams }: Props) {
       }
       return (
         <div style={{ width: "100%", maxWidth: "480px", margin: "0 auto" }}>
-          <WeddingRenderer invitation={privateInvitation} guestName={guestName} />
+          <WeddingRenderer invitation={privateInvitation} guestName={guestName} guestToken={guestName ? guestToken : undefined} />
         </div>
       );
     }

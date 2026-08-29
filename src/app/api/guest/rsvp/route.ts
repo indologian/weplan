@@ -2,11 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { submitRsvp, GuestError } from "@/modules/guest/server/actions";
 import { checkRsvpRateLimit, extractIpFromHeaders } from "@/shared/lib/rate-limit";
 import { verifyTurnstileToken } from "@/shared/lib/security/turnstile";
+import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
+import { verifyPrivateSessionFromCookie } from "@/modules/guest/server/pin-session";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { invitationId, name, phone, attendance, guestCount, wishMessage, turnstileToken } = body;
+    const { invitationId, name, phone, attendance, guestCount, wishMessage, turnstileToken, guestToken } = body;
 
     if (!invitationId || !name || !phone || !attendance) {
       return NextResponse.json(
@@ -16,6 +18,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const ip = extractIpFromHeaders(request.headers);
+    const { data: invitation } = await createSupabaseServiceClient().from("invitations").select("is_private").eq("id", invitationId).maybeSingle();
+    if (invitation?.is_private && !await verifyPrivateSessionFromCookie(invitationId)) {
+      return NextResponse.json({ success:false, error:"Sesi undangan privat tidak valid." }, { status:403 });
+    }
 
     const rateLimitResult = await checkRsvpRateLimit(invitationId, ip);
     if (!rateLimitResult.allowed) {
@@ -46,9 +52,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       attendance,
       guestCount: guestCount ?? 1,
       wishMessage: wishMessage || undefined,
+      guestToken: guestToken || undefined,
+      editToken: request.cookies.get(`rsvp_edit_${invitationId}`)?.value,
     });
-
-    return NextResponse.json({ success: true, data: result });
+    const response = NextResponse.json({ success: true, data: { guestId: result.guestId } });
+    if (result.editToken) response.cookies.set(`rsvp_edit_${invitationId}`, result.editToken, { httpOnly:true, secure:process.env.NODE_ENV==="production", sameSite:"lax", path:"/", maxAge:60*60*24*365 });
+    return response;
   } catch (error) {
     if (error instanceof GuestError) {
       return NextResponse.json(

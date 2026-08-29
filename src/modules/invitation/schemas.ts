@@ -181,7 +181,10 @@ export const invitationSettingsSchema = z.object({
   }).strict().optional(),
   sectionVisibility: z.record(z.string().trim().min(1).max(80), z.boolean()).optional(),
   themeOverrides: z.record(z.string().trim().min(1).max(80), z.unknown()).optional(),
-}).strict();
+}).strict().superRefine((settings, context) => {
+  if (settings.physicalGift?.enabled && !settings.physicalGift.recipient?.trim()) context.addIssue({ code:"custom", path:["physicalGift","recipient"], message:"Nama penerima hadiah wajib diisi." });
+  if (settings.physicalGift?.enabled && !settings.physicalGift.address?.trim()) context.addIssue({ code:"custom", path:["physicalGift","address"], message:"Alamat hadiah wajib diisi." });
+});
 
 export const editorContentAutosaveSchema = z.object({
   invitationId: z.uuid(),

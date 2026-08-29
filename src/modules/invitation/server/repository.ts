@@ -128,6 +128,14 @@ export async function saveEditorContent(
   input: EditorContentAutosaveInput,
 ): Promise<number> {
   const supabase = createSupabaseServiceClient();
+  const qrisIds = input.bankAccounts?.flatMap((account) => account.qrisMediaId ? [account.qrisMediaId] : []) ?? [];
+  if (qrisIds.length > 0) {
+    const { data: assets, error: assetError } = await supabase.from("media_assets").select("id")
+      .eq("invitation_id", input.invitationId).eq("user_id", userId).eq("kind", "image").eq("purpose", "qris_image").eq("status", "ready").in("id", qrisIds);
+    if (assetError || new Set((assets ?? []).map((asset) => asset.id)).size !== new Set(qrisIds).size) {
+      throw new EditorMutationError("QRIS must be a ready image owned by this invitation", "INVALID_STATE");
+    }
+  }
   const { data, error } = await supabase.rpc("save_invitation_content", {
     p_user_id: userId,
     p_invitation_id: input.invitationId,

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Plus, Trash2, CreditCard } from "lucide-react";
+import { Plus, Trash2, CreditCard, Copy } from "lucide-react";
+import { MediaUploader } from "@/modules/storage/components/media-uploader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Label } from "@/shared/components/ui/label";
 import { Input } from "@/shared/components/ui/input";
@@ -13,6 +14,7 @@ type Props = {
   invitationId: string;
   initialVersion: number;
   initialBankAccounts: EditorDTO["bankAccounts"];
+  initialSettings: EditorDTO["settings"];
   saveEditorContent: SaveEditorContentAction;
 };
 
@@ -20,10 +22,12 @@ export function InvitationBankAccountsEditor({
   invitationId,
   initialVersion,
   initialBankAccounts,
+  initialSettings,
   saveEditorContent,
 }: Props) {
   const [contentVersion, setContentVersion] = useState(initialVersion);
   const [accounts, setAccounts] = useState(initialBankAccounts);
+  const [physicalGift, setPhysicalGift] = useState(initialSettings.physicalGift ?? { enabled: false, recipient: "", address: "" });
   const [isSaving, setIsSaving] = useState(false);
 
   const addAccount = () => {
@@ -39,6 +43,7 @@ export function InvitationBankAccountsEditor({
   };
 
   const removeAccount = (id: string) => {
+    if (!window.confirm("Hapus rekening ini? Perubahan berlaku setelah disimpan.")) return;
     setAccounts((current) => current.filter((acc) => acc.id !== id));
   };
 
@@ -60,6 +65,7 @@ export function InvitationBankAccountsEditor({
       invitationId,
       expectedVersion: contentVersion,
       bankAccounts: accounts,
+      settings: { ...initialSettings, physicalGift },
     });
     setIsSaving(false);
 
@@ -70,6 +76,11 @@ export function InvitationBankAccountsEditor({
 
     setContentVersion(result.data.contentVersion);
     toast.success("Daftar rekening berhasil disimpan!");
+  };
+  const copyAccountNumber = async (value: string) => {
+    try { await navigator.clipboard.writeText(value); }
+    catch { const node=document.createElement("textarea"); node.value=value; node.style.position="fixed"; node.style.opacity="0"; document.body.appendChild(node); node.select(); document.execCommand("copy"); node.remove(); }
+    toast.success("Nomor rekening disalin.");
   };
 
   return (
@@ -137,6 +148,11 @@ export function InvitationBankAccountsEditor({
                       onChange={(e) => updateAccount(account.id, "accountHolder", e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>QRIS (opsional)</Label>
+                    <MediaUploader invitationId={invitationId} kind="image" purpose="qris_image" currentMediaId={account.qrisMediaId} label="Unggah QRIS" onSuccess={(mediaId)=>updateAccount(account.id,"qrisMediaId",mediaId)}/>
+                  </div>
+                  <div className="md:col-span-2"><Button type="button" size="sm" variant="ghost" onClick={()=>void copyAccountNumber(account.accountNumber)}><Copy className="mr-2 h-4 w-4"/>Salin nomor</Button></div>
                 </div>
               </CardContent>
             </Card>
@@ -154,6 +170,7 @@ export function InvitationBankAccountsEditor({
           </div>
         </div>
       )}
+      <Card><CardHeader><CardTitle className="text-base">Hadiah fisik</CardTitle><CardDescription>Tampilkan alamat pengiriman hadiah pada undangan.</CardDescription></CardHeader><CardContent className="space-y-4"><label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={physicalGift.enabled} onChange={e=>setPhysicalGift({...physicalGift,enabled:e.target.checked})}/>Aktifkan pengiriman hadiah fisik</label>{physicalGift.enabled&&<><div className="space-y-2"><Label htmlFor="gift-recipient">Nama penerima</Label><Input id="gift-recipient" value={physicalGift.recipient??""} onChange={e=>setPhysicalGift({...physicalGift,recipient:e.target.value})}/></div><div className="space-y-2"><Label htmlFor="gift-address">Alamat lengkap</Label><textarea id="gift-address" className="min-h-24 w-full rounded-md border bg-transparent px-3 py-2 text-sm" value={physicalGift.address??""} onChange={e=>setPhysicalGift({...physicalGift,address:e.target.value})}/></div></>}<Button onClick={saveAccounts} disabled={isSaving||Boolean(physicalGift.enabled&&(!physicalGift.recipient?.trim()||!physicalGift.address?.trim()))}>{isSaving?"Menyimpan...":"Simpan pengaturan hadiah"}</Button></CardContent></Card>
     </div>
   );
 }

@@ -27,6 +27,7 @@ export default async function RekeningPage({
         invitationId={invitation.invitationId}
         initialVersion={invitation.contentVersion}
         initialBankAccounts={invitation.bankAccounts}
+        initialSettings={invitation.settings}
         saveEditorContent={actionSaveEditorContent}
       />
     </div>

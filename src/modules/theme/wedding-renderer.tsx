@@ -4,9 +4,10 @@ import { getRendererLoader } from "./registry";
 type Props = {
   invitation: PublicInvitationDTO;
   guestName?: string;
+  guestToken?: string;
 };
 
-export async function WeddingRenderer({ invitation, guestName }: Props) {
+export async function WeddingRenderer({ invitation, guestName, guestToken }: Props) {
   const loadRenderer = getRendererLoader(invitation.theme.rendererKey);
   if (!loadRenderer) {
     return (
@@ -17,5 +18,5 @@ export async function WeddingRenderer({ invitation, guestName }: Props) {
   }
 
   const Renderer = await loadRenderer();
-  return <Renderer invitation={invitation} guestName={guestName} />;
+  return <Renderer invitation={invitation} guestName={guestName} guestToken={guestToken} />;
 }

@@ -2673,3 +2673,49 @@ Perbaiki baseline lint/boundary violations dalam work package terpisah, lalu jal
 - Primary implementation commit: `9f8becb` (`fix(media): restore invitation photos and audio`).
 - GitHub push: PASS; branch `main` pada `origin` diperbarui dari `0792d74` ke `9f8becb`.
 - CI/deployment outcome setelah push belum tersedia pada saat addendum ini ditulis.
+
+---
+
+## 2026-08-29 — Dashboard RSVP, tamu, dan wedding gift
+
+### Goal and canonical references
+
+Melengkapi pengaturan RSVP serta pengelolaan tamu dan wedding gift berdasarkan File 01 (guest credential, RSVP matrix, gift visibility), File 03 §§3.4–3.5 (owner guest/gift management), File 06 M5, File 07 (trusted mutation boundary), dan File 08 §22–22.1.
+
+### Existing implementation and implemented scope
+
+- Halaman tamu sebelumnya masih placeholder; konfigurasi RSVP backend tidak memiliki UI; tautan personal hanya mempersonalisasi nama dan tidak membuka RSVP `personal_only`.
+- Halaman rekening sebelumnya hanya mendukung tiga field rekening dan belum menyediakan QRIS maupun hadiah fisik.
+- Menambahkan pengaturan mode RSVP dan moderasi ucapan pada dashboard tamu.
+- Menambahkan CRUD tamu manual, status RSVP/kehadiran, sapaan/grup, moderasi ucapan, penghapusan dengan konfirmasi, tautan personal yang dapat diregenerasi, salin tautan, tautan `wa.me`, dan status WhatsApp terkirim.
+- Semua mutasi owner berjalan melalui authenticated Server Action dan pemeriksaan kepemilikan; browser tidak mendapat direct write table. Hash token tidak pernah dikirim ke browser dan raw access token hanya dikembalikan satu kali saat regenerasi.
+- Mengaktifkan RSVP `personal_only` hanya untuk guest token valid, mewajibkan sesi PIN pada undangan privat, menerapkan moderasi ucapan sesuai konfigurasi, serta melindungi overwrite RSVP berbasis telepon dengan HttpOnly edit-token cookie atau guest token.
+- Menambahkan QRIS per rekening, validasi media QRIS `ready`/image/purpose/owner/invitation, salin nomor dengan fallback, konfirmasi hapus rekening, dan konfigurasi hadiah fisik dengan field minimum wajib.
+- Batas jumlah rekening tetap divalidasi oleh allowance canonical pada RPC `save_invitation_content`; tidak ada limit paket yang di-hardcode di client.
+
+### Verification evidence
+
+- `npm run typecheck`: PASS.
+- `npm test`: PASS — 35 files, 275 tests.
+- `npm run verify:structure`: PASS.
+- `npm run verify:boundaries`: PASS (exit 0); empat laporan baseline lama tetap berada di file di luar perubahan ini dan tidak ada pelanggaran baru.
+- Targeted ESLint untuk seluruh module/route/page yang berubah: PASS, 0 error; warning yang tersisa berasal dari file baseline.
+- `npm run build`: PASS — Next.js 16.3.3 production build, termasuk route `/dashboard/[id]/tamu`, `/dashboard/[id]/rekening`, `/[slug]`, dan `/api/guest/rsvp`.
+- `git diff --check`: PASS; hanya peringatan normalisasi line-ending Windows.
+- Pemeriksaan browser lokal tidak menghasilkan snapshot karena tidak ada tab browser aktif yang dapat diikat; build SSR/client compilation menjadi evidence UI otomatis pada environment ini.
+
+### Security, migrations, and limitations
+
+- Tidak diperlukan perubahan schema/migration: tabel guest/credential, RLS, content CAS, serta allowance RPC canonical yang ada sudah mencukupi. Tidak ada database deployment pada work package ini.
+- Token/credential/PII/raw payload tidak dicatat pada record ini.
+- Import CSV tamu belum termasuk dalam work package ini; dashboard saat ini mencakup pengelolaan manual dan data RSVP publik. Bulk import sebaiknya menjadi work package terpisah dengan preview baris dan pelaporan error sesuai File 03.
+- Full repository lint masih memiliki baseline lama di luar scope; targeted lint perubahan ini tidak memiliki error.
+
+### Commit / CI evidence
+
+- Commit: belum dibuat pada saat record ditulis.
+- CI dan deployment: belum dijalankan.
+
+### Status
+
+`COMPLETE` untuk pengelolaan manual RSVP/tamu dan wedding gift dashboard; bulk CSV import tetap menjadi work package lanjutan.
