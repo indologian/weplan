@@ -459,9 +459,10 @@ export function InvitationEditor({
 
         <InvitationGalleryEditor
           invitationId={initialData.invitationId}
-          initialVersion={editorVersion}
+          contentVersion={editorVersion}
           initialGallery={initialData.loveStory}
           saveEditorContent={saveEditorContent}
+          onVersionChange={(version) => setEditorVersion(version)}
         />
 
         <InvitationPrivacyEditor

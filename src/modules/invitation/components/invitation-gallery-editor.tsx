@@ -10,18 +10,19 @@ import type { EditorDTO, SaveEditorContentAction } from "../types";
 
 type Props = {
   invitationId: string;
-  initialVersion: number;
+  contentVersion: number;
   initialGallery: EditorDTO["loveStory"];
   saveEditorContent: SaveEditorContentAction;
+  onVersionChange: (version: number) => void;
 };
 
 export function InvitationGalleryEditor({
   invitationId,
-  initialVersion,
+  contentVersion,
   initialGallery,
   saveEditorContent,
+  onVersionChange,
 }: Props) {
-  const [contentVersion, setContentVersion] = useState(initialVersion);
   const [gallery, setGallery] = useState(initialGallery);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -57,7 +58,7 @@ export function InvitationGalleryEditor({
       return;
     }
 
-    setContentVersion(result.data.contentVersion);
+    onVersionChange(result.data.contentVersion);
     toast.success("Galeri berhasil disimpan!");
   };
 
