@@ -86,7 +86,7 @@ export async function processUploadedMedia(mediaId: string): Promise<ProcessResu
 
         await supabase.storage.from(QUARANTINE_BUCKET).remove([media.quarantine_path]).catch(() => {});
 
-        return { success: true, finalPath, width: null, height: null };
+        return { success: true, finalPath, width: undefined, height: undefined };
       } catch (innerError) {
         await supabase
           .from("media_assets")
