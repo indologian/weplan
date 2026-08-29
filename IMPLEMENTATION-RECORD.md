@@ -2667,3 +2667,9 @@ Perbaiki baseline lint/boundary violations dalam work package terpisah, lalu jal
 ### Status
 
 `COMPLETE` untuk pemulihan owner-preview media dan canonical gallery path; repository-wide launch gate tetap mengikuti known limitations di atas.
+
+### Commit / GitHub addendum
+
+- Primary implementation commit: `9f8becb` (`fix(media): restore invitation photos and audio`).
+- GitHub push: PASS; branch `main` pada `origin` diperbarui dari `0792d74` ke `9f8becb`.
+- CI/deployment outcome setelah push belum tersedia pada saat addendum ini ditulis.
