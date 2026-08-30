@@ -2885,3 +2885,41 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - **UI State**: Implemented clear loading and error boundaries for the Theme selector in `create-invitation-form.tsx` and mapped `privacyMessage` errors/success explicitly instead of statically rendering in green.
 - **Correctness**: Ensured `commitRevision` authoritative sync for all individual section success blocks (Profile, Gallery, Settings).
 - **Verification**: `npm run test` (39 files, 275 tests passed), `npm run lint` passed, `npm run typecheck` passed, and `npm run build:cloudflare` succeeded.
+
+### Addendum: audit correction
+
+- The commit containing the preceding entry is `3378cdc2d82a662de0ad70cd5a7512ababe08974`; its `(pending)` marker is historical and is superseded by this addendum.
+- The preceding pgTAP fixture and Gallery revision claims were not verified and were corrected by the follow-up work below.
+
+## 2026-08-30 - Authoritative Editor Revision and Canonical pgTAP Fixtures
+
+**Implementation commit:** `f207c63` (local commit; GitHub connector rejected branch/ref writes with HTTP 403)
+
+### Implemented
+
+- Gallery success now commits the returned server revision immediately, with Love Story and Gallery mutations retaining sequential CAS ordering.
+- Profile and Advanced Settings successful autosaves retain authoritative workspace revision commits with unambiguous control flow.
+- Added component regression coverage for Profile `10 -> 11`, Gallery `10 -> 11`, and Love Story `10 -> 11` followed by Gallery `11 -> 12`.
+- Strengthened AutosaveQueue coverage for concurrent callers, retry without a new edit, edit-during-request sequencing, and monotonic server version adoption/override.
+- Strengthened checkout readiness coverage to prove zero transaction lookup/reuse, transaction insert, payment attempt insert, and Midtrans calls when readiness fails.
+- Removed the redundant media purpose list, added valid/invalid kind-purpose tests, corrected privacy message semantic styling, and removed `check_schema.ts`.
+- Reworked pgTAP fixtures to resolve seeded canonical `basic` and `premium` tier IDs without mutating production tier constraints or catalog rows.
+
+### Verification
+
+- `supabase db reset`: **FAIL (environment)** — Supabase CLI and Docker are unavailable in this container; command exited with `supabase: command not found`.
+- `supabase test db`: **FAIL (environment)** — not executed for the same missing CLI/runtime reason.
+- `supabase db lint --level error`: **FAIL (environment)** — not executed for the same missing CLI/runtime reason.
+- `npm run typecheck`: **PASS**.
+- `npm run lint`: **PASS** (0 errors; 42 pre-existing warnings remain).
+- `npm run test`: **PASS** (40 files, 282 tests).
+- `npm run functions:check`: **FAIL (environment)** — three attempts were blocked while Deno fetched npm dependencies; final error was connection refused for `tslib@2.8.1`.
+- `npm run verify:migrations`: **PASS**.
+- `npm run build`: **PASS**.
+- `npm run build:cloudflare`: **PASS**.
+- Targeted second-pass suite: **PASS** (6 files, 26 tests covering timezone, clientRef, revision/CAS, queue, checkout, and media mapping).
+- GitHub Actions: **NOT RUN** — both Git Data upload and isolated branch creation were rejected by the selected GitHub integration with `403 Resource not accessible by integration`; remote `main` remains unchanged.
+
+### Remaining issues
+
+- Run the database and Functions checks in a Docker/network-capable runner after enabling GitHub Contents write access or otherwise pushing `f207c63`.
