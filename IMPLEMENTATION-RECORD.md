@@ -2792,4 +2792,5 @@ Mengaudit dan merancang ulang `/dashboard` sebagai wedding workspace task-first 
 ### Commit evidence addendum
 
 - Primary implementation commit: `b75b137` (`feat(dashboard): redesign invitation workspace`).
-- GitHub push, CI, dan deployment belum dijalankan pada saat addendum ini ditulis.
+- GitHub push: PASS; branch `main` pada `origin` diperbarui dari `7071741` sampai commit evidence `5bed59c`.
+- CI dan deployment outcome belum tersedia pada saat addendum diperbarui.
