@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { probeAudio, canonicalizeAudio } from "@/modules/storage/server/audio-probe";
+import { canonicalizeAudio, probeAudio } from "@/modules/storage/server/audio-probe";
+import { describe, expect, it, vi } from "vitest";
+vi.mock("server-only", () => ({}));
 
 const cat = (...arrays: Uint8Array[]): Uint8Array => {
   const total = arrays.reduce((s, a) => s + a.length, 0);
@@ -102,3 +103,4 @@ describe("canonicalizeAudio", () => {
   it("returns null for garbage", () => {
     expect(canonicalizeAudio(new Uint8Array([0xde, 0xad]))).toBeNull();
   });
+});   

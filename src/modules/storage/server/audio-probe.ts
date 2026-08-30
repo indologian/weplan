@@ -31,12 +31,12 @@ const isAdts = (b: Uint8Array): boolean =>
 const isMp3 = (b: Uint8Array): boolean =>
   b.length >= 3 &&
   ((b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) ||
-   (b[0] === 0xff && (b[1]! & 0xe0) === 0xe0 && (b[1]! & 0x06) !== 0x00));
+    (b[0] === 0xff && (b[1]! & 0xe0) === 0xe0 && (b[1]! & 0x06) !== 0x00));
 
 export function probeAudio(b: Uint8Array): AudioProbeResult {
   if (b.length >= 3 && isMp3(b)) return { status: "audio-only", container: "mp3" };
   if (isAdts(b)) return { status: "rejected", reason: "adts-use-m4a" };
-  if (b.length < 16 || fourcc(b, 4) !== "ftyp") return { status: "rejected", reason: "unknown" };
+  if (b.length < 12 || fourcc(b, 4) !== "ftyp") return { status: "rejected", reason: "unknown" };
 
   let sawMoov = false;
   let soun = 0;
