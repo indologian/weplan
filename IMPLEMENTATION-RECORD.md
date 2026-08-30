@@ -2788,3 +2788,8 @@ Mengaudit dan merancang ulang `/dashboard` sebagai wedding workspace task-first 
 ### Status
 
 `COMPLETE` untuk implementasi dan automated verification dashboard workspace redesign; manual visual evidence dicatat sebagai limitation environment, bukan diklaim lulus.
+
+### Commit evidence addendum
+
+- Primary implementation commit: `b75b137` (`feat(dashboard): redesign invitation workspace`).
+- GitHub push, CI, dan deployment belum dijalankan pada saat addendum ini ditulis.
