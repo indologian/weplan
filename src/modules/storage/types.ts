@@ -33,7 +33,7 @@ export const MAX_FILE_SIZES: Record<MediaKind, number> = {
 
 export const ALLOWED_MIME_TYPES: Record<MediaKind, readonly string[]> = {
   image: ["image/jpeg", "image/png", "image/webp", "image/avif"],
-  audio: ["audio/mpeg", "audio/ogg", "audio/wav", "audio/webm"],
+  audio: ["audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/ogg", "audio/wav", "audio/webm"],
   video: [],
 };
 

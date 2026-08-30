@@ -67,7 +67,7 @@ export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = 
         type="file" 
         className="hidden" 
         ref={fileInputRef} 
-        accept={accept || (kind === "image" ? "image/*" : kind === "audio" ? "audio/*" : "video/*")}
+        accept={accept || (kind === "image" ? "image/*" : kind === "audio" ? "audio/mpeg,.mp3,audio/mp4,.m4a,audio/x-m4a" : "video/*")}
         onChange={handleFileChange} 
       />
       

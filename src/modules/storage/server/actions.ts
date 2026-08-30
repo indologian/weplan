@@ -1,26 +1,25 @@
 import "server-only";
 
-import crypto from "node:crypto";
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
+import crypto from "node:crypto";
 import type {
+  MediaAsset,
   MediaKind,
   MediaPurpose,
+  MediaServingUrl,
   MediaStatus,
-  MediaAsset,
   RequestUploadInput,
   RequestUploadResult,
   UploadCompleteInput,
-  MediaServingUrl,
 } from "../types";
 import {
-  QUARANTINE_BUCKET,
-  FINAL_BUCKET,
-  UPLOAD_EXPIRY_SECONDS,
-  SERVING_EXPIRY_SECONDS,
-  MAX_FILE_SIZES,
   ALLOWED_MIME_TYPES,
+  FINAL_BUCKET,
+  MAX_FILE_SIZES,
   MEDIA_VARIANTS,
-  IMAGE_VARIANT_SIZES,
+  QUARANTINE_BUCKET,
+  SERVING_EXPIRY_SECONDS,
+  UPLOAD_EXPIRY_SECONDS
 } from "../types";
 
 export class StorageError extends Error {
@@ -48,7 +47,7 @@ function generateStoragePath(
   purpose: MediaPurpose,
   ext: string,
 ): string {
-  return `${ownerId}/${invitationId}/${purpose}/${mediaId}.${ext}`;
+  return `${ ownerId }/${ invitationId }/${ purpose }/${ mediaId }.${ ext }`;
 }
 
 function getExtensionFromMime(mime: string): string {
@@ -61,6 +60,8 @@ function getExtensionFromMime(mime: string): string {
     "audio/ogg": "ogg",
     "audio/wav": "wav",
     "audio/webm": "webm",
+    "audio/mp4": "m4a",
+    "audio/x-m4a": "m4a"
   };
   return map[mime] ?? "bin";
 }
@@ -77,14 +78,14 @@ export async function requestUpload(
 
   if (input.byteSize > MAX_FILE_SIZES[input.kind]) {
     throw new StorageError(
-      `File size exceeds maximum of ${MAX_FILE_SIZES[input.kind] / 1024 / 1024}MB.`,
+      `File size exceeds maximum of ${ MAX_FILE_SIZES[input.kind] / 1024 / 1024 }MB.`,
       "INVALID_FILE",
     );
   }
 
   if (!ALLOWED_MIME_TYPES[input.kind].includes(input.mimeType)) {
     throw new StorageError(
-      `MIME type ${input.mimeType} is not allowed for ${input.kind}.`,
+      `MIME type ${ input.mimeType } is not allowed for ${ input.kind }.`,
       "INVALID_FILE",
     );
   }
@@ -170,7 +171,7 @@ export async function completeUpload(
 
   const { data: fileMeta } = await supabase.storage
     .from(QUARANTINE_BUCKET)
-    .list(`${media.owner_id}/${media.invitation_id}/${media.purpose}`, {
+    .list(`${ media.owner_id }/${ media.invitation_id }/${ media.purpose }`, {
       search: media.id,
     });
 
@@ -227,7 +228,7 @@ export async function getMediaServingUrl(
 
   const allowedVariants = MEDIA_VARIANTS[media.kind as MediaKind];
   if (!allowedVariants.includes(variant as never)) {
-    throw new StorageError(`Invalid variant '${variant}' for kind '${media.kind}'.`, "INVALID_FILE");
+    throw new StorageError(`Invalid variant '${ variant }' for kind '${ media.kind }'.`, "INVALID_FILE");
   }
 
   const filePath = media.final_path; // For MVP, bypass variants since sharp is disabled
@@ -250,6 +251,7 @@ export async function getMediaServingUrl(
     ogg: "audio/ogg",
     wav: "audio/wav",
     webm: "audio/webm",
+    m4a: "audio/mp4",
   };
   const ext = filePath.split(".").pop() ?? "";
   const contentType = contentTypeMap[ext] ?? "application/octet-stream";
@@ -298,8 +300,8 @@ export async function deleteMedia(
   }
 
   if (filesToDelete.length > 0) {
-    await supabase.storage.from(FINAL_BUCKET).remove(filesToDelete).catch(() => {});
-    await supabase.storage.from(QUARANTINE_BUCKET).remove([media.quarantine_path].filter(Boolean) as string[]).catch(() => {});
+    await supabase.storage.from(FINAL_BUCKET).remove(filesToDelete).catch(() => { });
+    await supabase.storage.from(QUARANTINE_BUCKET).remove([media.quarantine_path].filter(Boolean) as string[]).catch(() => { });
   }
 }
 

@@ -9,8 +9,12 @@ const MAGIC_SIGNATURES: MagicByteSignature[] = [
   { mime: "image/jpeg", kind: "image", offsets: [0, 1, 2], bytes: [0xff, 0xd8, 0xff] },
   { mime: "image/png", kind: "image", offsets: [0, 1, 2, 3], bytes: [0x89, 0x50, 0x4e, 0x47] },
   { mime: "image/webp", kind: "image", offsets: [0, 1, 2, 3, 8, 9, 10, 11], bytes: [0x52, 0x49, 0x46, 0x46, 0x57, 0x45, 0x42, 0x50] },
+  { mime: "audio/mp4", kind: "audio", offsets: [4, 5, 6, 7, 8, 9, 10, 11], bytes: [0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x41, 0x20] },
+  { mime: "audio/mp4", kind: "audio", offsets: [4, 5, 6, 7, 8, 9, 10, 11], bytes: [0x66, 0x74, 0x79, 0x70, 0x6d, 0x70, 0x34, 0x32] },
   { mime: "image/avif", kind: "image", offsets: [0, 1, 2, 3, 4, 5, 6, 7], bytes: [0x00, 0x00, 0x00, 0x1c, 0x66, 0x74, 0x79, 0x70] },
   { mime: "audio/mpeg", kind: "audio", offsets: [0, 1], bytes: [0xff, 0xfb] },
+  { mime: "audio/mpeg", kind: "audio", offsets: [0, 1], bytes: [0xff, 0xf3] },
+  { mime: "audio/mpeg", kind: "audio", offsets: [0, 1], bytes: [0xff, 0xfa] },
   { mime: "audio/mpeg", kind: "audio", offsets: [0, 1, 2], bytes: [0x49, 0x44, 0x33] },
   { mime: "audio/ogg", kind: "audio", offsets: [0, 1, 2, 3], bytes: [0x4f, 0x67, 0x67, 0x53] },
   { mime: "audio/wav", kind: "audio", offsets: [0, 1, 2, 3], bytes: [0x52, 0x49, 0x46, 0x46] },
@@ -47,15 +51,19 @@ export function validateMagicBytes(
     return {
       valid: false,
       detectedMime,
-      error: `Detected file type '${detectedMime}' does not match expected kind '${kind}'.`,
+      error: `Detected file type '${ detectedMime }' does not match expected kind '${ kind }'.`,
     };
   }
 
-  if (declaredMime !== detectedMime) {
+  const AUDIO_ALIASES = ["audio/mpeg", "audio/mp4", "audio/x-m4a", "audio/aac"];
+  const mimeCompatible =
+    declaredMime === detectedMime ||
+    (AUDIO_ALIASES.includes(declaredMime) && AUDIO_ALIASES.includes(detectedMime));
+  if (!mimeCompatible) {
     return {
       valid: false,
       detectedMime,
-      error: `Declared MIME '${declaredMime}' does not match detected '${detectedMime}'.`,
+      error: `Declared MIME '${ declaredMime }' does not match detected '${ detectedMime }'.`,
     };
   }
 

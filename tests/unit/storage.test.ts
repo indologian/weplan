@@ -52,6 +52,8 @@ describe("media types", () => {
     expect(ALLOWED_MIME_TYPES.image).toContain("image/jpeg");
     expect(ALLOWED_MIME_TYPES.image).toContain("image/webp");
     expect(ALLOWED_MIME_TYPES.audio).toContain("audio/mpeg");
+    expect(ALLOWED_MIME_TYPES.audio).toContain("audio/mp4");
+    expect(ALLOWED_MIME_TYPES.audio).toContain("audio/x-m4a");
     expect(ALLOWED_MIME_TYPES.video).toHaveLength(0);
   });
 
