@@ -3,10 +3,11 @@ import { requireUser } from "@/modules/auth/server/require-user";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
 import { getAllThemes } from "@/modules/theme/server/queries";
 import { CheckoutButton } from "./checkout-button";
-import { ThemeChangerModal } from "../../_components/theme-changer-modal";
 import { notFound, redirect } from "next/navigation";
 import { projectInvitationWorkspaceState } from "@/modules/invitation/workspace-state";
 import { actionUpdateEditorTheme } from "@/modules/invitation/server/actions";
+import { EditorWorkspaceProvider } from "@/modules/invitation/components/editor/editor-workspace-context";
+import { DashboardHeaderActions } from "./dashboard-header-actions";
 
 export default async function InvitationDashboardLayout({
   children,
@@ -37,45 +38,23 @@ export default async function InvitationDashboardLayout({
   if (!workspace.editable) redirect("/dashboard");
 
   return (
-    <div className="flex flex-col space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
-        <h1 className="text-2xl font-semibold tracking-tight">Manajemen Undangan</h1>
-        <div className="flex flex-wrap items-center gap-2">
-          <ThemeChangerModal 
-            invitationId={invitation.invitationId} 
-            currentThemeId={invitation.themeId}
-            expectedVersion={invitation.contentVersion}
-            themes={themes}
-            updateTheme={actionUpdateEditorTheme}
+    <EditorWorkspaceProvider initialVersion={invitation.contentVersion}>
+      <div className="flex flex-col space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
+          <h1 className="text-2xl font-semibold tracking-tight">Manajemen Undangan</h1>
+          <DashboardHeaderActions 
+            invitation={invitation} 
+            themes={themes} 
+            updateTheme={actionUpdateEditorTheme} 
           />
-          <Link
-            href={`/preview/${id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium border rounded-md px-4 py-2 hover:bg-muted"
-          >
-            Preview
-          </Link>
-          {invitation.status === "published" ? (
-            <a
-              href={`/${invitation.slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm font-medium bg-primary text-primary-foreground rounded-md px-4 py-2 hover:opacity-90"
-            >
-              Buka Halaman Publik
-            </a>
-          ) : (
-            <CheckoutButton invitationId={invitation.invitationId} />
-          )}
+        </div>
+        
+        <div className="flex flex-col gap-6">
+          <main className="w-full min-w-0">
+            {children}
+          </main>
         </div>
       </div>
-      
-      <div className="flex flex-col gap-6">
-        <main className="w-full min-w-0">
-          {children}
-        </main>
-      </div>
-    </div>
+    </EditorWorkspaceProvider>
   );
 }

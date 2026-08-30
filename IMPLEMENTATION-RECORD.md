@@ -2794,3 +2794,54 @@ Mengaudit dan merancang ulang `/dashboard` sebagai wedding workspace task-first 
 - Primary implementation commit: `b75b137` (`feat(dashboard): redesign invitation workspace`).
 - GitHub push: PASS; branch `main` pada `origin` diperbarui dari `7071741` sampai commit evidence `5bed59c`.
 - CI dan deployment outcome belum tersedia pada saat addendum diperbarui.
+
+---
+
+## 2026-08-30 — Refactor Create/Edit Invitation Flow (Wizard)
+
+Status: **COMPLETE**
+
+### Goal
+
+Audit dan perbaiki proses pembuatan dan pengeditan undangan agar bekerja sebagai user journey terkoordinasi (Theme -> Names -> Draft -> Editor Wizard -> Preview -> Publish). Refactor M2 editor shell yang sebelumnya monolitik menjadi wizard 4 tahap.
+
+### Canonical references
+
+- File 06, M2 Core Invitation Domain & Editor.
+- File 03, UI/UX Guidelines.
+
+### Existing implementation before work
+
+Create flow memunculkan pembuatan random UUID saat render (melanggar idempotency). invitation-editor.tsx merupakan monolitik ~1008 baris dengan contentVersion terputus. Actions "Preview" dan "Theme Change" tidak melakukan *flush* AutosaveQueue sehingga pengguna kehilangan data jika tidak menunggu debounced save.
+
+### Implemented
+
+- Create form 2-langkah (Theme Selection -> Profil Dasar). Idempotensi diperbaiki dengan menggunakan useRef(crypto.randomUUID()) untuk clientRef.
+- invitation-editor.tsx dihapus, dibagi menjadi 4 tahap: profile-prayer-step, event-step, story-gallery-step, dvanced-settings-step.
+- EditorWorkspaceContext dibuat untuk menyimpan contentVersion, saveState, conflictState, dan fungsi koordinasi egisterFlushCallback.
+- Theme switcher dipindahkan ke dashboard/[id]/layout.tsx lewat dashboard-header-actions.tsx. Event onBeforeChange pada ThemeChangerModal dan tombol Preview memicu lushAll() untuk menyinkronkan data *sebelum* aksi lanjutan.
+- Dihapusnya custom URL editor slug (invitation-slug-editor.tsx) berdasarkan dokumentasi.
+- Komponen *Readiness Evaluator* UI dibuat lewat SWR Action ctionEvaluatePublishReadiness.
+- Dialog Konfirmasi (Destructive Actions) diganti dari window.confirm menjadi Radix UI AlertDialog.
+
+### Migrations
+
+Tidak ada.
+
+### Tests and verification
+
+- TypeScript typecheck: passed.
+- Linting (ESLint): passed (0 error).
+- Manual verification: Memastikan form event menggunakan date string standar dan theme switcher melakukan validasi flush.
+
+### Spec deviations
+
+Tidak ada.
+
+### Traceability
+
+- Local file modifications: Refactor komponen di src/modules/invitation/components/editor/ dan dashboard/[id]/layout.tsx.
+
+### Next work package
+
+Dilanjutkan oleh agen berikutnya.

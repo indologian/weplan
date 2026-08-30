@@ -8,12 +8,9 @@ import {
   actionSaveEditorContent,
   actionSaveEditorEvent,
   actionUpdateEditorPrivacy,
-  actionCheckSlugAvailability,
-  actionUpdateEditorSlug,
 } from "@/modules/invitation/server/actions";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
-import { InvitationEditor } from "@/modules/invitation/components/invitation-editor";
-import { InvitationSlugEditor } from "@/modules/invitation/components/invitation-slug-editor";
+import { InvitationEditorWorkspace } from "@/modules/invitation/components/editor/invitation-editor-workspace";
 
 export default async function EditInvitationPage({
   params,
@@ -26,13 +23,7 @@ export default async function EditInvitationPage({
   if (!editor) notFound();
   return (
     <div className="space-y-6">
-      <InvitationSlugEditor
-        invitationId={editor.invitationId}
-        initialSlug={editor.slug}
-        checkSlugAvailability={actionCheckSlugAvailability}
-        updateSlug={actionUpdateEditorSlug}
-      />
-      <InvitationEditor
+      <InvitationEditorWorkspace
         initialData={editor}
         saveEditorContent={actionSaveEditorContent}
         saveEditorEvent={actionSaveEditorEvent}
