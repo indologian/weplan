@@ -2867,3 +2867,12 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - TypeScript build & typecheck passed.
 - Database migration script 20260830120000_patch_settings_merge.sql dibuat untuk mengubah save_invitation_content.
 - Skema zod untuk settings dimodifikasi menjadi .nullish() untuk mendukung penghapusan key pada jsonb merge.
+
+## 2026-08-30 - Editor Hardening & Correctness
+**Commit**: 50d0149 (fix(editor): harden save/checkout flow, validation, and conflict UI)
+
+- **Coordinator**: Refactored AutosaveQueue with ctivePromise tracking and centralized all sequential revisions using commitRevision.
+- **Validation**: Added strict evaluatePublishReadiness before checkout. Added robust server-side ownership validations for all media arrays in saveEditorContent.
+- **Timezone**: Converted generic implicit dates to explicitly offset IANA Intl.DateTimeFormat for events logic to preserve accurate wall-clock configurations regardless of browser location.
+- **Conflict UX & UI**: Introduced non-blocking AlertDialog mechanisms over generic native alerts for privacy confirmations and global cross-tab overwrite protection (conflictState).
+- **Tests**: Patched CI SQLite fixture collisions in supabase/tests using ON CONFLICT DO UPDATE SET logic to preserve existing 	ier seeds, and successfully verified TypeScript stability (npm run typecheck PASS).
