@@ -17,17 +17,20 @@ insert into public.user_profiles (id, email) values
   ('10000000-0000-0000-0000-000000000001', 'a@example.test'),
   ('20000000-0000-0000-0000-000000000002', 'b@example.test');
 
-insert into public.tiers (
-  id, code, tier_rank, name, price_amount, duration_months,
-  gallery_limit, video_limit, bank_account_limit, audio_enabled, audio_size_limit_mb
-) values
-  ('30000000-0000-0000-0000-000000000003', 'test_basic', 10, 'Fixture Basic', 1, 1, 0, 0, 1, false, 0),
-  ('30000000-0000-0000-0000-000000000004', 'test_premium', 20, 'Fixture Premium', 2, 1, 0, 1, 2, true, 5);
-
-insert into public.themes (id, tier_id, renderer_key, name, slug) values
-  ('40000000-0000-0000-0000-000000000004', '30000000-0000-0000-0000-000000000004', 'fixture-premium', 'Fixture Premium A', 'fixture-premium-a'),
-  ('40000000-0000-0000-0000-000000000005', '30000000-0000-0000-0000-000000000004', 'fixture-premium-2', 'Fixture Premium B', 'fixture-premium-b'),
-  ('40000000-0000-0000-0000-000000000006', '30000000-0000-0000-0000-000000000003', 'fixture-basic', 'Fixture Basic', 'fixture-basic');
+insert into public.themes (id, tier_id, renderer_key, name, slug)
+select
+  fixture.id,
+  tier.id,
+  fixture.renderer_key,
+  fixture.name,
+  fixture.slug
+from (
+  values
+    ('40000000-0000-0000-0000-000000000004'::uuid, 'premium', 'fixture-premium', 'Fixture Premium A', 'fixture-premium-a'),
+    ('40000000-0000-0000-0000-000000000005'::uuid, 'premium', 'fixture-premium-2', 'Fixture Premium B', 'fixture-premium-b'),
+    ('40000000-0000-0000-0000-000000000006'::uuid, 'basic', 'fixture-basic', 'Fixture Basic', 'fixture-basic')
+) as fixture(id, tier_code, renderer_key, name, slug)
+join public.tiers as tier on tier.code = fixture.tier_code;
 
 set local role service_role;
 select * from public.create_or_sync_invitation(
@@ -107,7 +110,7 @@ select throws_ok(
 );
 reset role;
 update public.invitations
-set entitlement_tier_id = '30000000-0000-0000-0000-000000000004',
+set entitlement_tier_id = (select id from public.tiers where code = 'premium'),
     entitlement_snapshot = '{
       "schema_version":1,
       "tier_code":"premium",
@@ -318,4 +321,3 @@ select throws_ok(
 reset role;
 select * from finish();
 rollback;
-

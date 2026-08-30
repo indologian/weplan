@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { Trash2, Image as ImageIcon, Plus, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
@@ -75,11 +74,12 @@ export function StoryGalleryStep({
               ...(item.photoMediaId ? { photoMediaId: item.photoMediaId } : {}),
             })),
           });
-          if (result.success)
+          if (result.success) {
             return {
               success: true,
               contentVersion: result.data.contentVersion,
             };
+          }
           return {
             success: false,
             code:
@@ -94,7 +94,15 @@ export function StoryGalleryStep({
 
   const [localEditGeneration, setLocalEditGeneration] = useState(0);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const initialized = useRef(false);
+  const lastObservedLoveStory = useRef(JSON.stringify(
+    initialData.loveStory.map((item) => ({
+      id: item.id,
+      date: item.date ?? "",
+      title: item.title ?? "",
+      body: item.body ?? "",
+      photoMediaId: item.photoMediaId ?? "",
+    })),
+  ));
 
   // --- Gallery Logic ---
   const [gallery, setGallery] = useState(
@@ -134,6 +142,7 @@ export function StoryGalleryStep({
         errCode = result.code;
       } else {
         versionToUse = result.data.contentVersion;
+        commitRevision(versionToUse);
         setIsGalleryDirty(false);
       }
     }
@@ -148,7 +157,7 @@ export function StoryGalleryStep({
       return { success: false as const, error: errCode };
     }
 
-    if (!autosaveQueue.state.pendingSave && !isGalleryDirty) {
+    if (!autosaveQueue.state.pendingSave) {
       commitRevision(versionToUse);
       setSectionState("story-gallery", "saved");
     }
@@ -165,10 +174,11 @@ export function StoryGalleryStep({
   }, [contentVersion, autosaveQueue]);
 
   useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
+    const serializedLoveStory = JSON.stringify(loveStoryValues);
+    if (serializedLoveStory === lastObservedLoveStory.current) {
       return;
     }
+    lastObservedLoveStory.current = serializedLoveStory;
     const generation = autosaveQueue.markDirty({ loveStory: loveStoryValues });
     setLocalEditGeneration(generation);
     setSectionState("story-gallery", "dirty");

@@ -77,11 +77,12 @@ export function ProfilePrayerStep({
               quoteText: snapshot.quoteText,
             },
           });
-          if (result.success)
+          if (result.success) {
             return {
               success: true,
               contentVersion: result.data.contentVersion,
             };
+          }
           return {
             success: false,
             code:
@@ -121,8 +122,10 @@ export function ProfilePrayerStep({
       }
       return { success: false as const, error: result.code };
     }
-    if (result.contentVersion) commitRevision(result.contentVersion);
-      setSectionState("profile-prayer", "saved");
+    if (result.contentVersion) {
+      commitRevision(result.contentVersion);
+    }
+    setSectionState("profile-prayer", "saved");
     return { success: true as const, version: result.contentVersion };
   }, [autosaveQueue, commitRevision, setSectionState, setConflictState]);
 

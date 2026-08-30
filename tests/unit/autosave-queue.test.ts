@@ -42,7 +42,10 @@ describe("autosave queue", () => {
     const secondFlush = queue.flush();
     expect(persist).toHaveBeenCalledTimes(1);
     resolve?.();
-    await firstFlush;
+    const [first, second] = await Promise.all([firstFlush, secondFlush]);
+
+    expect(first).toEqual(second);
+    expect(persist).toHaveBeenCalledTimes(1);
   });
 
   it("returns null when flush is called without any pending changes", async () => {
@@ -85,22 +88,28 @@ describe("autosave queue", () => {
     expect(queue.state).toMatchObject({ contentVersion: 2, localEditGeneration: 3, lastAckedGeneration: 3 });
   });
 
-  it("recovers after a temporary error when the next flush succeeds", async () => {
+  it("retries the original snapshot after a temporary error without a new edit", async () => {
     const persist = vi.fn()
       .mockResolvedValueOnce({ success: false, code: "TEMPORARY_ERROR" })
-      .mockResolvedValueOnce({ success: true, contentVersion: 2 });
-    const queue = new AutosaveQueue(1, persist);
+      .mockResolvedValueOnce({ success: true, contentVersion: 11 });
+    const queue = new AutosaveQueue(10, persist);
 
-    queue.markDirty("change");
+    queue.markDirty("original");
     await queue.flush();
 
     expect(queue.state.pendingSave).toBe(true);
     expect(queue.state.lastAckedGeneration).toBe(0);
 
-    queue.markDirty("retry");
     await queue.flush();
 
-    expect(queue.state).toMatchObject({ contentVersion: 2, localEditGeneration: 2, lastAckedGeneration: 2 });
+    expect(persist).toHaveBeenNthCalledWith(1, "original", 10);
+    expect(persist).toHaveBeenNthCalledWith(2, "original", 10);
+    expect(queue.state).toMatchObject({
+      pendingSave: false,
+      contentVersion: 11,
+      localEditGeneration: 1,
+      lastAckedGeneration: 1,
+    });
   });
 
   it("correctly tracks generations across multiple save cycles", async () => {
@@ -146,5 +155,20 @@ describe("autosave queue", () => {
 
     expect(persist).toHaveBeenCalledWith("after gallery save", 7);
     expect(queue.state.contentVersion).toBe(8);
+  });
+
+  it("never lowers the authoritative version through adoption or an override", async () => {
+    const persist = vi.fn().mockResolvedValue({ success: true, contentVersion: 13 });
+    const queue = new AutosaveQueue(10, persist);
+
+    queue.adoptServerVersion(12);
+    queue.adoptServerVersion(9);
+    expect(queue.state.contentVersion).toBe(12);
+
+    queue.markDirty("after stale override");
+    await queue.flush(8);
+
+    expect(persist).toHaveBeenCalledWith("after stale override", 12);
+    expect(queue.state.contentVersion).toBe(13);
   });
 });

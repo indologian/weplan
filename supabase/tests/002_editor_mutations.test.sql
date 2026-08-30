@@ -17,18 +17,13 @@ insert into public.user_profiles (id, email) values
   ('10000000-0000-0000-0000-000000000001', 'a@example.test'),
   ('20000000-0000-0000-0000-000000000002', 'b@example.test');
 
-insert into public.tiers (
-  id, code, tier_rank, name, price_amount, duration_months,
-  gallery_limit, video_limit, bank_account_limit
-) values (
-  '30000000-0000-0000-0000-000000000003', 'test_basic', 10, 'Fixture Basic', 1, 1, 0, 1, 2
-) on conflict (code) do update set name = EXCLUDED.name;
-
-insert into public.themes (id, tier_id, renderer_key, name, slug) values (
+insert into public.themes (id, tier_id, renderer_key, name, slug)
+select
   '40000000-0000-0000-0000-000000000004',
-  '30000000-0000-0000-0000-000000000003',
+  id,
   'fixture', 'Fixture Theme', 'fixture-theme'
-);
+from public.tiers
+where code = 'basic';
 
 set local role service_role;
 select * from public.create_or_sync_invitation(
@@ -189,7 +184,7 @@ select throws_ok(
 
 reset role;
 update public.invitations
-set entitlement_tier_id = '30000000-0000-0000-0000-000000000003',
+set entitlement_tier_id = (select id from public.tiers where code = 'basic'),
     entitlement_snapshot = '{
       "schema_version":1,
       "tier_code":"basic",
@@ -255,4 +250,3 @@ select throws_ok(
 reset role;
 select * from finish();
 rollback;
-

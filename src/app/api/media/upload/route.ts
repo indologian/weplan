@@ -10,14 +10,6 @@ const VALID_MAPPINGS: Record<string, string[]> = {
   audio: ["background_audio"],
   video: ["future_uploaded_video"],
 };
-const VALID_PURPOSES = [
-  "couple_portrait",
-  "story_image",
-  "gallery",
-  "background_audio",
-  "qris_image",
-  "future_uploaded_video",
-];
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {

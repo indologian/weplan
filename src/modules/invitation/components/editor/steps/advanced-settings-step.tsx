@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -55,11 +54,12 @@ export function AdvancedSettingsStep({
               ...(snapshot.videoEmbedId && snapshot.videoEmbedId.length === 11 ? { videoEmbeds: [{ id: embedId, kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : { videoEmbeds: [] }),
             },
           });
-          if (result.success)
+          if (result.success) {
             return {
               success: true,
               contentVersion: result.data.contentVersion,
             };
+          }
           return {
             success: false,
             code:
@@ -93,8 +93,10 @@ export function AdvancedSettingsStep({
       }
       return { success: false as const, error: result.code };
     }
-    if (result.contentVersion) commitRevision(result.contentVersion);
-      setSectionState("advanced-settings", "saved");
+    if (result.contentVersion) {
+      commitRevision(result.contentVersion);
+    }
+    setSectionState("advanced-settings", "saved");
     return { success: true as const, version: result.contentVersion };
   }, [autosaveQueue, commitRevision, setSectionState, setConflictState]);
 
@@ -289,7 +291,16 @@ export function AdvancedSettingsStep({
           )}
 
           {privacyMessage && (
-            <p className="text-sm font-medium text-green-600" aria-live="polite">{privacyMessage.text}</p>
+            <p
+              className={
+                privacyMessage.type === "error"
+                  ? "text-sm font-medium text-destructive"
+                  : "text-sm font-medium text-green-600"
+              }
+              aria-live="polite"
+            >
+              {privacyMessage.text}
+            </p>
           )}
 
           <div className="pt-4 border-t">

@@ -73,18 +73,13 @@ select is(
   'user metadata role is not trusted during provisioning'
 );
 
-insert into public.tiers (
-  id, code, tier_rank, name, price_amount, duration_months,
-  gallery_limit, video_limit, bank_account_limit
-) values (
-  '30000000-0000-0000-0000-000000000003', 'test_basic', 10, 'Fixture Basic', 1, 1, 0, 0, 0
-) on conflict (code) do update set name = EXCLUDED.name;
-
-insert into public.themes (id, tier_id, renderer_key, name, slug) values (
+insert into public.themes (id, tier_id, renderer_key, name, slug)
+select
   '40000000-0000-0000-0000-000000000004',
-  '30000000-0000-0000-0000-000000000003',
+  id,
   'fixture', 'Fixture Theme', 'fixture-theme'
-);
+from public.tiers
+where code = 'basic';
 
 set local role service_role;
 select lives_ok(
@@ -140,4 +135,3 @@ reset role;
 
 select * from finish();
 rollback;
-

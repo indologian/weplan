@@ -4,16 +4,36 @@ select plan(5);
 -- Setup
 set local role postgres;
 
--- 1. Insert a tier, theme, user, and invitation
-insert into public.tiers (id, code, tier_rank, name, price_amount, duration_months, gallery_limit, video_limit, bank_account_limit, audio_enabled)
-values ('00000000-0000-0000-0000-000000000099', 'test_premium', 20, 'Premium Test', 1000, 12, 10, 5, 2, true)
-on conflict (code) do update set tier_rank = 20, video_limit = 5, bank_account_limit = 2, audio_enabled = true;
-
-insert into public.themes (id, tier_id, renderer_key, slug, name, category, created_at, updated_at)
-values ('00000000-0000-0000-0000-000000000099', '00000000-0000-0000-0000-000000000099', 'test_theme', 'test-theme', 'Test Theme', 'modern', now(), now())
+-- 1. Reuse the canonical premium tier and create isolated theme/user/invitation fixtures.
+insert into public.themes (id, tier_id, renderer_key, slug, name, category)
+select
+  '00000000-0000-0000-0000-000000000099',
+  id,
+  'test_theme',
+  'test-theme',
+  'Test Theme',
+  'modern'
+from public.tiers
+where code = 'premium'
 on conflict (slug) do nothing;
 
-insert into auth.users (id) values ('00000000-0000-0000-0000-000000000099')
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password,
+  email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
+  created_at, updated_at
+) values (
+  '00000000-0000-0000-0000-000000000000',
+  '00000000-0000-0000-0000-000000000099',
+  'authenticated',
+  'authenticated',
+  'test@test.com',
+  '',
+  now(),
+  '{}',
+  '{}',
+  now(),
+  now()
+)
 on conflict (id) do nothing;
 
 insert into public.user_profiles (id, email, full_name)
@@ -24,10 +44,7 @@ insert into public.invitations (id, user_id, theme_id, slug, content_version, se
 values ('00000000-0000-0000-0000-000000000099', '00000000-0000-0000-0000-000000000099', '00000000-0000-0000-0000-000000000099', 'test-slug-99', 1, '{"openingText": "Hello", "videoEmbeds": []}'::jsonb)
 on conflict (id) do nothing;
 
-set local role authenticated;
-set local request.jwt.claim.sub = '00000000-0000-0000-0000-000000000099';
-set local request.jwt.claim.role = 'authenticated';
-set local request.jwt.claims = '{"sub":"00000000-0000-0000-0000-000000000099","role":"authenticated"}';
+set local role service_role;
 
 -- Test 1: Partial merge of settings
 select is(
@@ -69,7 +86,7 @@ select is(
   'settings should have openingText set to null'
 );
 
--- Test 5: Verify video limits are enforced from the tier (video limit is 5)
+-- Test 5: Verify video limits are enforced from the canonical premium tier.
 select throws_ok(
   $$ select public.save_invitation_content(
     '00000000-0000-0000-0000-000000000099'::uuid,
@@ -85,4 +102,3 @@ select throws_ok(
 
 select * from finish();
 rollback;
-

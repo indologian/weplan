@@ -43,6 +43,18 @@ function completeRequest() {
 }
 
 describe("media upload request validation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireUser.mockResolvedValue({
+      id: "30000000-0000-4000-8000-000000000003",
+    });
+    mocks.ensureUserProfile.mockResolvedValue(undefined);
+    mocks.requestUpload.mockResolvedValue({
+      mediaId: "10000000-0000-4000-8000-000000000001",
+      uploadUrl: "https://example.test/upload",
+    });
+  });
+
   it("rejects invalid kind and purpose combinations", async () => {
     const response = await POST(new NextRequest("http://localhost/api/media/upload", {
       method: "POST",
@@ -63,6 +75,44 @@ describe("media upload request validation", () => {
       success: false,
       error: "Invalid media kind or purpose.",
     });
+  });
+
+  it.each([
+    {
+      kind: "image",
+      purpose: "gallery",
+      filename: "gallery.jpg",
+      mimeType: "image/jpeg",
+      firstBytes: Buffer.from([0xff, 0xd8, 0xff]),
+    },
+    {
+      kind: "audio",
+      purpose: "background_audio",
+      filename: "background.mp3",
+      mimeType: "audio/mpeg",
+      firstBytes: Buffer.from("ID3"),
+    },
+  ])("allows $kind + $purpose through mapping validation", async (fixture) => {
+    const response = await POST(new NextRequest("http://localhost/api/media/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "request",
+        invitationId: "20000000-0000-4000-8000-000000000002",
+        kind: fixture.kind,
+        purpose: fixture.purpose,
+        filename: fixture.filename,
+        mimeType: fixture.mimeType,
+        byteSize: fixture.firstBytes.length,
+        firstBytesBase64: fixture.firstBytes.toString("base64"),
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.requestUpload).toHaveBeenCalledWith(
+      "30000000-0000-4000-8000-000000000003",
+      expect.objectContaining({ kind: fixture.kind, purpose: fixture.purpose }),
+    );
   });
 });
 
