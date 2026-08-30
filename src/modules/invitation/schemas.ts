@@ -163,6 +163,11 @@ export const bankAccountItemSchema = z.object({
   qrisMediaId: z.uuid().optional(),
 }).strict();
 
+const ALLOWED_THEME_OVERRIDE_KEYS = [
+  "primaryColor", "secondaryColor", "accentColor", 
+  "backgroundColor", "textColor", "fontFamily", "borderRadius", "headingFont", "bodyFont"
+];
+
 export const invitationSettingsSchema = z.object({
   openingText: z.string().trim().max(1000).nullish(),
   quoteText: z.string().trim().max(500).nullish(),
@@ -180,7 +185,10 @@ export const invitationSettingsSchema = z.object({
     address: z.string().trim().max(1000).optional(),
   }).strict().nullish(),
   sectionVisibility: z.record(z.string().trim().min(1).max(80), z.boolean()).nullish(),
-  themeOverrides: z.record(z.string().trim().min(1).max(80), z.unknown()).nullish(),
+  themeOverrides: z.record(
+    z.string().trim().refine(k => ALLOWED_THEME_OVERRIDE_KEYS.includes(k), { message: "Invalid override key" }), 
+    z.union([z.string().max(100), z.number(), z.boolean()])
+  ).nullish(),
 }).strict().superRefine((settings, context) => {
   if (settings.physicalGift?.enabled && !settings.physicalGift.recipient?.trim()) context.addIssue({ code:"custom", path:["physicalGift","recipient"], message:"Nama penerima hadiah wajib diisi." });
   if (settings.physicalGift?.enabled && !settings.physicalGift.address?.trim()) context.addIssue({ code:"custom", path:["physicalGift","address"], message:"Alamat hadiah wajib diisi." });

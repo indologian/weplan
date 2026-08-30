@@ -322,8 +322,8 @@ export function StoryGalleryStep({
               <div key={item.mediaAssetId} className="relative aspect-square bg-muted rounded-lg border flex items-center justify-center overflow-hidden group">
                 {item.mediaAssetId ? (
                   <img
-                    src={"/api/media/${item.mediaAssetId}"}
-                    alt={"Gallery $index + 1"}
+                    src={`/api/media/${item.mediaAssetId}`}
+                    alt={`Gallery ${index + 1}`}
                     className="object-cover w-full h-full"
                   />
                 ) : (

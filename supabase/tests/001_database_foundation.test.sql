@@ -78,7 +78,7 @@ insert into public.tiers (
   gallery_limit, video_limit, bank_account_limit
 ) values (
   '30000000-0000-0000-0000-000000000003', 'basic', 10, 'Fixture Basic', 1, 1, 0, 0, 0
-);
+) on conflict (code) do update set name = EXCLUDED.name;
 
 insert into public.themes (id, tier_id, renderer_key, name, slug) values (
   '40000000-0000-0000-0000-000000000004',
@@ -140,3 +140,4 @@ reset role;
 
 select * from finish();
 rollback;
+

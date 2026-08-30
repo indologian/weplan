@@ -8,7 +8,7 @@ type SectionState = "saved" | "dirty" | "saving" | "error" | "conflict";
 
 type EditorWorkspaceContextType = {
   contentVersion: number;
-  setContentVersion: (version: number) => void;
+  commitRevision: (version: number) => void;
   registerSection: (id: string, flushFn: (version: number) => Promise<FlushResult>) => void;
   unregisterSection: (id: string) => void;
   setSectionState: (id: string, state: SectionState) => void;
@@ -38,9 +38,11 @@ export function EditorWorkspaceProvider({
   const [contentVersion, setContentVersionState] = useState(initialVersion);
   const contentVersionRef = useRef(initialVersion);
   
-  const setContentVersion = useCallback((version: number) => {
-    contentVersionRef.current = version;
-    setContentVersionState(version);
+  const commitRevision = useCallback((version: number) => {
+    if (version > contentVersionRef.current) {
+      contentVersionRef.current = version;
+      setContentVersionState(version);
+    }
   }, []);
 
   const [conflictState, setConflictState] = useState(false);
@@ -52,7 +54,8 @@ export function EditorWorkspaceProvider({
 
   const registerSection = useCallback((id: string, flushFn: (version: number) => Promise<FlushResult>) => {
     flushCallbacks.current.set(id, flushFn);
-    setSectionStates(prev => ({ ...prev, [id]: "saved" }));
+    // Initialize "saved" only if section doesn't have a state yet
+    setSectionStates(prev => (prev[id] !== undefined ? prev : { ...prev, [id]: "saved" }));
   }, []);
 
   const unregisterSection = useCallback((id: string) => {
@@ -68,29 +71,43 @@ export function EditorWorkspaceProvider({
     setSectionStates(prev => (prev[id] === state ? prev : { ...prev, [id]: state }));
   }, []);
 
+  const isFlushing = useRef(false);
+  const activeFlushPromise = useRef<Promise<{ success: boolean; contentVersion: number; error?: string }> | null>(null);
+
   const flushAll = useCallback(async () => {
-    let currentVersion = contentVersionRef.current;
+    if (isFlushing.current && activeFlushPromise.current) {
+      return activeFlushPromise.current;
+    }
     
-    for (const [id, callback] of Array.from(flushCallbacks.current.entries())) {
-      const result = await callback(currentVersion);
+    isFlushing.current = true;
+    const promise = (async () => {
+      let currentVersion = contentVersionRef.current;
       
-      if (!result.success) {
-        if (result.error === "VERSION_CONFLICT") {
-          setConflictState(true);
+      for (const callback of Array.from(flushCallbacks.current.values())) {
+        const result = await callback(currentVersion);
+        
+        if (!result.success) {
+          if (result.error === "VERSION_CONFLICT") {
+            setConflictState(true);
+          }
+          isFlushing.current = false;
+          activeFlushPromise.current = null;
+          return { success: false, contentVersion: currentVersion, error: result.error };
         }
-        return { success: false, contentVersion: currentVersion, error: result.error };
+        if (result.version) {
+          currentVersion = Math.max(currentVersion, result.version);
+        }
       }
-      if (result.version) {
-        currentVersion = Math.max(currentVersion, result.version);
-      }
-    }
+      
+      commitRevision(currentVersion);
+      isFlushing.current = false;
+      activeFlushPromise.current = null;
+      return { success: true, contentVersion: currentVersion };
+    })();
     
-    if (currentVersion > contentVersionRef.current) {
-      setContentVersion(currentVersion);
-    }
-    
-    return { success: true, contentVersion: currentVersion };
-  }, [setContentVersion]);
+    activeFlushPromise.current = promise;
+    return promise;
+  }, [commitRevision]);
 
   // Derived global state
   let globalSaveState: SectionState = "saved";
@@ -104,7 +121,7 @@ export function EditorWorkspaceProvider({
     <EditorWorkspaceContext.Provider
       value={{
         contentVersion,
-        setContentVersion,
+        commitRevision,
         registerSection,
         unregisterSection,
         setSectionState,

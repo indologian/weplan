@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useEditorWorkspace } from "@/modules/invitation/components/editor/editor-workspace-context";
 import type { ActionResult } from "@/shared/types/action-result";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -40,6 +41,7 @@ export function ThemeChangerModal({
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const { commitRevision } = useEditorWorkspace();
 
   const handleSelectTheme = async (themeId: string) => {
     if (themeId === currentThemeId) {
@@ -65,13 +67,16 @@ export function ThemeChangerModal({
       themeId,
     });
     
-    if (result.success) {
-      toast.success("Tema berhasil diganti!");
-      setOpen(false);
-      router.refresh();
-    } else {
-      toast.error(result.error ?? "Gagal mengganti tema. Pastikan pekerjaan Anda tersimpan.");
+    if (!result.success) {
+      toast.error(result.error);
+      setIsUpdating(false);
+      return;
     }
+
+    commitRevision(result.data.contentVersion);
+    toast.success("Tema berhasil diubah!");
+    setOpen(false);
+    router.refresh();
     setIsUpdating(false);
   };
 

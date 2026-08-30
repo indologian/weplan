@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/sha
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
 import { MediaUploader } from "@/modules/storage/components/media-uploader";
 import { SensitiveAuthForm } from "@/modules/auth/components/sensitive-auth-form";
 import { AutosaveQueue, type AutosaveResult } from "../../../autosave-queue";
@@ -30,7 +31,7 @@ export function AdvancedSettingsStep({
   issueSensitiveAuth: IssueSensitiveAuthAction;
   updateEditorPrivacy: UpdateEditorPrivacyAction;
 }) {
-  const { contentVersion, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
+  const { contentVersion, commitRevision, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
 
   // --- Audio / Video Logic (Autosaved) ---
   const { control, register, setValue } = useForm<AdvancedSettingsForm>({
@@ -128,16 +129,19 @@ export function AdvancedSettingsStep({
 
 
   // --- Privacy Logic (Dedicated Mutation) ---
+
   const [isPrivate, setIsPrivate] = useState(initialData.isPrivate);
   const [pin, setPin] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
   const [privacyMessage, setPrivacyMessage] = useState("");
   const [privacyPending, setPrivacyPending] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState(false);
 
   const { flushAll } = useEditorWorkspace();
-  const updatePrivacy = async () => {
+  
+  const handleConfirmPrivacy = async () => {
+    setConfirmDialog(false);
     setPrivacyPending(true);
-    // Ensure all other settings are flushed first before this sensitive CAS operation
     const flushed = await flushAll();
     if (!flushed.success) {
       setPrivacyPending(false);
@@ -158,14 +162,58 @@ export function AdvancedSettingsStep({
       return;
     }
     
+    commitRevision(result.data.contentVersion);
     setPin("");
     setAuthenticated(false);
     setPrivacyMessage("Pengaturan privasi tersimpan.");
-    toast.success("Pengaturan privasi tersimpan!");
+    setTimeout(() => setPrivacyMessage(""), 3000);
+  };
+  
+  const handleUpdatePrivacyClick = () => {
+    if (!authenticated) {
+      setPrivacyMessage("Harap verifikasi identitas terlebih dahulu.");
+      return;
+    }
+    setConfirmDialog(true);
   };
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <AlertDialog open={confirmDialog} onOpenChange={setConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Perubahan Privasi</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isPrivate 
+                ? "Anda akan mengubah undangan ini menjadi PRIVATE. Pengunjung tanpa PIN tidak akan bisa melihat undangan."
+                : "Anda akan mengubah undangan ini menjadi PUBLIK. Siapa saja dapat melihat undangan ini tanpa PIN."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPrivacy}>Ya, Ubah Privasi</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+      <AlertDialog open={confirmDialog} onOpenChange={setConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Perubahan Privasi</AlertDialogTitle>
+            <AlertDialogDescription>
+              {isPrivate 
+                ? "Anda akan mengubah undangan ini menjadi PRIVATE. Pengunjung tanpa PIN tidak akan bisa melihat undangan."
+                : "Anda akan mengubah undangan ini menjadi PUBLIK. Siapa saja dapat melihat undangan ini tanpa PIN."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPrivacy}>Ya, Ubah Privasi</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Card>
         <CardHeader>
           <CardTitle>Pengaturan Media</CardTitle>
@@ -273,7 +321,7 @@ export function AdvancedSettingsStep({
               <Button
                 type="button"
                 disabled={privacyPending}
-                onClick={() => void updatePrivacy()}
+                onClick={handleUpdatePrivacyClick}
               >
                 {privacyPending ? "Menyimpan..." : "Simpan Pengaturan Privasi"}
               </Button>

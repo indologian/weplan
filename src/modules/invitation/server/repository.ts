@@ -128,14 +128,56 @@ export async function saveEditorContent(
   input: EditorContentAutosaveInput,
 ): Promise<number> {
   const supabase = createSupabaseServiceClient();
-  const qrisIds = input.bankAccounts?.flatMap((account) => account.qrisMediaId ? [account.qrisMediaId] : []) ?? [];
-  if (qrisIds.length > 0) {
-    const { data: assets, error: assetError } = await supabase.from("media_assets").select("id")
-      .eq("invitation_id", input.invitationId).eq("user_id", userId).eq("kind", "image").eq("purpose", "qris_image").eq("status", "ready").in("id", qrisIds);
-    if (assetError || new Set((assets ?? []).map((asset) => asset.id)).size !== new Set(qrisIds).size) {
-      throw new EditorMutationError("QRIS must be a ready image owned by this invitation", "INVALID_STATE");
+  
+  // Collect all media IDs and their expected configurations
+  const validations: { id: string, kind: string, purpose: string }[] = [];
+  
+  if (input.couple?.groom?.photoMediaId) {
+    validations.push({ id: input.couple.groom.photoMediaId, kind: 'image', purpose: 'portrait' });
+  }
+  if (input.couple?.bride?.photoMediaId) {
+    validations.push({ id: input.couple.bride.photoMediaId, kind: 'image', purpose: 'portrait' });
+  }
+  
+  input.loveStory?.forEach(story => {
+    if (story.photoMediaId) {
+      validations.push({ id: story.photoMediaId, kind: 'image', purpose: 'love_story' });
+    }
+  });
+  
+  input.bankAccounts?.forEach(account => {
+    if (account.qrisMediaId) {
+      validations.push({ id: account.qrisMediaId, kind: 'image', purpose: 'qris_image' });
+    }
+  });
+  
+  if (input.settings?.backgroundAudioMediaId) {
+    validations.push({ id: input.settings.backgroundAudioMediaId, kind: 'audio', purpose: 'background_music' });
+  }
+
+  // Validate all collected media IDs
+  if (validations.length > 0) {
+    const ids = validations.map(v => v.id);
+    const { data: assets, error: assetError } = await supabase
+      .from("media_assets")
+      .select("id, kind, purpose, status")
+      .eq("invitation_id", input.invitationId)
+      .eq("user_id", userId)
+      .in("id", ids);
+      
+    if (assetError) throw new EditorMutationError("Failed to validate media assets", "INVALID_STATE");
+    
+    const assetMap = new Map((assets || []).map(a => [a.id, a]));
+    
+    for (const v of validations) {
+      const asset = assetMap.get(v.id);
+      if (!asset) throw new EditorMutationError(`Media ${v.id} not found or not owned`, "INVALID_STATE");
+      if (asset.status !== "ready") throw new EditorMutationError(`Media ${v.id} is not ready`, "INVALID_STATE");
+      if (asset.kind !== v.kind) throw new EditorMutationError(`Media ${v.id} is not of kind ${v.kind}`, "INVALID_STATE");
+      if (asset.purpose !== v.purpose) throw new EditorMutationError(`Media ${v.id} is not for purpose ${v.purpose}`, "INVALID_STATE");
     }
   }
+
   const { data, error } = await supabase.rpc("save_invitation_content", {
     p_user_id: userId,
     p_invitation_id: input.invitationId,
@@ -145,6 +187,7 @@ export async function saveEditorContent(
     p_bank_accounts: input.bankAccounts ?? null,
     p_settings: input.settings ?? null,
   });
+  
   if (error) throw mapEditorMutationError(error);
   return requireVersion(data);
 }

@@ -114,6 +114,13 @@ export async function createCheckout(
     watermark_enabled: tier.watermark_enabled,
   };
 
+
+  // Validate publish readiness BEFORE transaction creation
+  const readiness = await evaluatePublishReadiness(userId, invitationId);
+  if (!readiness.isReady) {
+    throw new PaymentError("Invitation is not ready to publish. Please resolve missing requirements.", "INVITATION_NOT_READY");
+  }
+
   const { data: transaction, error: txError } = await supabase
     .from("transactions")
     .insert({

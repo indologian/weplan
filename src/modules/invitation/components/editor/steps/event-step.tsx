@@ -26,10 +26,24 @@ type Props = {
 
 function formatForInput(isoString?: string | null) {
   if (!isoString) return "";
-  const d = new Date(isoString);
-  if (isNaN(d.getTime())) return "";
-  const pad = (n: number) => n.toString().padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return isoString.substring(0, 16);
+}
+
+function buildIsoString(datetimeLocalStr: string | null | undefined, ianaTz: string) {
+  if (!datetimeLocalStr) return null;
+  // Parse purely for offset calculation
+  const d = new Date(datetimeLocalStr + ':00Z');
+  const options = { timeZone: ianaTz, timeZoneName: 'longOffset' as const };
+  const str = new Intl.DateTimeFormat('en-US', options).format(d);
+  const match = str.match(/GMT([+-]\d{2}:\d{2})/);
+  let offset = '+00:00';
+  if (match && match[1]) offset = match[1];
+  else {
+    const matchShort = str.match(/GMT([+-]\d{2})/);
+    if (matchShort && matchShort[1]) offset = matchShort[1] + ':00';
+    else if (str.includes('GMT')) offset = '+00:00';
+  }
+  return datetimeLocalStr + ':00' + offset;
 }
 
 const COMMON_TIMEZONES = [
@@ -45,7 +59,7 @@ export function EventStep({
   deleteEditorEvent,
   reorderEditorEvents,
 }: Props) {
-  const { contentVersion, flushAll, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
+  const { contentVersion, commitRevision, flushAll, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
   const [events, setEvents] = useState<EditableEvent[]>(() =>
     initialEvents.map((event) => ({
       ...event,
@@ -144,7 +158,6 @@ export function EventStep({
 
   const removeEvent = async (eventId: string) => {
     setPending(true);
-    // Flush to ensure we have the latest version before doing an explicit delete
     const flushed = await flushAll();
     if (!flushed.success) {
       setPending(false);
@@ -166,9 +179,8 @@ export function EventStep({
       return;
     }
     
-    setEvents((current) =>
-      current.filter((event) => event.eventId !== eventId)
-    );
+    commitRevision(result.data.contentVersion);
+    setEvents((current) => current.filter((event) => event.eventId !== eventId));
     setDirtyEventIds(prev => {
       const next = new Set(prev);
       const ev = events.find(e => e.eventId === eventId);
@@ -181,16 +193,14 @@ export function EventStep({
   const moveEvent = async (index: number, direction: -1 | 1) => {
     const target = index + direction;
     if (target < 0 || target >= events.length) return;
-    const reordered = [...events];
-    [reordered[index], reordered[target]] = [
-      reordered[target]!,
-      reordered[index]!,
-    ];
     
-    if (reordered.some((event) => !event.eventId) || dirtyEventIds.size > 0) {
-      toast.error("Simpan semua acara baru sebelum mengubah urutan.");
-      // Or we can just flush automatically!
+    if (events.some((event) => !event.eventId) || dirtyEventIds.size > 0) {
+      toast.error("Terdapat perubahan acara yang belum tersimpan. Tunggu sebentar lalu coba lagi.");
+      return;
     }
+    
+    const reordered = [...events];
+    [reordered[index], reordered[target]] = [reordered[target]!, reordered[index]!];
     
     setPending(true);
     const flushed = await flushAll();
@@ -212,6 +222,7 @@ export function EventStep({
       return;
     }
     
+    commitRevision(result.data.contentVersion);
     setEvents(reordered.map((event, position) => ({ ...event, position })));
     toast.success("Urutan acara tersimpan!");
   };
@@ -337,7 +348,12 @@ export function EventStep({
                       <select 
                         className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                         value={event.timezone || "Asia/Jakarta"}
-                        onChange={(e) => handleUpdate(event.localId, { timezone: e.target.value })}
+                        onChange={(e) => {
+                          const newTz = e.target.value;
+                          const newStartsAt = event.startsAt ? buildIsoString(formatForInput(event.startsAt), newTz) : null;
+                          const newEndsAt = event.endsAt ? buildIsoString(formatForInput(event.endsAt), newTz) : null;
+                          handleUpdate(event.localId, { timezone: newTz, startsAt: newStartsAt, endsAt: newEndsAt });
+                        }}
                       >
                         {COMMON_TIMEZONES.map(tz => (
                           <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -353,7 +369,7 @@ export function EventStep({
                         onChange={(e) => {
                           const val = e.target.value;
                           handleUpdate(event.localId, {
-                            startsAt: val ? new Date(val).toISOString() : null,
+                            startsAt: val ? buildIsoString(val, event.timezone || "Asia/Jakarta") : null,
                           });
                         }}
                       />
@@ -367,7 +383,7 @@ export function EventStep({
                         onChange={(e) => {
                           const val = e.target.value;
                           handleUpdate(event.localId, {
-                            endsAt: val ? new Date(val).toISOString() : null,
+                            endsAt: val ? buildIsoString(val, event.timezone || "Asia/Jakarta") : null,
                           });
                         }}
                       />

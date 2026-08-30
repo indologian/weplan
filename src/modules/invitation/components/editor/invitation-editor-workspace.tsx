@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { AlertCircle } from "lucide-react";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
 import type { EditorDTO, SaveEditorContentAction, SaveEditorEventAction, DeleteEditorEventAction, ReorderEditorEventsAction, ReplaceEditorGalleryAction, UpdateEditorPrivacyAction } from "../../types";
 import type { IssueSensitiveAuthAction } from "@/modules/auth/types";
 import { useEditorWorkspace } from "./editor-workspace-context";
@@ -57,28 +58,24 @@ export function InvitationEditorWorkspace({
   return (
     <div className="space-y-6 pb-20">
 
-      {conflictState && (
-        <Card className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
-                <AlertCircle className="h-5 w-5" />
-                <p className="font-semibold">Undangan telah diubah di perangkat atau tab lain.</p>
-              </div>
-              <div className="space-y-3">
-                <p className="text-sm text-orange-700 dark:text-orange-300">
-                  Perubahan lokal Anda yang belum tersimpan akan tertimpa dengan versi terbaru dari server.
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button type="button" variant="destructive" onClick={() => window.location.reload()}>
-                    Muat versi terbaru
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <AlertDialog open={conflictState}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-orange-600">
+              <AlertCircle className="h-5 w-5" />
+              Versi Undangan Berubah
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Undangan ini telah diubah di perangkat atau tab lain. Perubahan lokal Anda yang belum tersimpan akan dibuang. Anda dapat memuat versi terbaru untuk melihat perubahan tersebut.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            {/* We provide a way to cancel just to dismiss, but they can't save anyway until they reload */}
+            <AlertDialogCancel>Tutup Sementara</AlertDialogCancel>
+            <AlertDialogAction onClick={() => window.location.reload()}>Muat Versi Terbaru</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <EditorStepNavigation currentStep={currentStep} onChange={handleStepChange} />
 

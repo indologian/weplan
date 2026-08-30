@@ -46,7 +46,8 @@ begin
     end
   into v_bank_limit, v_video_limit, v_audio_enabled
   from public.invitations i
-  join public.entitlement_tiers t on t.id = coalesce(i.entitlement_tier_id, '00000000-0000-0000-0000-000000000000'::uuid)
+  left join public.themes th on th.id = i.theme_id
+  left join public.tiers t on t.id = th.tier_id
   where i.id = p_invitation_id;
 
   if p_bank_accounts is not null and jsonb_array_length(p_bank_accounts) > v_bank_limit then
