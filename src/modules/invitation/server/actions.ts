@@ -132,18 +132,21 @@ export async function actionDeleteInvitation(
   try {
     const user = await requireUser();
     const supabase = await createSupabaseServerClient();
-    
-    // Perform soft delete
-    const { error } = await supabase
+
+    const { data, error } = await supabase
       .from("invitations")
-      .update({ deleted_at: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() })
       .eq("id", invitationId)
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .is("deleted_at", null)
+      .select("id")
+      .maybeSingle();
 
     if (error) throw error;
-    
+    if (!data) return { success: false, code: "NOT_FOUND", error: "Undangan tidak ditemukan." };
+
     return { success: true, data: { success: true } };
-  } catch (error) {
+  } catch {
     return { success: false, code: "TEMPORARY_ERROR", error: "Gagal menghapus undangan." };
   }
 }

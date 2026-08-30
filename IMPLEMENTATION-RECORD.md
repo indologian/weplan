@@ -2724,3 +2724,67 @@ Melengkapi pengaturan RSVP serta pengelolaan tamu dan wedding gift berdasarkan F
 
 - Primary implementation commit: `1c864f6` (`feat(dashboard): manage guests RSVP and wedding gifts`).
 - GitHub push, CI, dan deployment belum dijalankan pada saat addendum ini ditulis.
+
+---
+
+## 2026-08-30 — Dashboard workspace UI/UX redesign
+
+### Goal and canonical references
+
+Mengaudit dan merancang ulang `/dashboard` sebagai wedding workspace task-first berdasarkan File 01 §11.2/§14, File 03 §1/§3/§7, File 06 scope authority, File 07 domain reference, serta prosedur File 08 §22–22.1. Work package tidak menambah analytics, lifecycle, entitlement, payment transition, atau business rule baru.
+
+### Existing gaps and implemented scope
+
+- Mengganti derivasi lifecycle raw di card dengan server projection `InvitationWorkspaceState` yang memisahkan `effectiveLifecycle`, `commercialUiState`, `editable`, dan `availableActions`; timestamp expiry authoritative menang sebelum cron menyelaraskan row.
+- Mengubah halaman menjadi daftar undangan task-first dengan identitas pasangan, theme preview, status berbahasa Indonesia, metadata penting, primary edit action, pratinjau, public link, dan destructive action terpisah. Empty state menjelaskan hasil CTA berikutnya tanpa metric/progress palsu.
+- Mengganti sidebar mobile berbasis transform/backdrop custom menjadi Sheet Radix dengan focus trap, Escape, scroll lock, accessible title, trigger 44px, safe-area, dan close setelah navigasi.
+- Mengganti toggle tema dua-state menjadi pilihan eksplisit Terang/Gelap/Sistem tanpa menghilangkan `defaultTheme="system"` dan `enableSystem`.
+- Mengganti native `confirm()` pada soft delete dengan AlertDialog terkontrol. Copy menjelaskan bahwa row dikeluarkan dari dashboard/public surface tetapi tidak dihapus permanen; failure tetap persisten di dialog, pending mencegah double submit, dan cancel tidak menjalankan mutation.
+- Menambahkan loading skeleton yang mengikuti layout final dan route error boundary dengan retry/recovery copy aman.
+- Menutup direct-bookmark edge case untuk invitation deleted/expired dan menyembunyikannya dari active invitation switcher ketika tidak editable.
+- Menambah primitive lokal Badge, Sheet, dan Skeleton berbasis dependency existing; tidak ada package/dependency baru.
+- Memindahkan pemanggilan Server Action dari Client Component ke prop yang dikomposisi Server Component pada create, theme change, slug editor, dan delete flow sehingga boundary verifier kembali bersih.
+- Memperbaiki dua lint blocker existing secara mekanis pada slug availability effect dan provider error narrowing tanpa mengubah perilaku bisnis.
+
+### Files and architecture
+
+- Dashboard routes/components: `src/app/(dashboard)/{layout.tsx,loading.tsx,error.tsx,dashboard/page.tsx}` dan `_components/{dashboard-sidebar,dashboard-theme-selector,dashboard-invitation-card,delete-invitation-button}.tsx`.
+- Dashboard child/create composition: `src/app/(dashboard)/dashboard/[id]/{layout.tsx,edit/page.tsx}`, `_components/{create-invitation-form,theme-changer-modal}.tsx`, dan `create/page.tsx`.
+- Domain projection/query: `src/modules/invitation/{workspace-state.ts,types.ts}`, `server/{dashboard-queries.ts,queries.ts,actions.ts}`.
+- Shared UI/tokens: `src/shared/components/ui/{badge,sheet,skeleton,alert-dialog}.tsx`, `src/app/globals.css`, dan existing theme toggle hydration fix.
+- Boundary-only quality fixes: invitation slug editor dan payment provider error narrowing.
+- Tests: workspace projection, delete dialog interaction, serta EditorDTO fixture update.
+
+### Verification evidence
+
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS; ESLint melaporkan 31 warning existing tetapi 0 error, structure verifier PASS, dan boundary verifier PASS.
+- `npm run test`: PASS — 37 files, 283 tests.
+- `npm run build`: PASS — Next.js 16.3.3 production build dan route `/dashboard` compiled.
+- `npm run quality`: PASS — termasuk typecheck, lint, 283 Vitest tests, Deno check + 3/3 PIN crypto tests, migration verifier, dan production build.
+- `git diff --check`: PASS; hanya warning normalisasi LF/CRLF Windows.
+- Test interaksi otomatis delete mencakup cancel, failure yang mempertahankan dialog + inline alert, dan success refresh/toast. Projection test mencakup expired-before-cron, pending payment, review state, soft delete, dan published actions.
+
+### Visual, accessibility, and edge-case evidence
+
+- Static implementation mencakup semantic landmarks/heading, skip link, `aria-current`, labelled switcher, keyboard-focus ring, 44px targets, explicit new-tab text untuk screen reader, reduced-motion global, focus-managed Sheet/AlertDialog, dan semantic color tokens pada dashboard utama.
+- Layout dirancang mobile-first: stacked card dengan stable 16:9 preview pada narrow viewport, 144px preview rail pada desktop, wrapping action group, truncated slug/switcher identity, satu-column collection untuk 1–30+ invitation, dan `max-w-5xl` pada desktop/wide desktop.
+- In-app browser runtime gagal menyiapkan aset lokal sehingga screenshot dan manual viewport matrix 320–1920, Light/Dark/System, Sheet keyboard, dan visual dialog tidak dapat direkam pada environment ini. Tidak ada klaim visual pass yang dibuat; static build, unit interaction tests, dan accessibility semantics menjadi evidence yang tersedia.
+
+### Migrations, security, and deployment
+
+- Tidak ada migration atau database deployment.
+- Delete tetap ownership-scoped dan soft-delete; permanent-delete/re-auth semantics tidak diubah.
+- Query dashboard menggunakan trusted server client setelah authenticated user resolution dan tidak mengekspos transaction/provider payload ke client.
+- Tidak ada secret, credential, token, PII, atau raw production payload ditulis ke source/record.
+- Commit, CI, code deployment: belum dibuat/dijalankan pada saat record ditulis.
+
+### Known limitations and remaining work
+
+- Backend renewal/restore/cancel-payment action belum tersedia sebagai complete workspace flow; expired invitation karena itu tampil read-only dan UI tidak mengarang recovery action.
+- Manual visual QA tetap perlu di environment dengan browser runtime aktif pada viewport 320, 375, 390, 430, 768, 1024, 1280, 1440, dan 1920 serta Light/Dark/System.
+- Warning existing untuk deprecated middleware/Edge Runtime, missing `metadataBase`, unused symbols, dan beberapa `<img>` di module non-dashboard tetap menjadi backlog terpisah.
+
+### Status
+
+`COMPLETE` untuk implementasi dan automated verification dashboard workspace redesign; manual visual evidence dicatat sebagai limitation environment, bukan diklaim lulus.

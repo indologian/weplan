@@ -30,6 +30,7 @@ export type EditorDTO = {
   settings: z.infer<typeof invitationSettingsSchema>;
   contentVersion: number;
   expiresAt: string | null;
+  entitlementTierId: string | null;
   themeId: string;
   events: Array<{
     eventId: string;

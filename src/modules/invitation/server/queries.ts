@@ -24,6 +24,7 @@ const editorInvitationSchema = z.object({
   settings: invitationSettingsSchema,
   content_version: z.number().int().positive(),
   expires_at: z.string().nullable(),
+  entitlement_tier_id: z.uuid().nullable(),
   theme_id: z.uuid(),
 }).strict();
 
@@ -52,9 +53,10 @@ export async function getEditorDTO(userId: string, invitationId: string): Promis
   const supabase = createSupabaseServiceClient();
   const { data: rawInvitation, error: invitationError } = await supabase
     .from("invitations")
-    .select("id,slug,status,is_private,rsvp_mode,guestbook_moderation,couple,love_story,bank_accounts,settings,content_version,expires_at,theme_id")
+    .select("id,slug,status,is_private,rsvp_mode,guestbook_moderation,couple,love_story,bank_accounts,settings,content_version,expires_at,entitlement_tier_id,theme_id")
     .eq("id", invitationId)
     .eq("user_id", userId)
+    .is("deleted_at", null)
     .maybeSingle();
 
   if (invitationError) throw new EditorMutationError("Unable to load editor", "TEMPORARY_ERROR");
@@ -93,6 +95,7 @@ export async function getEditorDTO(userId: string, invitationId: string): Promis
     settings: invitation.settings,
     contentVersion: invitation.content_version,
     expiresAt: invitation.expires_at,
+    entitlementTierId: invitation.entitlement_tier_id,
     themeId: invitation.theme_id,
     events: events.map((event) => ({
       eventId: event.id,

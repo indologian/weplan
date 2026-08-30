@@ -24,6 +24,7 @@ const invitation: EditorDTO = {
   settings: {},
   contentVersion: 1,
   expiresAt: null,
+  entitlementTierId: null,
   themeId: "1762fcd3-b076-439a-bade-33743a51063f",
   events: [],
   gallery: [],

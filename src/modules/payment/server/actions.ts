@@ -286,8 +286,9 @@ export async function cancelCheckout(
   if (attempt.create_state === "created" || attempt.create_state === "unknown") {
     try {
       await cancelMidtransTransaction(attempt.order_id);
-    } catch (error: any) {
-      if (error?.httpStatus !== 412 && error?.httpStatus !== 404 && error?.providerStatusCode !== "412" && error?.providerStatusCode !== "404") {
+    } catch (error: unknown) {
+      const providerError = error as { httpStatus?: number; providerStatusCode?: string };
+      if (providerError.httpStatus !== 412 && providerError.httpStatus !== 404 && providerError.providerStatusCode !== "412" && providerError.providerStatusCode !== "404") {
         await supabase
           .from("transactions")
           .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })

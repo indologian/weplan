@@ -4,7 +4,9 @@ import { getEditorDTO } from "@/modules/invitation/server/queries";
 import { getAllThemes } from "@/modules/theme/server/queries";
 import { CheckoutButton } from "./checkout-button";
 import { ThemeChangerModal } from "../../_components/theme-changer-modal";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { projectInvitationWorkspaceState } from "@/modules/invitation/workspace-state";
+import { actionUpdateEditorTheme } from "@/modules/invitation/server/actions";
 
 export default async function InvitationDashboardLayout({
   children,
@@ -25,6 +27,15 @@ export default async function InvitationDashboardLayout({
     notFound();
   }
 
+  const workspace = projectInvitationWorkspaceState({
+    status: invitation.status,
+    entitlementTierId: invitation.entitlementTierId,
+    expiresAt: invitation.expiresAt,
+    deletedAt: null,
+  });
+
+  if (!workspace.editable) redirect("/dashboard");
+
   return (
     <div className="flex flex-col space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
@@ -35,6 +46,7 @@ export default async function InvitationDashboardLayout({
             currentThemeId={invitation.themeId}
             expectedVersion={invitation.contentVersion}
             themes={themes}
+            updateTheme={actionUpdateEditorTheme}
           />
           <Link
             href={`/preview/${id}`}

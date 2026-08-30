@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { actionUpdateEditorTheme } from "@/modules/invitation/server/actions";
 import { toast } from "sonner";
+import type { ActionResult } from "@/shared/types/action-result";
 import { Button } from "@/shared/components/ui/button";
 import {
   Dialog,
@@ -27,11 +27,13 @@ export function ThemeChangerModal({
   currentThemeId,
   expectedVersion,
   themes,
+  updateTheme,
 }: {
   invitationId: string;
   currentThemeId: string;
   expectedVersion: number;
   themes: ThemeOption[];
+  updateTheme: (input: unknown) => Promise<ActionResult<{ contentVersion: number }>>;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -44,7 +46,7 @@ export function ThemeChangerModal({
     }
     
     setIsUpdating(true);
-    const result = await actionUpdateEditorTheme({
+    const result = await updateTheme({
       invitationId,
       expectedVersion,
       themeId,

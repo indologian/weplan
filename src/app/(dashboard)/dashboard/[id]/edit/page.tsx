@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { requireUser } from "@/modules/auth/server/require-user";
 import { actionIssueSensitiveAuth } from "@/modules/auth/server/sensitive-auth-actions";
 import {
@@ -8,6 +8,8 @@ import {
   actionSaveEditorContent,
   actionSaveEditorEvent,
   actionUpdateEditorPrivacy,
+  actionCheckSlugAvailability,
+  actionUpdateEditorSlug,
 } from "@/modules/invitation/server/actions";
 import { getEditorDTO } from "@/modules/invitation/server/queries";
 import { InvitationEditor } from "@/modules/invitation/components/invitation-editor";
@@ -22,11 +24,14 @@ export default async function EditInvitationPage({
   const { id } = await params;
   const editor = await getEditorDTO(user.id, id);
   if (!editor) notFound();
-  if (editor.status === "expired" || editor.status === "trashed")
-    redirect(`/dashboard/${id}`);
   return (
     <div className="space-y-6">
-      <InvitationSlugEditor invitationId={editor.invitationId} initialSlug={editor.slug} />
+      <InvitationSlugEditor
+        invitationId={editor.invitationId}
+        initialSlug={editor.slug}
+        checkSlugAvailability={actionCheckSlugAvailability}
+        updateSlug={actionUpdateEditorSlug}
+      />
       <InvitationEditor
         initialData={editor}
         saveEditorContent={actionSaveEditorContent}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { actionCheckSlugAvailability, actionUpdateEditorSlug } from "../server/actions";
+import type { ActionResult } from "@/shared/types/action-result";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import { Label } from "@/shared/components/ui/label";
@@ -26,9 +26,11 @@ function useDebounce<T>(value: T, delay: number): T {
 type Props = {
   invitationId: string;
   initialSlug: string;
+  checkSlugAvailability: (slug: string, invitationId: string) => Promise<boolean>;
+  updateSlug: (input: unknown) => Promise<ActionResult<{ slug: string }>>;
 };
 
-export function InvitationSlugEditor({ invitationId, initialSlug }: Props) {
+export function InvitationSlugEditor({ invitationId, initialSlug, checkSlugAvailability, updateSlug }: Props) {
   const router = useRouter();
   const [slug, setSlug] = useState(initialSlug);
   const debouncedSlug = useDebounce(slug, 500);
@@ -39,31 +41,25 @@ export function InvitationSlugEditor({ invitationId, initialSlug }: Props) {
   const [errorMsg, setErrorMsg] = useState("");
 
   const isValidFormat = /^[a-z0-9-]+$/.test(debouncedSlug) && debouncedSlug.length >= 3 && debouncedSlug.length <= 50;
+  const isInitialSlug = debouncedSlug === initialSlug;
+  const formatError = "Format tidak valid. Gunakan huruf kecil, angka, dan strip (3-50 karakter).";
+  const displayedAvailability = isInitialSlug ? null : isValidFormat ? isAvailable : false;
+  const displayedError = isValidFormat ? errorMsg : formatError;
 
   useEffect(() => {
-    if (debouncedSlug === initialSlug) {
-      setIsAvailable(null);
-      setErrorMsg("");
-      return;
-    }
-    
-    if (!isValidFormat) {
-      setIsAvailable(false);
-      setErrorMsg("Format tidak valid. Gunakan huruf kecil, angka, dan strip (3-50 karakter).");
-      return;
-    }
+    if (debouncedSlug === initialSlug || !isValidFormat) return;
 
     let isMounted = true;
     const check = async () => {
       setIsChecking(true);
       setErrorMsg("");
       try {
-        const available = await actionCheckSlugAvailability(debouncedSlug, invitationId);
+        const available = await checkSlugAvailability(debouncedSlug, invitationId);
         if (isMounted) {
           setIsAvailable(available);
           if (!available) setErrorMsg("Tautan ini sudah digunakan. Pilih nama lain.");
         }
-      } catch (err) {
+      } catch {
         if (isMounted) setErrorMsg("Gagal mengecek ketersediaan tautan.");
       } finally {
         if (isMounted) setIsChecking(false);
@@ -72,14 +68,14 @@ export function InvitationSlugEditor({ invitationId, initialSlug }: Props) {
     void check();
     
     return () => { isMounted = false; };
-  }, [debouncedSlug, invitationId, initialSlug, isValidFormat]);
+  }, [checkSlugAvailability, debouncedSlug, invitationId, initialSlug, isValidFormat]);
 
   const handleSave = async () => {
     if (slug === initialSlug || isAvailable === false || !isValidFormat) return;
     
     setIsSaving(true);
     try {
-      const result = await actionUpdateEditorSlug({ invitationId, slug });
+      const result = await updateSlug({ invitationId, slug });
       if (result.success) {
         toast.success("Tautan undangan berhasil diperbarui!");
         setIsAvailable(null);
@@ -87,7 +83,7 @@ export function InvitationSlugEditor({ invitationId, initialSlug }: Props) {
       } else {
         toast.error(result.error || "Gagal menyimpan tautan.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Terjadi kesalahan.");
     } finally {
       setIsSaving(false);
@@ -113,10 +109,14 @@ export function InvitationSlugEditor({ invitationId, initialSlug }: Props) {
               <Input
                 id="slug"
                 value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                onChange={(e) => {
+                  setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""));
+                  setIsAvailable(null);
+                  setErrorMsg("");
+                }}
                 className={`rounded-l-none flex-1 ${
-                  isAvailable === false ? "border-destructive focus-visible:ring-destructive" : ""
-                } ${isAvailable === true ? "border-green-500 focus-visible:ring-green-500" : ""}`}
+                  displayedAvailability === false ? "border-destructive focus-visible:ring-destructive" : ""
+                } ${displayedAvailability === true ? "border-green-500 focus-visible:ring-green-500" : ""}`}
                 placeholder="nama-kamu"
               />
             </div>
@@ -127,14 +127,14 @@ export function InvitationSlugEditor({ invitationId, initialSlug }: Props) {
                   <Loader2 className="w-3 h-3 mr-2 animate-spin" /> Mengecek ketersediaan...
                 </span>
               )}
-              {!isChecking && isAvailable === true && debouncedSlug !== initialSlug && (
+              {!isChecking && displayedAvailability === true && (
                 <span className="flex items-center text-green-600">
                   <CheckCircle2 className="w-3 h-3 mr-1" /> Tautan tersedia!
                 </span>
               )}
-              {!isChecking && isAvailable === false && (
+              {!isChecking && displayedAvailability === false && (
                 <span className="flex items-center text-destructive">
-                  <XCircle className="w-3 h-3 mr-1" /> {errorMsg}
+                  <XCircle className="w-3 h-3 mr-1" /> {displayedError}
                 </span>
               )}
             </div>
@@ -143,7 +143,7 @@ export function InvitationSlugEditor({ invitationId, initialSlug }: Props) {
           <div className="flex justify-end">
             <Button 
               onClick={handleSave} 
-              disabled={isSaving || isChecking || isAvailable === false || debouncedSlug === initialSlug || !isValidFormat}
+              disabled={isSaving || isChecking || displayedAvailability !== true || isInitialSlug || !isValidFormat}
             >
               {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
               Simpan Tautan

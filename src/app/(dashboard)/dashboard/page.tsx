@@ -1,82 +1,67 @@
 import Link from "next/link";
-import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
+import { Plus } from "lucide-react";
 import { requireUser } from "@/modules/auth/server/require-user";
-import { ensureUserProfile } from "@/modules/auth/server/ensure-user-profile";
+import { getDashboardInvitations } from "@/modules/invitation/server/dashboard-queries";
+import { actionDeleteInvitation } from "@/modules/invitation/server/actions";
+import { Button } from "@/shared/components/ui/button";
 import { DashboardInvitationCard } from "../_components/dashboard-invitation-card";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  let invitations: Array<{
-    id: string;
-    slug: string;
-    status: string;
-    couple: Record<string, Record<string, string>>;
-    theme_id: string;
-    published_at: string | null;
-    expires_at: string | null;
-    entitlement_tier_id: string | null;
-    updated_at: string;
-  }> = [];
-
-  try {
-    const user = await requireUser();
-    await ensureUserProfile(user);
-
-    const supabase = createSupabaseServiceClient();
-    const { data } = await supabase
-      .from("invitations")
-      .select("id, slug, status, couple, theme_id, published_at, expires_at, entitlement_tier_id, updated_at")
-      .eq("user_id", user.id)
-      .is("deleted_at", null)
-      .order("updated_at", { ascending: false });
-
-    invitations = data ?? [];
-  } catch {
-    return (
-      <div className="py-12 text-center">
-        <p className="text-sm text-[#6b7280]">Silakan masuk terlebih dahulu.</p>
-        <Link href="/login" className="mt-4 inline-block text-sm font-medium text-[#1a1a1a] underline">
-          Masuk
-        </Link>
-      </div>
-    );
-  }
+  const user = await requireUser();
+  const invitations = await getDashboardInvitations(user.id);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Undangan</h1>
-          <p className="text-sm text-[#6b7280]">Kelola undangan pernikahan Anda</p>
+    <div className="space-y-7 sm:space-y-8">
+      <header className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-2xl">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Undangan Saya</h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+            Lanjutkan penyusunan, periksa hasil, dan kelola undangan pernikahan Anda.
+          </p>
         </div>
-        <Link
-          href="/create"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1a1a1a] px-4 py-2 text-sm font-medium text-white hover:bg-[#333]"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M7 2v10M2 7h10" />
-          </svg>
-          Buat Undangan
-        </Link>
-      </div>
+        <Button asChild className="h-11 w-fit shrink-0 px-4">
+          <Link href="/create">
+            <Plus aria-hidden="true" />
+            Buat Undangan
+          </Link>
+        </Button>
+      </header>
 
       {invitations.length === 0 ? (
-        <div className="rounded-xl border border-[#e5e7eb] bg-white py-16 text-center">
-          <p className="text-[#6b7280]">Belum ada undangan — pilih tema untuk membuat draft pertama.</p>
-          <Link
-            href="/create"
-            className="mt-4 inline-flex items-center rounded-lg bg-[#1a1a1a] px-4 py-2 text-sm font-medium text-white hover:bg-[#333]"
-          >
-            Pilih Tema
-          </Link>
-        </div>
+        <section
+          aria-labelledby="empty-invitations-title"
+          className="rounded-2xl border bg-card px-5 py-10 text-center text-card-foreground sm:px-8 sm:py-14"
+        >
+          <div className="mx-auto max-w-md">
+            <h2 id="empty-invitations-title" className="text-lg font-semibold">
+              Belum ada undangan
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              Pilih tema untuk membuat draf pertama. Setelah itu, Anda akan langsung masuk ke editor undangan.
+            </p>
+            <Button asChild className="mt-5 h-11">
+              <Link href="/create">Pilih Tema</Link>
+            </Button>
+          </div>
+        </section>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {invitations.map((inv) => (
-            <DashboardInvitationCard key={inv.id} inv={inv} />
-          ))}
-        </div>
+        <section aria-labelledby="invitation-list-title">
+          <div className="mb-4 flex items-baseline justify-between gap-3">
+            <h2 id="invitation-list-title" className="text-base font-semibold">Daftar undangan</h2>
+            <p className="text-sm text-muted-foreground">{invitations.length} undangan</p>
+          </div>
+          <div className="space-y-4">
+            {invitations.map((invitation) => (
+              <DashboardInvitationCard
+                key={invitation.id}
+                invitation={invitation}
+                deleteInvitation={actionDeleteInvitation}
+              />
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );
