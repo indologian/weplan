@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
-import { actionEvaluatePublishReadiness } from "../../server/actions";
+import { actionEvaluatePublishReadiness } from "../../client-actions";
 import type { PublishReadinessResult } from "../../publish-readiness";
 import { useEditorWorkspace } from "./editor-workspace-context";
 

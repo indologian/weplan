@@ -54,17 +54,10 @@ export function EditorWorkspaceProvider({
 
   const registerSection = useCallback((id: string, flushFn: (version: number) => Promise<FlushResult>) => {
     flushCallbacks.current.set(id, flushFn);
-    // Initialize "saved" only if section doesn't have a state yet
-    setSectionStates(prev => (prev[id] !== undefined ? prev : { ...prev, [id]: "saved" }));
   }, []);
 
   const unregisterSection = useCallback((id: string) => {
     flushCallbacks.current.delete(id);
-    setSectionStates(prev => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
   }, []);
 
   const setSectionState = useCallback((id: string, state: SectionState) => {

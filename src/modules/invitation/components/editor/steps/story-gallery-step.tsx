@@ -298,7 +298,7 @@ export function StoryGalleryStep({
                     <MediaUploader
                       invitationId={invitationId}
                       kind="image"
-                      purpose="love_story"
+                      purpose="story_image"
                       label="Upload Foto Momen"
                       currentMediaId={loveStoryValues[index]?.photoMediaId}
                       onSuccess={(mediaId) => setValue(`loveStory.${index}.photoMediaId`, mediaId, { shouldDirty: true })}

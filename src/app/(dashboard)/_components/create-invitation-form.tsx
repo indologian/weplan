@@ -19,6 +19,7 @@ type Theme = {
   tier_id: string;
   category: string;
   description: string;
+  preview_image: string | null;
 };
 
 export function CreateInvitationForm({
@@ -37,8 +38,13 @@ export function CreateInvitationForm({
   const clientRef = useRef<string>("");
 
   useEffect(() => {
-    if (!clientRef.current) {
-      clientRef.current = crypto.randomUUID();
+    const stored = sessionStorage.getItem("create_invitation_ref");
+    if (stored) {
+      clientRef.current = stored;
+    } else {
+      const newRef = crypto.randomUUID();
+      sessionStorage.setItem("create_invitation_ref", newRef);
+      clientRef.current = newRef;
     }
   }, []);
 
@@ -47,7 +53,7 @@ export function CreateInvitationForm({
       const supabase = createSupabaseBrowserClient();
       const { data } = await supabase
         .from("themes")
-        .select("id, name, slug, tier_id, category, description")
+        .select("id, name, slug, tier_id, category, description, preview_image")
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
       if (data) setThemes(data);
@@ -84,7 +90,10 @@ export function CreateInvitationForm({
         return;
       }
 
-      if (response.data) router.push(`/dashboard/${response.data.invitationId}/edit`);
+      if (response.data) {
+        sessionStorage.removeItem("create_invitation_ref");
+        router.push(`/dashboard/${response.data.invitationId}/edit`);
+      }
     } catch {
       setError("Terjadi kesalahan. Silakan coba lagi.");
     } finally {
@@ -111,8 +120,12 @@ export function CreateInvitationForm({
                   : "border-muted bg-background hover:border-primary/50"
               }`}
             >
-              <div className="w-full aspect-[3/4] rounded-md bg-muted flex items-center justify-center overflow-hidden mb-2">
-                <span className="text-muted-foreground text-sm font-medium">Thumbnail Tema</span>
+              <div className="w-full aspect-[3/4] rounded-md bg-muted flex items-center justify-center overflow-hidden mb-2 relative">
+                {theme.preview_image ? (
+                  <Image src={theme.preview_image} alt={theme.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
+                ) : (
+                  <span className="text-muted-foreground text-sm font-medium">Tidak ada gambar</span>
+                )}
               </div>
               <h3 className="font-semibold">{theme.name}</h3>
               <p className="line-clamp-2 text-xs text-muted-foreground">{theme.description}</p>

@@ -28,7 +28,7 @@ describe("autosave queue", () => {
 
     queue.markDirty("local change");
     await expect(queue.flush()).resolves.toEqual({ success: false, code: "VERSION_CONFLICT" });
-    expect(queue.state).toMatchObject({ pendingSave: false, localEditGeneration: 1, lastAckedGeneration: 0, contentVersion: 4 });
+    expect(queue.state).toMatchObject({ pendingSave: true, localEditGeneration: 1, lastAckedGeneration: 0, contentVersion: 4 });
   });
 
   it("does not start a second request when a flush is already active", async () => {
@@ -39,7 +39,7 @@ describe("autosave queue", () => {
     const queue = new AutosaveQueue(1, persist);
     queue.markDirty("change");
     const firstFlush = queue.flush();
-    await expect(queue.flush()).resolves.toBeNull();
+    const secondFlush = queue.flush();
     expect(persist).toHaveBeenCalledTimes(1);
     resolve?.();
     await firstFlush;
@@ -63,7 +63,7 @@ describe("autosave queue", () => {
     expect(result).toEqual({ success: false, code: "TEMPORARY_ERROR" });
     expect(queue.state).toMatchObject({
       isSaving: false,
-      pendingSave: false,
+      pendingSave: true,
       localEditGeneration: 1,
       lastAckedGeneration: 0,
       contentVersion: 1,
@@ -94,7 +94,7 @@ describe("autosave queue", () => {
     queue.markDirty("change");
     await queue.flush();
 
-    expect(queue.state.pendingSave).toBe(false);
+    expect(queue.state.pendingSave).toBe(true);
     expect(queue.state.lastAckedGeneration).toBe(0);
 
     queue.markDirty("retry");

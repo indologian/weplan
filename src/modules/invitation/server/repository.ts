@@ -130,18 +130,40 @@ export async function saveEditorContent(
   const supabase = createSupabaseServiceClient();
   
   // Collect all media IDs and their expected configurations
+  // Validate theme overrides against active theme's editable_overrides
+  if (input.settings?.themeOverrides && Object.keys(input.settings.themeOverrides).length > 0) {
+    const { data: themeInfo, error: themeError } = await supabase
+      .from("invitations")
+      .select("theme_id, themes!inner(editable_overrides)")
+      .eq("id", input.invitationId)
+      .maybeSingle();
+
+    if (themeError) throw new EditorMutationError("Database error during theme validation", "TEMPORARY_ERROR");
+    if (!themeInfo || !themeInfo.themes) throw new EditorMutationError("Invitation or theme not found", "NOT_FOUND");
+
+    const themesData = themeInfo.themes as unknown as { editable_overrides: string[] };
+    const allowedKeys = themesData.editable_overrides || [];
+    const overrides = input.settings.themeOverrides;
+
+    for (const key of Object.keys(overrides)) {
+      if (!allowedKeys.includes(key)) {
+        throw new EditorMutationError(`Theme override key not allowed by active theme: ${key}`, "INVALID_STATE");
+      }
+    }
+  }
+
   const validations: { id: string, kind: string, purpose: string }[] = [];
   
   if (input.couple?.groom?.photoMediaId) {
-    validations.push({ id: input.couple.groom.photoMediaId, kind: 'image', purpose: 'portrait' });
+    validations.push({ id: input.couple.groom.photoMediaId, kind: 'image', purpose: 'couple_portrait' });
   }
   if (input.couple?.bride?.photoMediaId) {
-    validations.push({ id: input.couple.bride.photoMediaId, kind: 'image', purpose: 'portrait' });
+    validations.push({ id: input.couple.bride.photoMediaId, kind: 'image', purpose: 'couple_portrait' });
   }
   
   input.loveStory?.forEach(story => {
     if (story.photoMediaId) {
-      validations.push({ id: story.photoMediaId, kind: 'image', purpose: 'love_story' });
+      validations.push({ id: story.photoMediaId, kind: 'image', purpose: 'story_image' });
     }
   });
   
@@ -152,7 +174,7 @@ export async function saveEditorContent(
   });
   
   if (input.settings?.backgroundAudioMediaId) {
-    validations.push({ id: input.settings.backgroundAudioMediaId, kind: 'audio', purpose: 'background_music' });
+    validations.push({ id: input.settings.backgroundAudioMediaId, kind: 'audio', purpose: 'background_audio' });
   }
 
   // Validate all collected media IDs
@@ -162,7 +184,7 @@ export async function saveEditorContent(
       .from("media_assets")
       .select("id, kind, purpose, status")
       .eq("invitation_id", input.invitationId)
-      .eq("user_id", userId)
+      .eq("owner_id", userId)
       .in("id", ids);
       
     if (assetError) throw new EditorMutationError("Failed to validate media assets", "INVALID_STATE");

@@ -1,17 +1,19 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import type { MediaPurpose } from "./types";
 
-type UploadState = "idle" | "requesting" | "uploading" | "processing" | "complete" | "error";
+export type UploadState = "idle" | "reserving" | "uploading" | "processing" | "success" | "error";
 
-type UploadResult = {
+export type UploadResult = {
   mediaId: string;
+  url?: string;
 };
 
 type UseMediaUploadOptions = {
   invitationId: string;
   kind: "image" | "audio" | "video";
-  purpose: string;
+  purpose: MediaPurpose;
   onComplete?: (result: UploadResult) => void;
   onError?: (error: string) => void;
 };
@@ -22,7 +24,7 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
   const [error, setError] = useState<string | null>(null);
 
   const upload = useCallback(async (file: File) => {
-    setState("requesting");
+    setState("reserving");
     setError(null);
     setProgress(0);
 
@@ -118,7 +120,7 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
       }
 
       setProgress(100);
-      setState("complete");
+      setState("success");
       onComplete?.({ mediaId });
     } catch (err) {
       const message = err instanceof Error ? err.message : "Upload failed.";

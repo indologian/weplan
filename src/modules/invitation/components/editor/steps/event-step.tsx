@@ -24,9 +24,37 @@ type Props = {
   reorderEditorEvents: ReorderEditorEventsAction;
 };
 
-function formatForInput(isoString?: string | null) {
+function formatForInput(isoString: string | null | undefined, ianaTz: string) {
   if (!isoString) return "";
-  return isoString.substring(0, 16);
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return "";
+    const options = { 
+      timeZone: ianaTz, 
+      year: 'numeric' as const, 
+      month: '2-digit' as const, 
+      day: '2-digit' as const, 
+      hour: '2-digit' as const, 
+      minute: '2-digit' as const,
+      hour12: false
+    };
+    const formatter = new Intl.DateTimeFormat('en-CA', options);
+    const parts = formatter.formatToParts(d);
+    let year = '', month = '', day = '', hour = '', minute = '';
+    for (const part of parts) {
+      if (part.type === 'year') year = part.value;
+      if (part.type === 'month') month = part.value;
+      if (part.type === 'day') day = part.value;
+      if (part.type === 'hour') {
+        hour = part.value;
+        if (hour === '24') hour = '00';
+      }
+      if (part.type === 'minute') minute = part.value;
+    }
+    return `${year}-${month}-${day}T${hour}:${minute}`;
+  } catch {
+    return "";
+  }
 }
 
 function buildIsoString(datetimeLocalStr: string | null | undefined, ianaTz: string) {
@@ -350,8 +378,8 @@ export function EventStep({
                         value={event.timezone || "Asia/Jakarta"}
                         onChange={(e) => {
                           const newTz = e.target.value;
-                          const newStartsAt = event.startsAt ? buildIsoString(formatForInput(event.startsAt), newTz) : null;
-                          const newEndsAt = event.endsAt ? buildIsoString(formatForInput(event.endsAt), newTz) : null;
+                          const newStartsAt = event.startsAt ? buildIsoString(formatForInput(event.startsAt, event.timezone || "Asia/Jakarta"), newTz) : null;
+                          const newEndsAt = event.endsAt ? buildIsoString(formatForInput(event.endsAt, event.timezone || "Asia/Jakarta"), newTz) : null;
                           handleUpdate(event.localId, { timezone: newTz, startsAt: newStartsAt, endsAt: newEndsAt });
                         }}
                       >
@@ -365,7 +393,7 @@ export function EventStep({
                       <Label>Waktu Mulai</Label>
                       <Input
                         type="datetime-local"
-                        value={formatForInput(event.startsAt)}
+                        value={formatForInput(event.startsAt, event.timezone || "Asia/Jakarta")}
                         onChange={(e) => {
                           const val = e.target.value;
                           handleUpdate(event.localId, {
@@ -379,7 +407,7 @@ export function EventStep({
                       <Label>Waktu Selesai (Opsional)</Label>
                       <Input
                         type="datetime-local"
-                        value={formatForInput(event.endsAt)}
+                        value={formatForInput(event.endsAt, event.timezone || "Asia/Jakarta")}
                         onChange={(e) => {
                           const val = e.target.value;
                           handleUpdate(event.localId, {

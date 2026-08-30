@@ -196,24 +196,6 @@ export function AdvancedSettingsStep({
         </AlertDialogContent>
       </AlertDialog>
 
-
-      <AlertDialog open={confirmDialog} onOpenChange={setConfirmDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Konfirmasi Perubahan Privasi</AlertDialogTitle>
-            <AlertDialogDescription>
-              {isPrivate 
-                ? "Anda akan mengubah undangan ini menjadi PRIVATE. Pengunjung tanpa PIN tidak akan bisa melihat undangan."
-                : "Anda akan mengubah undangan ini menjadi PUBLIK. Siapa saja dapat melihat undangan ini tanpa PIN."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmPrivacy}>Ya, Ubah Privasi</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <Card>
         <CardHeader>
           <CardTitle>Pengaturan Media</CardTitle>

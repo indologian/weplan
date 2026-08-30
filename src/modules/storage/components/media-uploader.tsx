@@ -3,13 +3,14 @@
 import { useRef } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { useMediaUpload } from "../hooks";
+import type { MediaPurpose } from "../types";
 import { Loader2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
   invitationId: string;
   kind: "image" | "audio" | "video";
-  purpose: string;
+  purpose: MediaPurpose;
   onSuccess: (mediaId: string) => void;
   label?: string;
   accept?: string;
@@ -74,10 +75,10 @@ export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = 
         type="button" 
         variant="outline" 
         onClick={() => fileInputRef.current?.click()}
-        disabled={state === "requesting" || state === "uploading" || state === "processing"}
+        disabled={state === "reserving" || state === "uploading" || state === "processing"}
         className="w-full sm:w-auto flex gap-2"
       >
-        {(state === "requesting" || state === "uploading" || state === "processing") ? (
+        {(state === "reserving" || state === "uploading" || state === "processing") ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
             Menyimpan... {progress}%

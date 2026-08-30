@@ -5,6 +5,16 @@ import { requestUpload, completeUpload, StorageError } from "@/modules/storage/s
 import { processUploadedMedia } from "@/modules/storage/server/processing";
 import { validateMagicBytes } from "@/shared/lib/validation/magic-bytes";
 
+const VALID_KINDS = ["image", "audio", "video"];
+const VALID_PURPOSES = [
+  "couple_portrait",
+  "story_image",
+  "gallery",
+  "background_audio",
+  "qris_image",
+  "future_uploaded_video",
+];
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const user = await requireUser();
@@ -18,6 +28,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       if (!invitationId || !kind || !purpose || !filename || !mimeType || byteSize === undefined || !firstBytesBase64) {
         return NextResponse.json(
           { success: false, error: "Missing required fields, including firstBytesBase64." },
+          { status: 400 },
+        );
+      }
+
+      if (!VALID_KINDS.includes(kind) || !VALID_PURPOSES.includes(purpose)) {
+        return NextResponse.json(
+          { success: false, error: "Invalid media kind or purpose." },
           { status: 400 },
         );
       }

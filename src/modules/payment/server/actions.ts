@@ -43,6 +43,12 @@ export async function createCheckout(
     throw new PaymentError("Invitation already has entitlement", "ALREADY_ACTIVE");
   }
 
+  // Validate publish readiness BEFORE ANY transaction logic (including reuse)
+  const readiness = await evaluatePublishReadiness(userId, invitationId);
+  if (!readiness.isReady) {
+    throw new PaymentError("Invitation is not ready to publish. Please resolve missing requirements.", "INVITATION_NOT_READY");
+  }
+
   // 2. Check for active checkout & reuse
   const { data: activeTx } = await supabase
     .from("transactions")
@@ -113,13 +119,6 @@ export async function createCheckout(
     audio_size_limit_mb: tier.audio_size_limit_mb,
     watermark_enabled: tier.watermark_enabled,
   };
-
-
-  // Validate publish readiness BEFORE transaction creation
-  const readiness = await evaluatePublishReadiness(userId, invitationId);
-  if (!readiness.isReady) {
-    throw new PaymentError("Invitation is not ready to publish. Please resolve missing requirements.", "INVITATION_NOT_READY");
-  }
 
   const { data: transaction, error: txError } = await supabase
     .from("transactions")

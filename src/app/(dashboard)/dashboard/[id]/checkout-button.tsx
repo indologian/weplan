@@ -6,7 +6,7 @@ import { actionCreateCheckout } from "./checkout-action";
 import { Loader2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { useEditorWorkspace } from "@/modules/invitation/components/editor/editor-workspace-context";
-import { actionEvaluatePublishReadiness } from "@/modules/invitation/server/actions";
+import { actionEvaluatePublishReadiness } from "@/modules/invitation/client-actions";
 
 export function CheckoutButton({ invitationId }: { invitationId: string }) {
   const [loading, setLoading] = useState(false);

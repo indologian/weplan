@@ -36,7 +36,7 @@ export class AutosaveQueue<T> {
     this.active = true;
     
     const runFlush = async (): Promise<AutosaveResult> => {
-      let currentVersion = overrideVersion ?? this.version;
+      let currentVersion = Math.max(overrideVersion ?? this.version, this.version);
       let result: AutosaveResult = { success: true, contentVersion: currentVersion };
       
       while (this.pending && this.latestSnapshot !== undefined) {
@@ -47,6 +47,7 @@ export class AutosaveQueue<T> {
         if (!result.success) {
           this.active = false;
           this.activePromise = null;
+          this.pending = true;
           return result;
         }
 
@@ -72,7 +73,7 @@ export class AutosaveQueue<T> {
   get state() {
     return {
       isSaving: this.active,
-      pendingSave: this.pending,
+      pendingSave: this.generation > this.acknowledgedGeneration,
       localEditGeneration: this.generation,
       lastAckedGeneration: this.acknowledgedGeneration,
       contentVersion: this.version,
