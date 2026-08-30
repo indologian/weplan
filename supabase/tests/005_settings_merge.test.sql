@@ -6,17 +6,17 @@ set local role postgres;
 
 -- 1. Insert a tier, theme, user, and invitation
 insert into public.tiers (id, code, tier_rank, name, price_amount, duration_months, gallery_limit, video_limit, bank_account_limit, audio_enabled)
-values ('00000000-0000-0000-0000-000000000099', 'premium', 99, 'Premium Test', 1000, 12, 10, 5, 2, true)
-on conflict (code) do update set tier_rank = 99, video_limit = 5, bank_account_limit = 2, audio_enabled = true;
+values ('00000000-0000-0000-0000-000000000099', 'test_premium', 20, 'Premium Test', 1000, 12, 10, 5, 2, true)
+on conflict (code) do update set tier_rank = 20, video_limit = 5, bank_account_limit = 2, audio_enabled = true;
 
-insert into public.themes (id, tier_id, code, name, category, directory_path, created_at, updated_at)
-values ('00000000-0000-0000-0000-000000000099', '00000000-0000-0000-0000-000000000099', 'test_theme', 'Test Theme', 'elegant', '/test', now(), now())
-on conflict (code) do nothing;
+insert into public.themes (id, tier_id, renderer_key, slug, name, category, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000099', '00000000-0000-0000-0000-000000000099', 'test_theme', 'test-theme', 'Test Theme', 'modern', now(), now())
+on conflict (slug) do nothing;
 
 insert into auth.users (id) values ('00000000-0000-0000-0000-000000000099')
 on conflict (id) do nothing;
 
-insert into public.user_profiles (id, email, display_name)
+insert into public.user_profiles (id, email, full_name)
 values ('00000000-0000-0000-0000-000000000099', 'test@test.com', 'Test User')
 on conflict (id) do nothing;
 

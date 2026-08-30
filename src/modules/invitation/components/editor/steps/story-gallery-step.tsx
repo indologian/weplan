@@ -35,7 +35,7 @@ export function StoryGalleryStep({
   saveEditorContent: SaveEditorContentAction;
   replaceEditorGallery: ReplaceEditorGalleryAction;
 }) {
-  const { contentVersion, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
+  const { contentVersion, commitRevision, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
 
   // --- Love Story Form Logic ---
@@ -149,10 +149,11 @@ export function StoryGalleryStep({
     }
 
     if (!autosaveQueue.state.pendingSave && !isGalleryDirty) {
+      commitRevision(versionToUse);
       setSectionState("story-gallery", "saved");
     }
     return { success: true as const, version: versionToUse };
-  }, [autosaveQueue, isGalleryDirty, gallery, replaceEditorGallery, invitationId, setSectionState, setConflictState]);
+  }, [autosaveQueue, isGalleryDirty, gallery, replaceEditorGallery, invitationId, commitRevision, setSectionState, setConflictState]);
 
   useEffect(() => {
     registerSection("story-gallery", flushSaveQueue);

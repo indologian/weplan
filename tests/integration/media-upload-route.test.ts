@@ -42,6 +42,30 @@ function completeRequest() {
   });
 }
 
+describe("media upload request validation", () => {
+  it("rejects invalid kind and purpose combinations", async () => {
+    const response = await POST(new NextRequest("http://localhost/api/media/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "request",
+        invitationId: "20000000-0000-4000-8000-000000000002",
+        kind: "audio",
+        purpose: "gallery",
+        filename: "test.mp3",
+        mimeType: "audio/mpeg",
+        byteSize: 123,
+        firstBytesBase64: Buffer.from("ID3").toString("base64"),
+      }),
+    }));
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toEqual({
+      success: false,
+      error: "Invalid media kind or purpose.",
+    });
+  });
+});
+
 describe("media upload completion", () => {
   beforeEach(() => {
     vi.clearAllMocks();

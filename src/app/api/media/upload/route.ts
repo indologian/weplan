@@ -5,7 +5,11 @@ import { requestUpload, completeUpload, StorageError } from "@/modules/storage/s
 import { processUploadedMedia } from "@/modules/storage/server/processing";
 import { validateMagicBytes } from "@/shared/lib/validation/magic-bytes";
 
-const VALID_KINDS = ["image", "audio", "video"];
+const VALID_MAPPINGS: Record<string, string[]> = {
+  image: ["couple_portrait", "story_image", "gallery", "qris_image"],
+  audio: ["background_audio"],
+  video: ["future_uploaded_video"],
+};
 const VALID_PURPOSES = [
   "couple_portrait",
   "story_image",
@@ -32,7 +36,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         );
       }
 
-      if (!VALID_KINDS.includes(kind) || !VALID_PURPOSES.includes(purpose)) {
+      if (!VALID_MAPPINGS[kind] || !VALID_MAPPINGS[kind].includes(purpose)) {
         return NextResponse.json(
           { success: false, error: "Invalid media kind or purpose." },
           { status: 400 },

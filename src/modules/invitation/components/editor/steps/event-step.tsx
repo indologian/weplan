@@ -24,7 +24,7 @@ type Props = {
   reorderEditorEvents: ReorderEditorEventsAction;
 };
 
-function formatForInput(isoString: string | null | undefined, ianaTz: string) {
+export function formatForInput(isoString: string | null | undefined, ianaTz: string) {
   if (!isoString) return "";
   try {
     const d = new Date(isoString);
@@ -57,7 +57,7 @@ function formatForInput(isoString: string | null | undefined, ianaTz: string) {
   }
 }
 
-function buildIsoString(datetimeLocalStr: string | null | undefined, ianaTz: string) {
+export function buildIsoString(datetimeLocalStr: string | null | undefined, ianaTz: string) {
   if (!datetimeLocalStr) return null;
   // Parse purely for offset calculation
   const d = new Date(datetimeLocalStr + ':00Z');

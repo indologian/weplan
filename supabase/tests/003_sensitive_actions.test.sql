@@ -21,8 +21,8 @@ insert into public.tiers (
   id, code, tier_rank, name, price_amount, duration_months,
   gallery_limit, video_limit, bank_account_limit, audio_enabled, audio_size_limit_mb
 ) values
-  ('30000000-0000-0000-0000-000000000003', 'basic', 10, 'Fixture Basic', 1, 1, 0, 0, 1, false, 0),
-  ('30000000-0000-0000-0000-000000000004', 'premium', 20, 'Fixture Premium', 2, 1, 0, 1, 2, true, 5);
+  ('30000000-0000-0000-0000-000000000003', 'test_basic', 10, 'Fixture Basic', 1, 1, 0, 0, 1, false, 0),
+  ('30000000-0000-0000-0000-000000000004', 'test_premium', 20, 'Fixture Premium', 2, 1, 0, 1, 2, true, 5);
 
 insert into public.themes (id, tier_id, renderer_key, name, slug) values
   ('40000000-0000-0000-0000-000000000004', '30000000-0000-0000-0000-000000000004', 'fixture-premium', 'Fixture Premium A', 'fixture-premium-a'),

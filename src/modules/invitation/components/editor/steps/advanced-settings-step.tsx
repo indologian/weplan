@@ -34,6 +34,7 @@ export function AdvancedSettingsStep({
   const { contentVersion, commitRevision, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
 
   // --- Audio / Video Logic (Autosaved) ---
+  const [embedId] = useState(() => initialData.settings.videoEmbeds?.[0]?.id || crypto.randomUUID());
   const { control, register, setValue } = useForm<AdvancedSettingsForm>({
     defaultValues: {
       backgroundAudioMediaId: initialData.settings.backgroundAudioMediaId ?? "",
@@ -51,7 +52,7 @@ export function AdvancedSettingsStep({
             expectedVersion,
             settings: {
               ...(snapshot.backgroundAudioMediaId ? { backgroundAudioMediaId: snapshot.backgroundAudioMediaId } : { backgroundAudioMediaId: null }),
-              ...(snapshot.videoEmbedId && snapshot.videoEmbedId.length === 11 ? { videoEmbeds: [{ id: crypto.randomUUID(), kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : { videoEmbeds: [] }),
+              ...(snapshot.videoEmbedId && snapshot.videoEmbedId.length === 11 ? { videoEmbeds: [{ id: embedId, kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : { videoEmbeds: [] }),
             },
           });
           if (result.success)
@@ -92,9 +93,10 @@ export function AdvancedSettingsStep({
       }
       return { success: false as const, error: result.code };
     }
-    setSectionState("advanced-settings", "saved");
+    if (result.contentVersion) commitRevision(result.contentVersion);
+      setSectionState("advanced-settings", "saved");
     return { success: true as const, version: result.contentVersion };
-  }, [autosaveQueue, setSectionState, setConflictState]);
+  }, [autosaveQueue, commitRevision, setSectionState, setConflictState]);
 
   useEffect(() => {
     registerSection("advanced-settings", flushSaveQueue);
@@ -133,7 +135,7 @@ export function AdvancedSettingsStep({
   const [isPrivate, setIsPrivate] = useState(initialData.isPrivate);
   const [pin, setPin] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
-  const [privacyMessage, setPrivacyMessage] = useState("");
+  const [privacyMessage, setPrivacyMessage] = useState<{text: string; type: "error" | "success"} | null>(null);
   const [privacyPending, setPrivacyPending] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState(false);
 
@@ -145,7 +147,7 @@ export function AdvancedSettingsStep({
     const flushed = await flushAll();
     if (!flushed.success) {
       setPrivacyPending(false);
-      setPrivacyMessage("Gagal menyimpan perubahan sebelumnya.");
+      setPrivacyMessage({ text: "Gagal menyimpan perubahan sebelumnya.", type: "error" });
       return;
     }
 
@@ -158,20 +160,20 @@ export function AdvancedSettingsStep({
     setPrivacyPending(false);
     
     if (!result.success) {
-      setPrivacyMessage(result.error);
+      setPrivacyMessage({ text: result.error, type: "error" });
       return;
     }
     
     commitRevision(result.data.contentVersion);
     setPin("");
     setAuthenticated(false);
-    setPrivacyMessage("Pengaturan privasi tersimpan.");
-    setTimeout(() => setPrivacyMessage(""), 3000);
+    setPrivacyMessage({ text: "Pengaturan privasi tersimpan.", type: "success" });
+    setTimeout(() => setPrivacyMessage(null), 3000);
   };
   
   const handleUpdatePrivacyClick = () => {
     if (!authenticated) {
-      setPrivacyMessage("Harap verifikasi identitas terlebih dahulu.");
+      setPrivacyMessage({ text: "Harap verifikasi identitas terlebih dahulu.", type: "error" });
       return;
     }
     setConfirmDialog(true);
@@ -287,7 +289,7 @@ export function AdvancedSettingsStep({
           )}
 
           {privacyMessage && (
-            <p className="text-sm font-medium text-green-600" aria-live="polite">{privacyMessage}</p>
+            <p className="text-sm font-medium text-green-600" aria-live="polite">{privacyMessage.text}</p>
           )}
 
           <div className="pt-4 border-t">

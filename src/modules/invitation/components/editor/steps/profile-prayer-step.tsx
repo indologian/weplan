@@ -44,7 +44,7 @@ export function ProfilePrayerStep({
   initialData: EditorDTO;
   saveEditorContent: SaveEditorContentAction;
 }) {
-  const { contentVersion, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
+  const { contentVersion, commitRevision, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
 
   const { control, register, setValue } = useForm<ProfilePrayerForm>({
     defaultValues: {
@@ -121,9 +121,10 @@ export function ProfilePrayerStep({
       }
       return { success: false as const, error: result.code };
     }
-    setSectionState("profile-prayer", "saved");
+    if (result.contentVersion) commitRevision(result.contentVersion);
+      setSectionState("profile-prayer", "saved");
     return { success: true as const, version: result.contentVersion };
-  }, [autosaveQueue, setSectionState, setConflictState]);
+  }, [autosaveQueue, commitRevision, setSectionState, setConflictState]);
 
   useEffect(() => {
     registerSection("profile-prayer", flushSaveQueue);

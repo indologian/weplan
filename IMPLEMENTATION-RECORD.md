@@ -2876,3 +2876,12 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - **Timezone**: Converted generic implicit dates to explicitly offset IANA Intl.DateTimeFormat for events logic to preserve accurate wall-clock configurations regardless of browser location.
 - **Conflict UX & UI**: Introduced non-blocking AlertDialog mechanisms over generic native alerts for privacy confirmations and global cross-tab overwrite protection (conflictState).
 - **Tests**: Patched CI SQLite fixture collisions in supabase/tests using ON CONFLICT DO UPDATE SET logic to preserve existing 	ier seeds, and successfully verified TypeScript stability (npm run typecheck PASS).
+
+## 2026-08-30 - Editor Regression Tests & UI Cleanup
+**Commit**: (pending)
+
+- **Regression Tests**: Added `autosave-queue.test.ts` for concurrent flush coordination, `event-timezone.test.ts` for local wall-clock timezone preservation, `checkout-readiness.test.ts` for checkout gatekeeping, and `media-upload-route.test.ts` for mapping validations.
+- **Fixtures**: Refactored pgTAP fixtures in `supabase/tests` to use isolated test UUIDs (e.g. `test_basic`, `test_premium`) to prevent collisions with production canonical schema seeds.
+- **UI State**: Implemented clear loading and error boundaries for the Theme selector in `create-invitation-form.tsx` and mapped `privacyMessage` errors/success explicitly instead of statically rendering in green.
+- **Correctness**: Ensured `commitRevision` authoritative sync for all individual section success blocks (Profile, Gallery, Settings).
+- **Verification**: `npm run test` (39 files, 275 tests passed), `npm run lint` passed, `npm run typecheck` passed, and `npm run build:cloudflare` succeeded.

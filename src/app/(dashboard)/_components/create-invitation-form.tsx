@@ -29,6 +29,8 @@ export function CreateInvitationForm({
 }) {
   const router = useRouter();
   const [themes, setThemes] = useState<Theme[]>([]);
+  const [isLoadingThemes, setIsLoadingThemes] = useState(true);
+  const [themesError, setThemesError] = useState("");
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedThemeId, setSelectedThemeId] = useState<string | null>(null);
   const [groomName, setGroomName] = useState("");
@@ -57,8 +59,14 @@ export function CreateInvitationForm({
         .eq("is_active", true)
         .order("sort_order", { ascending: true });
       if (data) setThemes(data);
+      else setThemesError("Gagal memuat tema.");
+      setIsLoadingThemes(false);
     }
-    void loadThemes();
+    loadThemes().catch(() => {
+      setThemesError("Terjadi kesalahan.");
+      setIsLoadingThemes(false);
+    });
+    
   }, []);
 
   async function handleCreate(e: React.FormEvent) {
@@ -110,6 +118,9 @@ export function CreateInvitationForm({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {isLoadingThemes && <p className="text-sm text-muted-foreground col-span-full">Memuat pilihan tema...</p>}
+          {themesError && <p className="text-sm text-red-500 col-span-full">{themesError}</p>}
+          {!isLoadingThemes && !themesError && themes.length === 0 && <p className="text-sm text-muted-foreground col-span-full">Tidak ada tema yang tersedia saat ini.</p>}
           {themes.map((theme) => (
             <button
               key={theme.id}
