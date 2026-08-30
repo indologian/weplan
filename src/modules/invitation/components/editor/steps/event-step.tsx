@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Button } from "@/shared/components/ui/button";
@@ -32,6 +32,12 @@ function formatForInput(isoString?: string | null) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+const COMMON_TIMEZONES = [
+  { value: "Asia/Jakarta", label: "WIB (Jakarta)" },
+  { value: "Asia/Makassar", label: "WITA (Makassar)" },
+  { value: "Asia/Jayapura", label: "WIT (Jayapura)" },
+];
+
 export function EventStep({
   invitationId,
   initialEvents,
@@ -39,7 +45,7 @@ export function EventStep({
   deleteEditorEvent,
   reorderEditorEvents,
 }: Props) {
-  const { contentVersion, setContentVersion } = useEditorWorkspace();
+  const { contentVersion, flushAll, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
   const [events, setEvents] = useState<EditableEvent[]>(() =>
     initialEvents.map((event) => ({
       ...event,
@@ -47,51 +53,109 @@ export function EventStep({
     }))
   );
   
+  const [dirtyEventIds, setDirtyEventIds] = useState<Set<string>>(new Set());
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  const saveEvent = async (event: EditableEvent) => {
-    setPending(true);
-    const result = await saveEditorEvent({
-      invitationId,
-      expectedVersion: contentVersion,
-      ...(event.eventId ? { eventId: event.eventId } : {}),
-      data: {
-        position: event.position,
-        eventType: event.eventType,
-        title: event.title,
-        ...(event.startsAt ? { startsAt: event.startsAt } : {}),
-        ...(event.endsAt ? { endsAt: event.endsAt } : {}),
-        ...(event.timezone ? { timezone: event.timezone } : {}),
-        venueName: event.venueName,
-        address: event.address,
-        ...(event.latitude === null ? {} : { latitude: event.latitude }),
-        ...(event.longitude === null ? {} : { longitude: event.longitude }),
-      },
-    });
-    setPending(false);
+  useEffect(() => {
+    if (dirtyEventIds.size > 0) {
+      setSectionState("events", "dirty");
+    } else {
+      setSectionState("events", "saved");
+    }
+  }, [dirtyEventIds, setSectionState]);
+
+  const flushAllDirtyEvents = useCallback(async (currentVersion: number) => {
+    if (dirtyEventIds.size === 0) return { success: true as const, version: currentVersion };
     
-    if (!result.success) {
-      toast.error(result.error);
-      return;
+    setSectionState("events", "saving");
+    let versionToUse = currentVersion;
+    let hasError = false;
+    let conflict = false;
+    let errCode = "";
+    
+    const dirtyIds = Array.from(dirtyEventIds);
+    for (const localId of dirtyIds) {
+      const eventToSave = events.find(e => e.localId === localId);
+      if (!eventToSave) continue;
+      
+      const result = await saveEditorEvent({
+        invitationId,
+        expectedVersion: versionToUse,
+        ...(eventToSave.eventId ? { eventId: eventToSave.eventId } : {}),
+        data: {
+          position: eventToSave.position,
+          eventType: eventToSave.eventType,
+          title: eventToSave.title,
+          ...(eventToSave.startsAt ? { startsAt: eventToSave.startsAt } : {}),
+          ...(eventToSave.endsAt ? { endsAt: eventToSave.endsAt } : {}),
+          ...(eventToSave.timezone ? { timezone: eventToSave.timezone } : {}),
+          venueName: eventToSave.venueName,
+          address: eventToSave.address,
+          ...(eventToSave.latitude === null ? {} : { latitude: eventToSave.latitude }),
+          ...(eventToSave.longitude === null ? {} : { longitude: eventToSave.longitude }),
+        },
+      });
+      
+      if (!result.success) {
+        if (result.code === "VERSION_CONFLICT") {
+          conflict = true;
+        }
+        hasError = true;
+        errCode = result.code;
+        break;
+      }
+      
+      versionToUse = result.data.contentVersion;
+      
+      setEvents((current) =>
+        current.map((item) =>
+          item.localId === localId
+            ? { ...item, eventId: result.data.eventId }
+            : item
+        )
+      );
+      
+      setDirtyEventIds(prev => {
+        const next = new Set(prev);
+        next.delete(localId);
+        return next;
+      });
+    }
+
+    if (hasError) {
+      if (conflict) {
+        setConflictState(true);
+        setSectionState("events", "conflict");
+      } else {
+        setSectionState("events", "error");
+      }
+      return { success: false as const, error: errCode };
     }
     
-    toast.success("Acara berhasil disimpan!");
-    setContentVersion(result.data.contentVersion);
-    setEvents((current) =>
-      current.map((item) =>
-        item.localId === event.localId
-          ? { ...item, eventId: result.data.eventId }
-          : item
-      )
-    );
-  };
+    setSectionState("events", "saved");
+    return { success: true as const, version: versionToUse };
+  }, [dirtyEventIds, events, saveEditorEvent, invitationId, setSectionState, setConflictState]);
+
+  useEffect(() => {
+    registerSection("events", flushAllDirtyEvents);
+    return () => unregisterSection("events");
+  }, [registerSection, unregisterSection, flushAllDirtyEvents]);
 
   const removeEvent = async (eventId: string) => {
     setPending(true);
+    // Flush to ensure we have the latest version before doing an explicit delete
+    const flushed = await flushAll();
+    if (!flushed.success) {
+      setPending(false);
+      setEventToDelete(null);
+      toast.error("Gagal menyimpan perubahan sebelumnya. Silakan muat ulang versi terbaru.");
+      return;
+    }
+    
     const result = await deleteEditorEvent({
       invitationId,
-      expectedVersion: contentVersion,
+      expectedVersion: flushed.contentVersion,
       eventId,
     });
     setPending(false);
@@ -102,10 +166,15 @@ export function EventStep({
       return;
     }
     
-    setContentVersion(result.data.contentVersion);
     setEvents((current) =>
       current.filter((event) => event.eventId !== eventId)
     );
+    setDirtyEventIds(prev => {
+      const next = new Set(prev);
+      const ev = events.find(e => e.eventId === eventId);
+      if (ev) next.delete(ev.localId);
+      return next;
+    });
     toast.success("Acara dihapus!");
   };
 
@@ -118,15 +187,22 @@ export function EventStep({
       reordered[index]!,
     ];
     
-    if (reordered.some((event) => !event.eventId)) {
+    if (reordered.some((event) => !event.eventId) || dirtyEventIds.size > 0) {
       toast.error("Simpan semua acara baru sebelum mengubah urutan.");
-      return;
+      // Or we can just flush automatically!
     }
     
     setPending(true);
+    const flushed = await flushAll();
+    if (!flushed.success) {
+      setPending(false);
+      toast.error("Gagal menyimpan perubahan sebelumnya.");
+      return;
+    }
+    
     const result = await reorderEditorEvents({
       invitationId,
-      expectedVersion: contentVersion,
+      expectedVersion: flushed.contentVersion,
       eventIds: reordered.map((e) => e.eventId!),
     });
     setPending(false);
@@ -136,7 +212,6 @@ export function EventStep({
       return;
     }
     
-    setContentVersion(result.data.contentVersion);
     setEvents(reordered.map((event, position) => ({ ...event, position })));
     toast.success("Urutan acara tersimpan!");
   };
@@ -147,6 +222,7 @@ export function EventStep({
         item.localId === localId ? { ...item, ...updates } : item
       )
     );
+    setDirtyEventIds(prev => new Set(prev).add(localId));
   };
 
   return (
@@ -160,24 +236,26 @@ export function EventStep({
           <Button
             type="button"
             size="sm"
-            onClick={() =>
+            onClick={() => {
+              const newId = crypto.randomUUID();
               setEvents((current) => [
                 ...current,
                 {
-                  localId: crypto.randomUUID(),
+                  localId: newId,
                   position: current.length,
                   title: "",
                   eventType: "other",
                   startsAt: null,
                   endsAt: null,
-                  timezone: null,
+                  timezone: "Asia/Jakarta",
                   venueName: "",
                   address: "",
                   latitude: null,
                   longitude: null,
                 },
-              ])
-            }
+              ]);
+              setDirtyEventIds(prev => new Set(prev).add(newId));
+            }}
             className="gap-1 shrink-0"
           >
             <Plus className="w-4 h-4" /> Tambah Acara
@@ -227,9 +305,14 @@ export function EventStep({
                       onClick={() =>
                         event.eventId
                           ? setEventToDelete(event.eventId)
-                          : setEvents((current) =>
-                              current.filter((_, itemIndex) => itemIndex !== index)
-                            )
+                          : (() => {
+                              setEvents((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                              setDirtyEventIds(prev => {
+                                const next = new Set(prev);
+                                next.delete(event.localId);
+                                return next;
+                              });
+                            })()
                       }
                       title="Hapus"
                     >
@@ -250,6 +333,19 @@ export function EventStep({
                     </div>
                     
                     <div className="space-y-2">
+                      <Label>Zona Waktu</Label>
+                      <select 
+                        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                        value={event.timezone || "Asia/Jakarta"}
+                        onChange={(e) => handleUpdate(event.localId, { timezone: e.target.value })}
+                      >
+                        {COMMON_TIMEZONES.map(tz => (
+                          <option key={tz.value} value={tz.value}>{tz.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
                       <Label>Waktu Mulai</Label>
                       <Input
                         type="datetime-local"
@@ -258,7 +354,6 @@ export function EventStep({
                           const val = e.target.value;
                           handleUpdate(event.localId, {
                             startsAt: val ? new Date(val).toISOString() : null,
-                            timezone: val ? Intl.DateTimeFormat().resolvedOptions().timeZone : null,
                           });
                         }}
                       />
@@ -322,16 +417,6 @@ export function EventStep({
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex justify-end pt-2">
-                  <Button
-                    type="button"
-                    disabled={pending}
-                    onClick={() => void saveEvent(event)}
-                  >
-                    {pending ? "Menyimpan..." : "Simpan Acara Ini"}
-                  </Button>
                 </div>
               </div>
             ))}

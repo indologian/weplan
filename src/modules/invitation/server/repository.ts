@@ -88,7 +88,7 @@ function containsUnsupportedM2Content(input: EditorContentAutosaveInput): boolea
   if (input.loveStory?.some((item) => item.photoMediaId !== undefined)) return true;
   if (input.bankAccounts?.some((item) => item.qrisMediaId !== undefined)) return true;
   if (input.settings?.backgroundAudioMediaId !== undefined) return true;
-  return input.settings?.themeOverrides !== undefined
+  return input.settings?.themeOverrides != null
     && Object.keys(input.settings.themeOverrides).length > 0;
 }
 

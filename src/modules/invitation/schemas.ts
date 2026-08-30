@@ -164,23 +164,23 @@ export const bankAccountItemSchema = z.object({
 }).strict();
 
 export const invitationSettingsSchema = z.object({
-  openingText: z.string().trim().max(1000).optional(),
-  quoteText: z.string().trim().max(500).optional(),
-  backgroundAudioMediaId: z.uuid().optional(),
+  openingText: z.string().trim().max(1000).nullish(),
+  quoteText: z.string().trim().max(500).nullish(),
+  backgroundAudioMediaId: z.uuid().nullish(),
   videoEmbeds: z.array(z.object({
     id: z.uuid(),
     kind: z.enum(["video", "live"]),
     provider: z.literal("youtube"),
     externalId: z.string().trim().regex(/^[A-Za-z0-9_-]{11}$/),
     title: z.string().trim().max(160).optional(),
-  }).strict()).optional(),
+  }).strict()).nullish(),
   physicalGift: z.object({
     enabled: z.boolean(),
     recipient: z.string().trim().max(160).optional(),
     address: z.string().trim().max(1000).optional(),
-  }).strict().optional(),
-  sectionVisibility: z.record(z.string().trim().min(1).max(80), z.boolean()).optional(),
-  themeOverrides: z.record(z.string().trim().min(1).max(80), z.unknown()).optional(),
+  }).strict().nullish(),
+  sectionVisibility: z.record(z.string().trim().min(1).max(80), z.boolean()).nullish(),
+  themeOverrides: z.record(z.string().trim().min(1).max(80), z.unknown()).nullish(),
 }).strict().superRefine((settings, context) => {
   if (settings.physicalGift?.enabled && !settings.physicalGift.recipient?.trim()) context.addIssue({ code:"custom", path:["physicalGift","recipient"], message:"Nama penerima hadiah wajib diisi." });
   if (settings.physicalGift?.enabled && !settings.physicalGift.address?.trim()) context.addIssue({ code:"custom", path:["physicalGift","address"], message:"Alamat hadiah wajib diisi." });

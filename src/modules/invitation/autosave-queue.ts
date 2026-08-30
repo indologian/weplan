@@ -27,22 +27,25 @@ export class AutosaveQueue<T> {
     return this.generation;
   }
 
-  async flush(): Promise<AutosaveResult | null> {
+  async flush(overrideVersion?: number): Promise<AutosaveResult | null> {
     if (this.active || !this.pending || this.latestSnapshot === undefined) return null;
 
     this.active = true;
-    let result: AutosaveResult = { success: true, contentVersion: this.version };
+    let currentVersion = overrideVersion ?? this.version;
+    let result: AutosaveResult = { success: true, contentVersion: currentVersion };
+    
     while (this.pending && this.latestSnapshot !== undefined) {
       this.pending = false;
       const requestGeneration = this.generation;
       const snapshot = this.latestSnapshot;
-      result = await this.persist(snapshot, this.version);
+      result = await this.persist(snapshot, currentVersion);
       if (!result.success) {
         this.active = false;
         return result;
       }
 
-      this.version = Math.max(this.version, result.contentVersion);
+      currentVersion = Math.max(currentVersion, result.contentVersion);
+      this.version = Math.max(this.version, currentVersion);
       this.acknowledgedGeneration = requestGeneration;
       if (this.generation > requestGeneration) this.pending = true;
     }

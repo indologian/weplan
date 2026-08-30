@@ -30,7 +30,7 @@ export function AdvancedSettingsStep({
   issueSensitiveAuth: IssueSensitiveAuthAction;
   updateEditorPrivacy: UpdateEditorPrivacyAction;
 }) {
-  const { contentVersion, setContentVersion, registerFlushCallback, unregisterFlushCallback, saveState, setSaveState, setConflictState } = useEditorWorkspace();
+  const { contentVersion, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
 
   // --- Audio / Video Logic (Autosaved) ---
   const { control, register, setValue } = useForm<AdvancedSettingsForm>({
@@ -49,9 +49,8 @@ export function AdvancedSettingsStep({
             invitationId: initialData.invitationId,
             expectedVersion,
             settings: {
-              ...initialData.settings,
-              ...(snapshot.backgroundAudioMediaId ? { backgroundAudioMediaId: snapshot.backgroundAudioMediaId } : {}),
-              ...(snapshot.videoEmbedId && snapshot.videoEmbedId.length === 11 ? { videoEmbeds: [{ id: crypto.randomUUID(), kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : {}),
+              ...(snapshot.backgroundAudioMediaId ? { backgroundAudioMediaId: snapshot.backgroundAudioMediaId } : { backgroundAudioMediaId: null }),
+              ...(snapshot.videoEmbedId && snapshot.videoEmbedId.length === 11 ? { videoEmbeds: [{ id: crypto.randomUUID(), kind: "video", provider: "youtube", externalId: snapshot.videoEmbedId }] } : { videoEmbeds: [] }),
             },
           });
           if (result.success)
@@ -78,29 +77,28 @@ export function AdvancedSettingsStep({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialized = useRef(false);
 
-  const flushSaveQueue = useCallback(async () => {
-    if (!autosaveQueue.state.pendingSave) return { success: true };
-    setSaveState("saving");
-    const result = await autosaveQueue.flush();
-    if (!result) return { success: true };
+  const flushSaveQueue = useCallback(async (version: number) => {
+    if (!autosaveQueue.state.pendingSave) return { success: true, version };
+    setSectionState("advanced-settings", "saving");
+    const result = await autosaveQueue.flush(version);
+    if (!result) return { success: true, version };
     if (!result.success) {
       if (result.code === "VERSION_CONFLICT") {
         setConflictState(true);
-        setSaveState("conflict");
+        setSectionState("advanced-settings", "conflict");
       } else {
-        setSaveState("error");
+        setSectionState("advanced-settings", "error");
       }
-      return { success: false, error: result.code };
+      return { success: false as const, error: result.code };
     }
-    setContentVersion(result.contentVersion);
-    setSaveState("saved");
-    return { success: true, version: result.contentVersion };
-  }, [autosaveQueue, setContentVersion, setSaveState, setConflictState]);
+    setSectionState("advanced-settings", "saved");
+    return { success: true as const, version: result.contentVersion };
+  }, [autosaveQueue, setSectionState, setConflictState]);
 
   useEffect(() => {
-    registerFlushCallback("settings", flushSaveQueue);
-    return () => unregisterFlushCallback("settings");
-  }, [registerFlushCallback, unregisterFlushCallback, flushSaveQueue]);
+    registerSection("advanced-settings", flushSaveQueue);
+    return () => unregisterSection("advanced-settings");
+  }, [registerSection, unregisterSection, flushSaveQueue]);
 
   useEffect(() => {
     autosaveQueue.adoptServerVersion(contentVersion);
@@ -116,17 +114,17 @@ export function AdvancedSettingsStep({
       videoEmbedId,
     });
     setLocalEditGeneration(generation);
-    setSaveState("dirty");
-  }, [autosaveQueue, backgroundAudioMediaId, videoEmbedId, setSaveState]);
+    setSectionState("advanced-settings", "dirty");
+  }, [autosaveQueue, backgroundAudioMediaId, videoEmbedId, setSectionState]);
 
   useEffect(() => {
-    if (localEditGeneration === 0 || saveState === "conflict") return;
+    if (localEditGeneration === 0) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => void flushSaveQueue(), 1000);
+    saveTimer.current = setTimeout(() => void flushSaveQueue(contentVersion), 1000);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [flushSaveQueue, localEditGeneration, saveState]);
+  }, [flushSaveQueue, localEditGeneration, contentVersion]);
 
 
   // --- Privacy Logic (Dedicated Mutation) ---
@@ -136,14 +134,20 @@ export function AdvancedSettingsStep({
   const [privacyMessage, setPrivacyMessage] = useState("");
   const [privacyPending, setPrivacyPending] = useState(false);
 
+  const { flushAll } = useEditorWorkspace();
   const updatePrivacy = async () => {
     setPrivacyPending(true);
     // Ensure all other settings are flushed first before this sensitive CAS operation
-    await flushSaveQueue();
+    const flushed = await flushAll();
+    if (!flushed.success) {
+      setPrivacyPending(false);
+      setPrivacyMessage("Gagal menyimpan perubahan sebelumnya.");
+      return;
+    }
 
     const result = await updateEditorPrivacy({
       invitationId: initialData.invitationId,
-      expectedVersion: contentVersion,
+      expectedVersion: flushed.contentVersion,
       isPrivate,
       ...(pin ? { pin } : {}),
     });
@@ -156,7 +160,6 @@ export function AdvancedSettingsStep({
     
     setPin("");
     setAuthenticated(false);
-    setContentVersion(result.data.contentVersion);
     setPrivacyMessage("Pengaturan privasi tersimpan.");
     toast.success("Pengaturan privasi tersimpan!");
   };

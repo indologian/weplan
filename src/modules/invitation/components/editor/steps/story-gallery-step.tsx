@@ -35,7 +35,7 @@ export function StoryGalleryStep({
   saveEditorContent: SaveEditorContentAction;
   replaceEditorGallery: ReplaceEditorGalleryAction;
 }) {
-  const { contentVersion, setContentVersion, registerFlushCallback, unregisterFlushCallback, saveState, setSaveState, setConflictState } = useEditorWorkspace();
+  const { contentVersion, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
   const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
 
   // --- Love Story Form Logic ---
@@ -96,29 +96,68 @@ export function StoryGalleryStep({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialized = useRef(false);
 
-  const flushSaveQueue = useCallback(async () => {
-    if (!autosaveQueue.state.pendingSave) return { success: true };
-    setSaveState("saving");
-    const result = await autosaveQueue.flush();
-    if (!result) return { success: true };
-    if (!result.success) {
-      if (result.code === "VERSION_CONFLICT") {
-        setConflictState(true);
-        setSaveState("conflict");
-      } else {
-        setSaveState("error");
+  // --- Gallery Logic ---
+  const [gallery, setGallery] = useState(
+    () => initialData.gallery.map((item) => ({ mediaAssetId: item.mediaAssetId })),
+  );
+  const [isGalleryDirty, setIsGalleryDirty] = useState(false);
+
+  const flushSaveQueue = useCallback(async (currentVersion: number) => {
+    let versionToUse = currentVersion;
+    let hasError = false;
+    let conflict = false;
+    let errCode = "";
+
+    if (autosaveQueue.state.pendingSave) {
+      setSectionState("story-gallery", "saving");
+      const result = await autosaveQueue.flush(versionToUse);
+      if (result && !result.success) {
+        hasError = true;
+        if (result.code === "VERSION_CONFLICT") conflict = true;
+        errCode = result.code;
+      } else if (result && result.success) {
+        versionToUse = result.contentVersion;
       }
-      return { success: false, error: result.code };
     }
-    setContentVersion(result.contentVersion);
-    setSaveState("saved");
-    return { success: true, version: result.contentVersion };
-  }, [autosaveQueue, setContentVersion, setSaveState, setConflictState]);
+
+    if (!hasError && isGalleryDirty) {
+      setSectionState("story-gallery", "saving");
+      const result = await replaceEditorGallery({
+        invitationId,
+        expectedVersion: versionToUse,
+        mediaAssetIds: gallery.map((item) => item.mediaAssetId),
+      });
+
+      if (!result.success) {
+        hasError = true;
+        if (result.code === "VERSION_CONFLICT") conflict = true;
+        errCode = result.code;
+      } else {
+        versionToUse = result.data.contentVersion;
+        setIsGalleryDirty(false);
+      }
+    }
+
+    if (hasError) {
+      if (conflict) {
+        setConflictState(true);
+        setSectionState("story-gallery", "conflict");
+      } else {
+        setSectionState("story-gallery", "error");
+      }
+      return { success: false as const, error: errCode };
+    }
+
+    if (!autosaveQueue.state.pendingSave && !isGalleryDirty) {
+      setSectionState("story-gallery", "saved");
+    }
+    return { success: true as const, version: versionToUse };
+  }, [autosaveQueue, isGalleryDirty, gallery, replaceEditorGallery, invitationId, setSectionState, setConflictState]);
 
   useEffect(() => {
-    registerFlushCallback("story", flushSaveQueue);
-    return () => unregisterFlushCallback("story");
-  }, [registerFlushCallback, unregisterFlushCallback, flushSaveQueue]);
+    registerSection("story-gallery", flushSaveQueue);
+    return () => unregisterSection("story-gallery");
+  }, [registerSection, unregisterSection, flushSaveQueue]);
 
   useEffect(() => {
     autosaveQueue.adoptServerVersion(contentVersion);
@@ -131,54 +170,39 @@ export function StoryGalleryStep({
     }
     const generation = autosaveQueue.markDirty({ loveStory: loveStoryValues });
     setLocalEditGeneration(generation);
-    setSaveState("dirty");
-  }, [autosaveQueue, loveStoryValues, setSaveState]);
+    setSectionState("story-gallery", "dirty");
+  }, [autosaveQueue, loveStoryValues, setSectionState]);
 
   useEffect(() => {
-    if (localEditGeneration === 0 || saveState === "conflict") return;
+    if (localEditGeneration === 0) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => void flushSaveQueue(), 1000);
+    saveTimer.current = setTimeout(() => void flushSaveQueue(contentVersion), 1000);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [flushSaveQueue, localEditGeneration, saveState]);
+  }, [flushSaveQueue, localEditGeneration, contentVersion]);
 
-
-  // --- Gallery Logic ---
-  const [gallery, setGallery] = useState(
-    () => initialData.gallery.map((item) => ({ mediaAssetId: item.mediaAssetId })),
-  );
-  const [isSavingGallery, setIsSavingGallery] = useState(false);
+  // Gallery triggers
+  useEffect(() => {
+    if (isGalleryDirty) {
+      setSectionState("story-gallery", "dirty");
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => void flushSaveQueue(contentVersion), 1000);
+    }
+  }, [isGalleryDirty, flushSaveQueue, contentVersion, setSectionState]);
 
   const addPhoto = (mediaId: string) => {
     setGallery((current) => [
       ...current,
       { mediaAssetId: mediaId },
     ]);
-    toast.success("Foto ditambahkan ke galeri, tekan Simpan untuk memperbarui.");
+    setIsGalleryDirty(true);
   };
 
   const removePhoto = (mediaAssetId: string) => {
     setGallery((current) => current.filter((item) => item.mediaAssetId !== mediaAssetId));
+    setIsGalleryDirty(true);
     setPhotoToDelete(null);
-  };
-
-  const saveGallery = async () => {
-    setIsSavingGallery(true);
-    const result = await replaceEditorGallery({
-      invitationId,
-      expectedVersion: contentVersion,
-      mediaAssetIds: gallery.map((item) => item.mediaAssetId),
-    });
-    setIsSavingGallery(false);
-
-    if (!result.success) {
-      toast.error(result.error);
-      return;
-    }
-
-    setContentVersion(result.data.contentVersion);
-    toast.success("Galeri berhasil disimpan!");
   };
 
   return (
@@ -298,15 +322,14 @@ export function StoryGalleryStep({
               <div key={item.mediaAssetId} className="relative aspect-square bg-muted rounded-lg border flex items-center justify-center overflow-hidden group">
                 {item.mediaAssetId ? (
                   <img
-                    src={`/api/media/${item.mediaAssetId}`}
-                    alt={`Gallery ${index + 1}`}
+                    src={"/api/media/${item.mediaAssetId}"}
+                    alt={"Gallery $index + 1"}
                     className="object-cover w-full h-full"
                   />
                 ) : (
                   <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
                 )}
                 
-                {/* Mobile-friendly overlay that is also hoverable on desktop */}
                 <div className="absolute bottom-2 right-2 sm:inset-0 sm:bg-black/50 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center justify-center">
                   <Button
                     variant="destructive"
@@ -330,12 +353,6 @@ export function StoryGalleryStep({
                 onSuccess={addPhoto}
               />
             </div>
-          </div>
-          
-          <div className="flex justify-end pt-4 border-t">
-            <Button type="button" onClick={() => void saveGallery()} disabled={isSavingGallery}>
-              {isSavingGallery ? "Menyimpan..." : "Simpan Perubahan Galeri"}
-            </Button>
           </div>
         </CardContent>
       </Card>

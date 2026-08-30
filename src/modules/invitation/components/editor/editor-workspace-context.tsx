@@ -1,17 +1,21 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode, useRef } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from "react";
+
+type FlushResult = { success: true; version?: number } | { success: false; error?: string };
+
+type SectionState = "saved" | "dirty" | "saving" | "error" | "conflict";
 
 type EditorWorkspaceContextType = {
   contentVersion: number;
   setContentVersion: (version: number) => void;
-  registerFlushCallback: (id: string, callback: () => Promise<{ success: boolean; version?: number; error?: string }>) => void;
-  unregisterFlushCallback: (id: string) => void;
-  flushAll: () => Promise<{ success: boolean; error?: string }>;
+  registerSection: (id: string, flushFn: (version: number) => Promise<FlushResult>) => void;
+  unregisterSection: (id: string) => void;
+  setSectionState: (id: string, state: SectionState) => void;
+  flushAll: () => Promise<{ success: boolean; contentVersion: number; error?: string }>;
   conflictState: boolean;
   setConflictState: (hasConflict: boolean) => void;
-  saveState: "saved" | "dirty" | "saving" | "error" | "conflict";
-  setSaveState: (state: "saved" | "dirty" | "saving" | "error" | "conflict") => void;
+  globalSaveState: SectionState;
 };
 
 const EditorWorkspaceContext = createContext<EditorWorkspaceContextType | null>(null);
@@ -31,50 +35,83 @@ export function EditorWorkspaceProvider({
   children: ReactNode;
   initialVersion: number;
 }) {
-  const [contentVersion, setContentVersion] = useState(initialVersion);
-  const [conflictState, setConflictState] = useState(false);
-  const [saveState, setSaveState] = useState<"saved" | "dirty" | "saving" | "error" | "conflict">("saved");
-  const flushCallbacks = useRef<Map<string, () => Promise<{ success: boolean; version?: number; error?: string }>>>(new Map());
-
-  const registerFlushCallback = useCallback((id: string, callback: () => Promise<{ success: boolean; version?: number; error?: string }>) => {
-    flushCallbacks.current.set(id, callback);
+  const [contentVersion, setContentVersionState] = useState(initialVersion);
+  const contentVersionRef = useRef(initialVersion);
+  
+  const setContentVersion = useCallback((version: number) => {
+    contentVersionRef.current = version;
+    setContentVersionState(version);
   }, []);
 
-  const unregisterFlushCallback = useCallback((id: string) => {
+  const [conflictState, setConflictState] = useState(false);
+  
+  // Track individual section states
+  const [sectionStates, setSectionStates] = useState<Record<string, SectionState>>({});
+  
+  const flushCallbacks = useRef<Map<string, (version: number) => Promise<FlushResult>>>(new Map());
+
+  const registerSection = useCallback((id: string, flushFn: (version: number) => Promise<FlushResult>) => {
+    flushCallbacks.current.set(id, flushFn);
+    setSectionStates(prev => ({ ...prev, [id]: "saved" }));
+  }, []);
+
+  const unregisterSection = useCallback((id: string) => {
     flushCallbacks.current.delete(id);
+    setSectionStates(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, []);
+
+  const setSectionState = useCallback((id: string, state: SectionState) => {
+    setSectionStates(prev => (prev[id] === state ? prev : { ...prev, [id]: state }));
   }, []);
 
   const flushAll = useCallback(async () => {
+    let currentVersion = contentVersionRef.current;
+    
     for (const [id, callback] of Array.from(flushCallbacks.current.entries())) {
-      const result = await callback();
+      const result = await callback(currentVersion);
+      
       if (!result.success) {
         if (result.error === "VERSION_CONFLICT") {
           setConflictState(true);
-          setSaveState("conflict");
-        } else {
-          setSaveState("error");
         }
-        return { success: false, error: result.error };
+        return { success: false, contentVersion: currentVersion, error: result.error };
       }
       if (result.version) {
-        setContentVersion(result.version);
+        currentVersion = Math.max(currentVersion, result.version);
       }
     }
-    return { success: true };
-  }, []);
+    
+    if (currentVersion > contentVersionRef.current) {
+      setContentVersion(currentVersion);
+    }
+    
+    return { success: true, contentVersion: currentVersion };
+  }, [setContentVersion]);
+
+  // Derived global state
+  let globalSaveState: SectionState = "saved";
+  const states = Object.values(sectionStates);
+  if (states.includes("conflict") || conflictState) globalSaveState = "conflict";
+  else if (states.includes("error")) globalSaveState = "error";
+  else if (states.includes("saving")) globalSaveState = "saving";
+  else if (states.includes("dirty")) globalSaveState = "dirty";
 
   return (
     <EditorWorkspaceContext.Provider
       value={{
         contentVersion,
         setContentVersion,
-        registerFlushCallback,
-        unregisterFlushCallback,
+        registerSection,
+        unregisterSection,
+        setSectionState,
         flushAll,
         conflictState,
         setConflictState,
-        saveState,
-        setSaveState,
+        globalSaveState,
       }}
     >
       {children}

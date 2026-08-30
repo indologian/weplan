@@ -7,6 +7,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
 import { MediaUploader } from "@/modules/storage/components/media-uploader";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
 import { AutosaveQueue, type AutosaveResult } from "../../../autosave-queue";
 import { useEditorWorkspace } from "../editor-workspace-context";
 import type { EditorDTO, SaveEditorContentAction } from "../../../types";
@@ -43,7 +44,7 @@ export function ProfilePrayerStep({
   initialData: EditorDTO;
   saveEditorContent: SaveEditorContentAction;
 }) {
-  const { contentVersion, setContentVersion, registerFlushCallback, unregisterFlushCallback, saveState, setSaveState, setConflictState } = useEditorWorkspace();
+  const { contentVersion, registerSection, unregisterSection, setSectionState, setConflictState } = useEditorWorkspace();
 
   const { control, register, setValue } = useForm<ProfilePrayerForm>({
     defaultValues: {
@@ -72,7 +73,6 @@ export function ProfilePrayerStep({
               bride: { ...initialData.couple.bride, name: snapshot.brideName, parentNames: snapshot.brideParentNames.split(",").map(n => n.trim()).filter(Boolean), ...(snapshot.bridePhotoMediaId ? { photoMediaId: snapshot.bridePhotoMediaId } : {}) },
             },
             settings: {
-              ...initialData.settings,
               openingText: snapshot.openingText,
               quoteText: snapshot.quoteText,
             },
@@ -107,29 +107,28 @@ export function ProfilePrayerStep({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialized = useRef(false);
 
-  const flushSaveQueue = useCallback(async () => {
-    if (!autosaveQueue.state.pendingSave) return { success: true };
-    setSaveState("saving");
-    const result = await autosaveQueue.flush();
-    if (!result) return { success: true };
+  const flushSaveQueue = useCallback(async (version: number) => {
+    if (!autosaveQueue.state.pendingSave) return { success: true, version };
+    setSectionState("profile-prayer", "saving");
+    const result = await autosaveQueue.flush(version);
+    if (!result) return { success: true, version };
     if (!result.success) {
       if (result.code === "VERSION_CONFLICT") {
         setConflictState(true);
-        setSaveState("conflict");
+        setSectionState("profile-prayer", "conflict");
       } else {
-        setSaveState("error");
+        setSectionState("profile-prayer", "error");
       }
-      return { success: false, error: result.code };
+      return { success: false as const, error: result.code };
     }
-    setContentVersion(result.contentVersion);
-    setSaveState("saved");
-    return { success: true, version: result.contentVersion };
-  }, [autosaveQueue, setContentVersion, setSaveState, setConflictState]);
+    setSectionState("profile-prayer", "saved");
+    return { success: true as const, version: result.contentVersion };
+  }, [autosaveQueue, setSectionState, setConflictState]);
 
   useEffect(() => {
-    registerFlushCallback("profile-prayer", flushSaveQueue);
-    return () => unregisterFlushCallback("profile-prayer");
-  }, [registerFlushCallback, unregisterFlushCallback, flushSaveQueue]);
+    registerSection("profile-prayer", flushSaveQueue);
+    return () => unregisterSection("profile-prayer");
+  }, [registerSection, unregisterSection, flushSaveQueue]);
 
   useEffect(() => {
     autosaveQueue.adoptServerVersion(contentVersion);
@@ -151,22 +150,25 @@ export function ProfilePrayerStep({
       quoteText,
     });
     setLocalEditGeneration(generation);
-    setSaveState("dirty");
-  }, [autosaveQueue, groomName, brideName, groomParentNames, brideParentNames, groomPhotoMediaId, bridePhotoMediaId, openingText, quoteText, setSaveState]);
+    setSectionState("profile-prayer", "dirty");
+  }, [autosaveQueue, groomName, brideName, groomParentNames, brideParentNames, groomPhotoMediaId, bridePhotoMediaId, openingText, quoteText, setSectionState]);
 
   useEffect(() => {
-    if (localEditGeneration === 0 || saveState === "conflict") return;
+    if (localEditGeneration === 0) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => void flushSaveQueue(), 1000);
+    saveTimer.current = setTimeout(() => void flushSaveQueue(contentVersion), 1000);
     return () => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
-  }, [flushSaveQueue, localEditGeneration, saveState]);
+  }, [flushSaveQueue, localEditGeneration, contentVersion]);
+
+  const [templateConfirm, setTemplateConfirm] = useState<{ field: "openingText" | "quoteText", value: string } | null>(null);
 
   const applyTemplate = (field: "openingText" | "quoteText", value: string) => {
     const currentValue = field === "openingText" ? openingText : quoteText;
     if (currentValue.trim() && currentValue !== value) {
-      if (!confirm("Teks yang Anda ubah akan tertimpa. Lanjutkan?")) return;
+      setTemplateConfirm({ field, value });
+      return;
     }
     setValue(field, value, { shouldDirty: true, shouldTouch: true });
   };
@@ -286,6 +288,30 @@ export function ProfilePrayerStep({
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={!!templateConfirm} onOpenChange={(open) => !open && setTemplateConfirm(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Timpa Teks Saat Ini?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Teks yang sudah Anda ketik akan tertimpa dengan template baru. Anda yakin ingin melanjutkan?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (templateConfirm) {
+                  setValue(templateConfirm.field, templateConfirm.value, { shouldDirty: true, shouldTouch: true });
+                  setTemplateConfirm(null);
+                }
+              }}
+            >
+              Ya, Timpa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

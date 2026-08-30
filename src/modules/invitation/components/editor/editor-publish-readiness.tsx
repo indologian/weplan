@@ -7,13 +7,13 @@ import type { PublishReadinessResult } from "../../publish-readiness";
 import { useEditorWorkspace } from "./editor-workspace-context";
 
 export function EditorPublishReadiness({ invitationId }: { invitationId: string }) {
-  const { contentVersion, saveState } = useEditorWorkspace();
+  const { contentVersion, globalSaveState } = useEditorWorkspace();
   const [readiness, setReadiness] = useState<PublishReadinessResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Only fetch when saved
-    if (saveState !== "saved") return;
+    if (globalSaveState !== "saved") return;
 
     let mounted = true;
     const fetchReadiness = async () => {
@@ -29,7 +29,7 @@ export function EditorPublishReadiness({ invitationId }: { invitationId: string 
     void fetchReadiness();
     
     return () => { mounted = false; };
-  }, [invitationId, contentVersion, saveState]);
+  }, [invitationId, contentVersion, globalSaveState]);
 
   if (!readiness && loading) {
     return (

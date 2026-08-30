@@ -14,6 +14,8 @@ type ThemeOption = {
   category: string;
 };
 
+import type { ActionResult } from "@/shared/types/action-result";
+
 export function DashboardHeaderActions({
   invitation,
   themes,
@@ -21,7 +23,7 @@ export function DashboardHeaderActions({
 }: {
   invitation: { invitationId: string; themeId: string; slug: string; status: string };
   themes: ThemeOption[];
-  updateTheme: any;
+  updateTheme: (input: unknown) => Promise<ActionResult<{ contentVersion: number }>>;
 }) {
   const { contentVersion, flushAll } = useEditorWorkspace();
   const [isPreviewing, setIsPreviewing] = useState(false);
@@ -44,7 +46,10 @@ export function DashboardHeaderActions({
         expectedVersion={contentVersion}
         themes={themes}
         updateTheme={updateTheme}
-        onBeforeChange={async () => (await flushAll()).success}
+        onBeforeChange={async () => {
+          const res = await flushAll();
+          return res.success ? res.contentVersion : null;
+        }}
       />
       
       <Button

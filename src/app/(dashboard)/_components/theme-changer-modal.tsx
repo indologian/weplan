@@ -35,7 +35,7 @@ export function ThemeChangerModal({
   expectedVersion: number;
   themes: ThemeOption[];
   updateTheme: (input: unknown) => Promise<ActionResult<{ contentVersion: number }>>;
-  onBeforeChange?: () => Promise<boolean>;
+  onBeforeChange?: () => Promise<number | null>;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -49,17 +49,19 @@ export function ThemeChangerModal({
     
     setIsUpdating(true);
     
+    let versionToUse = expectedVersion;
     if (onBeforeChange) {
-      const canProceed = await onBeforeChange();
-      if (!canProceed) {
+      const latestVersion = await onBeforeChange();
+      if (latestVersion === null) {
         setIsUpdating(false);
         return;
       }
+      versionToUse = latestVersion;
     }
 
     const result = await updateTheme({
       invitationId,
-      expectedVersion,
+      expectedVersion: versionToUse,
       themeId,
     });
     

@@ -2845,3 +2845,25 @@ Tidak ada.
 ### Next work package
 
 Dilanjutkan oleh agen berikutnya.
+
+## 2026-08-30: Audit & Perbaikan Arsitektur Editor Koordinasi
+
+**Work Package:** Audit dan perbaikan menyeluruh Create/Edit Invitation Flow
+
+### Goal
+Memperbaiki arsitektur koordinasi editor agar menggunakan single revision authority (contentVersion) melalui EditorWorkspaceProvider yang di-hoist ke dashboard/[id]/layout.tsx. Menangani lost update pada field settings dengan patch migration, dan memberlakukan sequential flush dengan expectedVersion yang diperbarui. Mengganti penggunaan window.confirm dengan AlertDialog.
+
+### Implementation
+- Menghapus nested EditorWorkspaceProvider dari InvitationEditorWorkspace.
+- Membuat API koordinasi egisterSection / unregisterSection pada editor-workspace-context.tsx.
+- Memodifikasi lushAll untuk melompati flush (sequential) dan mengembalikan absolute contentVersion terbaru jika sukses.
+- Memperbaiki komponen event-step.tsx untuk melacak dirtyEventIds dan menggunakan implicit IANA timezone fallback dengan label WIB/WITA/WIT.
+- Memperbaiki story-gallery-step.tsx untuk menangani gabungan love story (AutosaveQueue) dan galeri secara koordinatif.
+- Memperbaiki dvanced-settings-step.tsx dengan memodifikasi RPC database save_invitation_content (melalui migration baru) untuk melakukan || (jsonb merge) pada parameter settings agar tidak terjadi lost update antara Profile & Advanced Settings.
+- Mengganti window.confirm dengan AlertDialog di seluruh langkah editor.
+- Memperbaiki ThemeChangerModal dan dashboard-header-actions agar meneruskan latest contentVersion hasil flush ke mutation update theme.
+
+### Verification
+- TypeScript build & typecheck passed.
+- Database migration script 20260830120000_patch_settings_merge.sql dibuat untuk mengubah save_invitation_content.
+- Skema zod untuk settings dimodifikasi menjadi .nullish() untuk mendukung penghapusan key pada jsonb merge.

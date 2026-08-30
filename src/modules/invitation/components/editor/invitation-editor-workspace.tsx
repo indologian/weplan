@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import type { EditorDTO, SaveEditorContentAction, SaveEditorEventAction, DeleteEditorEventAction, ReorderEditorEventsAction, ReplaceEditorGalleryAction, UpdateEditorPrivacyAction } from "../../types";
 import type { IssueSensitiveAuthAction } from "@/modules/auth/types";
-import { EditorWorkspaceProvider, useEditorWorkspace } from "./editor-workspace-context";
+import { useEditorWorkspace } from "./editor-workspace-context";
 import { EditorStepNavigation } from "./editor-step-navigation";
 import { EditorPublishReadiness } from "./editor-publish-readiness";
 import { ProfilePrayerStep } from "./steps/profile-prayer-step";
@@ -37,37 +38,21 @@ export function InvitationEditorWorkspace({
   updateEditorPrivacy,
 }: Props) {
   const [currentStep, setCurrentStep] = useState(1);
-  return (
-    <EditorWorkspaceProvider initialVersion={initialData.contentVersion}>
-      <WorkspaceLayout
-        initialData={initialData}
-        saveEditorContent={saveEditorContent}
-        saveEditorEvent={saveEditorEvent}
-        deleteEditorEvent={deleteEditorEvent}
-        reorderEditorEvents={reorderEditorEvents}
-        replaceEditorGallery={replaceEditorGallery}
-        issueSensitiveAuth={issueSensitiveAuth}
-        updateEditorPrivacy={updateEditorPrivacy}
-        currentStep={currentStep}
-        setCurrentStep={setCurrentStep}
-      />
-    </EditorWorkspaceProvider>
-  );
-}
+  const [isNavigating, setIsNavigating] = useState(false);
+  const { conflictState, flushAll } = useEditorWorkspace();
 
-function WorkspaceLayout({
-  initialData,
-  saveEditorContent,
-  saveEditorEvent,
-  deleteEditorEvent,
-  reorderEditorEvents,
-  replaceEditorGallery,
-  issueSensitiveAuth,
-  updateEditorPrivacy,
-  currentStep,
-  setCurrentStep,
-}: Props & { currentStep: number; setCurrentStep: (step: number) => void }) {
-  const { conflictState } = useEditorWorkspace();
+  const handleStepChange = async (step: number) => {
+    setIsNavigating(true);
+    const flushed = await flushAll();
+    setIsNavigating(false);
+    
+    if (!flushed.success) {
+      toast.error("Gagal menyimpan perubahan. Silakan periksa kembali data Anda.");
+      return;
+    }
+    
+    setCurrentStep(step);
+  };
 
   return (
     <div className="space-y-6 pb-20">
@@ -95,7 +80,7 @@ function WorkspaceLayout({
         </Card>
       )}
 
-      <EditorStepNavigation currentStep={currentStep} onChange={setCurrentStep} />
+      <EditorStepNavigation currentStep={currentStep} onChange={handleStepChange} />
 
       <div className="mt-6">
         {currentStep === 1 && (
@@ -129,11 +114,11 @@ function WorkspaceLayout({
       </div>
 
       <div className="pt-8 flex justify-between items-center border-t">
-        <Button variant="ghost" disabled={currentStep === 1} onClick={() => setCurrentStep(currentStep - 1)}>
+        <Button variant="ghost" disabled={currentStep === 1 || isNavigating} onClick={() => void handleStepChange(currentStep - 1)}>
           Kembali
         </Button>
-        <Button disabled={currentStep === 4} onClick={() => setCurrentStep(currentStep + 1)}>
-          Lanjut
+        <Button disabled={currentStep === 4 || isNavigating} onClick={() => void handleStepChange(currentStep + 1)}>
+          {isNavigating ? "Menyimpan..." : "Lanjut"}
         </Button>
       </div>
 
