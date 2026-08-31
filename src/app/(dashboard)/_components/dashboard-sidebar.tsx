@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Gift, Home, LogOut, Menu, PencilLine, Plus, Settings, Users } from "lucide-react";
+import { ChevronDown, Gift, Home, LogOut, Menu, PencilLine, Plus, Settings, Users } from "lucide-react";
 import { DashboardThemeSelector } from "./dashboard-theme-selector";
 import {
   Sheet,
@@ -33,7 +33,7 @@ export function DashboardSidebar({ invitations = [] }: { invitations?: Invitatio
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background px-4 lg:hidden">
+      <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 lg:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <button
@@ -45,9 +45,8 @@ export function DashboardSidebar({ invitations = [] }: { invitations?: Invitatio
             </button>
           </SheetTrigger>
           <SheetContent className="pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))]">
-            <SheetHeader className="border-b px-5 pb-4 pr-14">
-              <SheetTitle>weplan</SheetTitle>
-              <SheetDescription>Area pengelolaan undangan</SheetDescription>
+            <SheetHeader className="border-b border-border/40 px-5 pb-4 pr-14 text-left">
+              <SheetTitle className="text-xl">weplan</SheetTitle>
             </SheetHeader>
             <NavigationContent
               pathname={pathname}
@@ -58,13 +57,11 @@ export function DashboardSidebar({ invitations = [] }: { invitations?: Invitatio
           </SheetContent>
         </Sheet>
         <Link href="/dashboard" className="text-base font-semibold tracking-tight">weplan</Link>
-        <span className="min-w-0 truncate text-sm text-muted-foreground">Undangan Saya</span>
       </header>
 
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r bg-card text-card-foreground lg:flex">
-        <div className="border-b px-5 py-5">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-border/40 bg-card lg:flex">
+        <div className="border-b border-border/40 px-5 flex h-14 items-center">
           <Link href="/dashboard" className="text-xl font-bold tracking-tight">weplan</Link>
-          <p className="mt-1 text-xs text-muted-foreground">Area pengelolaan undangan</p>
         </div>
         <NavigationContent pathname={pathname} activeId={activeId} invitations={invitations} />
       </aside>
@@ -104,21 +101,24 @@ function NavigationContent({
               <label htmlFor="invitation-switcher" className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Undangan aktif
               </label>
-              <select
-                id="invitation-switcher"
-                className="min-h-11 w-full min-w-0 rounded-md border bg-background px-3 text-sm font-medium text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                value={activeId ?? ""}
-                onChange={(event) => {
-                  if (!event.target.value) return;
-                  router.push(`/dashboard/${event.target.value}/edit`);
-                  onNavigate?.();
-                }}
-              >
-                <option value="">Pilih undangan</option>
-                {invitations.map((invitation) => (
-                  <option key={invitation.id} value={invitation.id}>{getInvitationName(invitation)}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id="invitation-switcher"
+                  className="appearance-none min-h-11 w-full min-w-0 rounded-md border border-border/50 bg-background pl-3 pr-10 text-sm font-medium text-foreground shadow-sm transition-colors hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={activeId ?? ""}
+                  onChange={(event) => {
+                    if (!event.target.value) return;
+                    router.push(`/dashboard/${event.target.value}/edit`);
+                    onNavigate?.();
+                  }}
+                >
+                  <option value="">Pilih undangan</option>
+                  {invitations.map((invitation) => (
+                    <option key={invitation.id} value={invitation.id}>{getInvitationName(invitation)}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+              </div>
               {!activeId && (
                 <p className="text-xs leading-relaxed text-muted-foreground">
                   Pilih undangan untuk membuka menu pengelolaannya.
@@ -127,7 +127,7 @@ function NavigationContent({
             </div>
 
             {activeId && (
-              <div className="space-y-1 border-l pl-2">
+              <div className="space-y-1 border-l border-border/40 ml-3 pl-4">
                 <SidebarLink href={`/dashboard/${activeId}/edit`} active={pathname === `/dashboard/${activeId}/edit`} icon={<PencilLine />} onNavigate={onNavigate}>
                   Edit Undangan
                 </SidebarLink>
@@ -143,7 +143,7 @@ function NavigationContent({
         )}
       </nav>
 
-      <div className="space-y-4 border-t p-4">
+      <div className="space-y-4 border-t border-border/40 p-4">
         <DashboardThemeSelector />
         <div className="space-y-1">
           <SidebarLink href="/settings" active={pathname === "/settings"} icon={<Settings />} onNavigate={onNavigate}>
@@ -152,7 +152,7 @@ function NavigationContent({
           <form action="/api/auth/logout" method="post">
             <button
               type="submit"
-              className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-sm font-medium text-muted-foreground transition-colors duration-200 ease-out hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <LogOut className="size-4" aria-hidden="true" />
               Keluar
@@ -183,8 +183,8 @@ function SidebarLink({
       aria-current={active ? "page" : undefined}
       onClick={onNavigate}
       className={cn(
-        "flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        active ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+        "flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
       <span className="[&_svg]:size-4" aria-hidden="true">{icon}</span>

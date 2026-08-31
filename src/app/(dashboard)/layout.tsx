@@ -37,7 +37,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       enableSystem
       disableTransitionOnChange
     >
-      <div className="min-h-dvh bg-background text-foreground">
+      <div className="min-h-dvh antialiased selection:bg-primary/10 selection:text-primary bg-muted/30 dark:bg-background text-foreground">
         <a
           href="#dashboard-main"
           className="fixed left-3 top-3 z-70 -translate-y-20 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:translate-y-0"
