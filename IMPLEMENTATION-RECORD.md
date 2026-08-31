@@ -3014,3 +3014,12 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - `npm run typecheck`: **PASS**.
 - `git commit & push`: **PASS**.
 
+
+## 2026-08-31 - Mobile Navigation Stickiness Fix
+
+### Implemented
+
+- Membuat navigasi tab section (Profil & Doa, Detail Acara, dll) menjadi *sticky* di bagian atas layar pada mobile (`top-14`) dan desktop (`top-0`).
+- Memberikan efek *backdrop-blur* dan *margin bleed* agar horizontal scroll lebih mulus di tepi layar.
+- Perubahan ini menyelesaikan kendala UX di mana user harus me-*scroll* panjang kembali ke atas hanya untuk berpindah *tab* setelah selesai mengisi form.
+

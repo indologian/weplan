@@ -9,7 +9,7 @@ const STEPS = [
 
 export function EditorStepNavigation({ currentStep, onChange }: { currentStep: number, onChange: (step: number) => void }) {
   return (
-    <div className="w-full overflow-hidden mb-6">
+    <div className="sticky top-14 lg:top-0 z-30 w-full overflow-hidden mb-6 bg-background/95 supports-[backdrop-filter]:bg-background/80 backdrop-blur-md py-3 -mx-4 px-4 sm:mx-0 sm:px-0">
       <div className="w-full overflow-x-auto pb-4 -mb-4 hide-scrollbar">
         <nav className="flex items-center gap-2" aria-label="Tabs">
           {STEPS.map((step) => {
