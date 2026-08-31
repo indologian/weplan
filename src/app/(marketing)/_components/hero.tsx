@@ -1,7 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import type { FeaturedThemeDTO } from "@/modules/theme/server/queries";
 
-export function Hero() {
+export function Hero({ theme }: { theme?: FeaturedThemeDTO }) {
   return (
     <section className="relative px-6 py-20 md:py-32 overflow-hidden">
       <div className="mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center">
@@ -14,7 +16,7 @@ export function Hero() {
             Undangan yang terasa seperti milik kalian.
           </h1>
           <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
-            Buat undangan pernikahan digital yang elegan dan personal. Sesuaikan tema, galeri foto, hingga musik pengiring hanya dalam beberapa menit.
+            Buat undangan pernikahan digital yang elegan dan personal. Sesuaikan tema, galeri foto, hingga musik pengiring dengan mudah.
           </p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
             <Link
@@ -32,22 +34,40 @@ export function Hero() {
           </div>
         </div>
         
-        <div className="relative w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden bg-muted lg:ml-auto max-w-[480px] mx-auto lg:mx-0 border shadow-sm">
-          {/* Real product visual slot - using an aesthetic placeholder for now */}
-          <img 
-            src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&q=80&w=1200" 
-            alt="Contoh desain undangan Weplan" 
-            className="object-cover w-full h-full"
-            loading="eager"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-          <div className="absolute bottom-6 left-6 right-6 text-white">
-            <p className="text-sm font-medium opacity-90 mb-1">Tema: Classic Botanical</p>
+        <div className="relative w-full aspect-[4/5] sm:aspect-square lg:aspect-[4/5] rounded-2xl overflow-hidden bg-muted lg:ml-auto max-w-[480px] mx-auto lg:mx-0 border shadow-sm group">
+          {theme?.thumbnail_url ? (
+            <Image
+              src={theme.thumbnail_url}
+              alt={`Tema undangan ${theme.name}`}
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 480px"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted">
+              <span className="text-muted-foreground">Preview Tema</span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none"></div>
+          <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
+            <p className="text-sm font-medium opacity-90 mb-2">Tema: {theme?.name || "Eksklusif"}</p>
             <div className="flex gap-2">
-              <span className="inline-flex rounded-full bg-white/20 backdrop-blur-md px-2.5 py-1 text-xs">Galeri</span>
-              <span className="inline-flex rounded-full bg-white/20 backdrop-blur-md px-2.5 py-1 text-xs">RSVP</span>
+              <span className="inline-flex rounded-full bg-white/20 backdrop-blur-md px-2.5 py-1 text-xs">
+                {theme?.category ? theme.category.charAt(0).toUpperCase() + theme.category.slice(1) : "Kustom"}
+              </span>
+              {theme?.is_premium && (
+                <span className="inline-flex rounded-full bg-white/20 backdrop-blur-md px-2.5 py-1 text-xs text-amber-200">
+                  Premium
+                </span>
+              )}
             </div>
           </div>
+          {theme?.code && (
+            <Link href={`/demo/${theme.code}`} className="absolute inset-0 z-10" aria-label={`Lihat demo tema ${theme.name}`}>
+              <span className="sr-only">Lihat demo</span>
+            </Link>
+          )}
         </div>
       </div>
     </section>

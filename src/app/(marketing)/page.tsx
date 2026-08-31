@@ -13,7 +13,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      <Hero />
+      <Hero theme={featuredThemes[0]} />
       <FeaturedThemes themes={featuredThemes} />
       <TrustStrip />
       <Pricing />
