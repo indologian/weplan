@@ -2923,3 +2923,22 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 ### Remaining issues
 
 - Run the database and Functions checks in a Docker/network-capable runner after enabling GitHub Contents write access or otherwise pushing `f207c63`.
+
+## 2026-08-31 - Preview-first Publish Flow
+
+### Implemented
+
+- The final editor step now replaces `Lanjut` with `Preview` and flushes all pending editor changes before navigation.
+- The authenticated owner preview now provides a fixed bottom action bar for returning to the editor and publishing/payment.
+- Published invitations show `Buka Halaman Publik` instead of starting checkout again.
+- Checkout can run outside the editor workspace while preserving the existing server-side readiness gate.
+
+### Verification
+
+- `npm run typecheck`: **PASS**.
+- `npm run lint`: **PASS** (0 errors; existing repository warnings remain).
+- `npm run test`: **PASS** (42 files, 293 tests).
+- Targeted preview-navigation and checkout-readiness tests: **PASS**.
+- `npm run verify:migrations`: **PASS**.
+- `npm run build`: **PASS**.
+- `npm run build:cloudflare`: **PASS**.

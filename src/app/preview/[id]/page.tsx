@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/shared/lib/supabase/server-client";
 import { WeddingRenderer } from "@/modules/theme/wedding-renderer";
 import type { PublicInvitationDTO } from "@/modules/invitation/types";
+import { CheckoutButton } from "@/app/(dashboard)/dashboard/[id]/checkout-button";
+import { Button } from "@/shared/components/ui/button";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,10 +15,15 @@ type Props = {
   searchParams: Promise<{ theme?: string }>;
 };
 
+type OwnerPreview = {
+  invitation: PublicInvitationDTO;
+  status: string;
+};
+
 async function getOwnerInvitation(
   userId: string,
   invitationId: string,
-): Promise<PublicInvitationDTO | null> {
+): Promise<OwnerPreview | null> {
   const supabase = await createSupabaseServerClient();
 
   const { data: invitation, error } = await supabase
@@ -89,34 +97,37 @@ async function getOwnerInvitation(
   }
 
   return {
-    invitationId: invitation.id,
-    slug: invitation.slug,
-    isPrivate: invitation.is_private,
-    rsvpMode: invitation.rsvp_mode,
-    couple: invitation.couple,
-    loveStory: invitation.love_story,
-    bankAccounts: invitation.bank_accounts,
-    settings: invitation.settings,
-    events: (events ?? []).map((e) => ({
-      eventId: e.id,
-      position: e.position,
-      eventType: e.event_type,
-      title: e.title,
-      startsAt: e.starts_at,
-      endsAt: e.ends_at,
-      timezone: e.timezone,
-      venueName: e.venue_name,
-      address: e.address,
-      latitude: e.latitude,
-      longitude: e.longitude,
-    })),
-    theme: {
-      rendererKey: theme.rendererKey,
-      designTokens: theme.designTokens,
-      layoutConfig: theme.layoutConfig,
+    status: invitation.status,
+    invitation: {
+      invitationId: invitation.id,
+      slug: invitation.slug,
+      isPrivate: invitation.is_private,
+      rsvpMode: invitation.rsvp_mode,
+      couple: invitation.couple,
+      loveStory: invitation.love_story,
+      bankAccounts: invitation.bank_accounts,
+      settings: invitation.settings,
+      events: (events ?? []).map((e) => ({
+        eventId: e.id,
+        position: e.position,
+        eventType: e.event_type,
+        title: e.title,
+        startsAt: e.starts_at,
+        endsAt: e.ends_at,
+        timezone: e.timezone,
+        venueName: e.venue_name,
+        address: e.address,
+        latitude: e.latitude,
+        longitude: e.longitude,
+      })),
+      theme: {
+        rendererKey: theme.rendererKey,
+        designTokens: theme.designTokens,
+        layoutConfig: theme.layoutConfig,
+      },
+      media,
+      wishes: (wishes ?? []).map((wish) => ({ name: wish.name, wishMessage: wish.wish_message ?? "", createdAt: wish.created_at })),
     },
-    media,
-    wishes: (wishes ?? []).map((wish) => ({ name: wish.name, wishMessage: wish.wish_message ?? "", createdAt: wish.created_at })),
   };
 }
 
@@ -132,21 +143,39 @@ export default async function PreviewPage({ params, searchParams }: Props) {
     redirect("/login");
   }
 
-  const invitation = await getOwnerInvitation(user.id, id);
-  if (!invitation) {
+  const preview = await getOwnerInvitation(user.id, id);
+  if (!preview) {
     notFound();
   }
 
+  const { invitation, status } = preview;
+
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: "480px",
-        margin: "0 auto",
-        minHeight: "100svh",
-      }}
-    >
+    <div className="relative mx-auto min-h-svh max-w-[480px] pb-24">
       <WeddingRenderer invitation={invitation} />
+
+      <div
+        className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur"
+        style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="mx-auto flex max-w-[480px] gap-2">
+          <Button asChild variant="outline" className="flex-1">
+            <Link href={`/dashboard/${invitation.invitationId}/edit`}>Kembali Edit</Link>
+          </Button>
+
+          {status === "published" ? (
+            <Button asChild className="flex-1">
+              <Link href={`/${invitation.slug}`}>Buka Halaman Publik</Link>
+            </Button>
+          ) : (
+            <CheckoutButton
+              invitationId={invitation.invitationId}
+              flushEditorBeforeCheckout={false}
+              className="flex-1"
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

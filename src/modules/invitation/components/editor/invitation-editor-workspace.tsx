@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/shared/components/ui/button";
-import { Card, CardContent } from "@/shared/components/ui/card";
 import { AlertCircle } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
 import type { EditorDTO, SaveEditorContentAction, SaveEditorEventAction, DeleteEditorEventAction, ReorderEditorEventsAction, ReplaceEditorGalleryAction, UpdateEditorPrivacyAction } from "../../types";
@@ -38,6 +37,7 @@ export function InvitationEditorWorkspace({
   issueSensitiveAuth,
   updateEditorPrivacy,
 }: Props) {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isNavigating, setIsNavigating] = useState(false);
   const { conflictState, flushAll } = useEditorWorkspace();
@@ -53,6 +53,19 @@ export function InvitationEditorWorkspace({
     }
     
     setCurrentStep(step);
+  };
+
+  const handlePreview = async () => {
+    setIsNavigating(true);
+    const flushed = await flushAll();
+    setIsNavigating(false);
+
+    if (!flushed.success) {
+      toast.error("Gagal menyimpan perubahan. Silakan periksa kembali data Anda.");
+      return;
+    }
+
+    router.push(`/preview/${initialData.invitationId}`);
   };
 
   return (
@@ -114,8 +127,13 @@ export function InvitationEditorWorkspace({
         <Button variant="ghost" disabled={currentStep === 1 || isNavigating} onClick={() => void handleStepChange(currentStep - 1)}>
           Kembali
         </Button>
-        <Button disabled={currentStep === 4 || isNavigating} onClick={() => void handleStepChange(currentStep + 1)}>
-          {isNavigating ? "Menyimpan..." : "Lanjut"}
+        <Button
+          disabled={isNavigating}
+          onClick={() => void (currentStep === 4
+            ? handlePreview()
+            : handleStepChange(currentStep + 1))}
+        >
+          {isNavigating ? "Menyimpan..." : currentStep === 4 ? "Preview" : "Lanjut"}
         </Button>
       </div>
 

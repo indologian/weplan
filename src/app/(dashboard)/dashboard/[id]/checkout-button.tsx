@@ -5,24 +5,38 @@ import { Button } from "@/shared/components/ui/button";
 import { actionCreateCheckout } from "./checkout-action";
 import { Loader2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
-import { useEditorWorkspace } from "@/modules/invitation/components/editor/editor-workspace-context";
+import { useOptionalEditorWorkspace } from "@/modules/invitation/components/editor/editor-workspace-context";
 import { actionEvaluatePublishReadiness } from "@/modules/invitation/client-actions";
+import { cn } from "@/shared/lib/utils";
 
-export function CheckoutButton({ invitationId }: { invitationId: string }) {
+export function CheckoutButton({
+  invitationId,
+  flushEditorBeforeCheckout = true,
+  className,
+}: {
+  invitationId: string;
+  flushEditorBeforeCheckout?: boolean;
+  className?: string;
+}) {
   const [loading, setLoading] = useState(false);
-
-
-  const { flushAll } = useEditorWorkspace();
+  const editorWorkspace = useOptionalEditorWorkspace();
 
   const handleCheckout = async () => {
     setLoading(true);
     
-    // 1. Flush local changes
-    const flushed = await flushAll();
-    if (!flushed.success) {
-      toast.error("Tidak dapat membuat checkout. Ada perubahan yang gagal disimpan.");
-      setLoading(false);
-      return;
+    if (flushEditorBeforeCheckout) {
+      if (!editorWorkspace) {
+        toast.error("Editor tidak tersedia. Muat ulang halaman dan coba lagi.");
+        setLoading(false);
+        return;
+      }
+
+      const flushed = await editorWorkspace.flushAll();
+      if (!flushed.success) {
+        toast.error("Tidak dapat membuat checkout. Ada perubahan yang gagal disimpan.");
+        setLoading(false);
+        return;
+      }
     }
     
     // 2. Evaluate readiness
@@ -47,7 +61,7 @@ export function CheckoutButton({ invitationId }: { invitationId: string }) {
   };
 
   return (
-    <Button onClick={handleCheckout} disabled={loading} className="gap-2">
+    <Button onClick={handleCheckout} disabled={loading} className={cn("gap-2", className)}>
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
       Publish & Bayar
     </Button>

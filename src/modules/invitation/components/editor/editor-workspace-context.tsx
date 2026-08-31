@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode, useRef, useEffect } from "react";
+import { createContext, useContext, useState, useCallback, ReactNode, useRef } from "react";
 
 type FlushResult = { success: true; version?: number } | { success: false; error?: string };
 
@@ -26,6 +26,10 @@ export function useEditorWorkspace() {
     throw new Error("useEditorWorkspace must be used within EditorWorkspaceProvider");
   }
   return context;
+}
+
+export function useOptionalEditorWorkspace() {
+  return useContext(EditorWorkspaceContext);
 }
 
 export function EditorWorkspaceProvider({
