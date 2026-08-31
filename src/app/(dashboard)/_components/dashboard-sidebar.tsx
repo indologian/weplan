@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, Gift, Home, LogOut, Menu, PencilLine, Plus, Settings, Users } from "lucide-react";
+import { ChevronDown, Gift, Globe, Home, LogOut, Menu, PencilLine, Plus, Settings, Users } from "lucide-react";
 import { DashboardThemeSelector } from "./dashboard-theme-selector";
 import {
   Sheet,
@@ -146,6 +146,9 @@ function NavigationContent({
       <div className="space-y-4 border-t border-border/40 p-4">
         <DashboardThemeSelector />
         <div className="space-y-1">
+          <SidebarLink href="/" active={pathname === "/"} icon={<Globe />} onNavigate={onNavigate}>
+            Halaman Utama
+          </SidebarLink>
           <SidebarLink href="/settings" active={pathname === "/settings"} icon={<Settings />} onNavigate={onNavigate}>
             Pengaturan
           </SidebarLink>

@@ -3023,3 +3023,10 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - Memberikan efek *backdrop-blur* dan *margin bleed* agar horizontal scroll lebih mulus di tepi layar.
 - Perubahan ini menyelesaikan kendala UX di mana user harus me-*scroll* panjang kembali ke atas hanya untuk berpindah *tab* setelah selesai mengisi form.
 
+
+## 2026-08-31 - Add Link to Marketing Page
+
+### Implemented
+
+- Menambahkan navigasi "Halaman Utama" dengan ikon Globe di sidebar dashboard (`src/app/(dashboard)/_components/dashboard-sidebar.tsx`) untuk memberikan jalan kembali ke halaman marketing dari dalam dashboard.
+
