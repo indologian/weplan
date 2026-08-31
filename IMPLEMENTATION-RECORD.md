@@ -2942,3 +2942,21 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - `npm run verify:migrations`: **PASS**.
 - `npm run build`: **PASS**.
 - `npm run build:cloudflare`: **PASS**.
+
+## 2026-08-31 - Audio Upload Limit 9MB
+
+### Implemented
+
+- Raised the application audio upload ceiling from 5MB to 9MB with one shared constant.
+- Updated the editor copy and added exact boundary coverage for 9MB accepted and 9MB + 1 byte rejected.
+- Added a forward migration that raises Premium tier and active Premium entitlement snapshots to 9MB while preserving VIP at 10MB.
+- Ensured both private media buckets retain their existing 10MB ceiling.
+
+### Verification
+
+- `npm run typecheck`: **PASS**.
+- `npm run lint`: **PASS** (0 errors; existing repository warnings remain).
+- `npm run test`: **PASS** (42 files, 294 tests).
+- `npm run verify:migrations`: **PASS**.
+- `npm run build:cloudflare`: **PASS**.
+- Local Supabase reset/pgTAP: **NOT RUN** â€” Docker is unavailable in this workspace.

@@ -1,3 +1,8 @@
+import {
+  MAX_FILE_SIZE_AUDIO,
+  MAX_FILE_SIZE_IMAGE,
+} from "@/config/constants";
+
 export type MediaKind = "image" | "audio" | "video";
 
 export type MediaPurpose =
@@ -26,9 +31,9 @@ export const MEDIA_VARIANTS: Record<MediaKind, MediaVariant[]> = {
 };
 
 export const MAX_FILE_SIZES: Record<MediaKind, number> = {
-  image: 10 * 1024 * 1024, // 10MB
-  audio: 5 * 1024 * 1024,  // 5MB
-  video: 0,                 // disabled for MVP
+  image: MAX_FILE_SIZE_IMAGE,
+  audio: MAX_FILE_SIZE_AUDIO,
+  video: 0, // disabled for MVP
 };
 
 export const ALLOWED_MIME_TYPES: Record<MediaKind, readonly string[]> = {

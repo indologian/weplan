@@ -119,7 +119,7 @@ set entitlement_tier_id = (select id from public.tiers where code = 'premium'),
       "video_limit":1,
       "bank_account_limit":2,
       "audio_enabled":true,
-      "audio_size_limit_mb":5,
+      "audio_size_limit_mb":9,
       "watermark_enabled":false
     }'::jsonb,
     expires_at = now() + interval '1 month'

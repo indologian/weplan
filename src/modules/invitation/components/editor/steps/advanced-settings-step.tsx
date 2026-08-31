@@ -285,7 +285,7 @@ export function AdvancedSettingsStep({
               }
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Gunakan file MP3 atau M4A (AAC), maksimal 5MB.
+              Gunakan file MP3 atau M4A (AAC), maksimal 9MB.
             </p>
           </div>
           <div className="space-y-2">

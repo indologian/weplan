@@ -1,7 +1,7 @@
 INSERT INTO public.tiers (id, code, tier_rank, name, price_amount, duration_months, gallery_limit, video_limit, bank_account_limit, audio_enabled, audio_size_limit_mb, watermark_enabled)
 VALUES
   (gen_random_uuid(), 'basic', 10, 'Basic', 0, 12, 10, 0, 1, false, 0, true),
-  (gen_random_uuid(), 'premium', 20, 'Premium', 149000, 12, 50, 1, 3, true, 5, false),
+  (gen_random_uuid(), 'premium', 20, 'Premium', 149000, 12, 50, 1, 3, true, 9, false),
   (gen_random_uuid(), 'vip', 30, 'VIP', 299000, 12, 9999, 5, 5, true, 10, false)
 ON CONFLICT (code) DO NOTHING;
 

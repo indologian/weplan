@@ -3,7 +3,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path = public, extensions;
 
-select plan(20);
+select plan(22);
 
 select has_table('public', 'user_profiles', 'user_profiles exists');
 select has_table('public', 'invitations', 'invitations exists');
@@ -43,6 +43,18 @@ select ok(
     'execute'
   ),
   'authenticated browser role cannot execute canonical creation RPC'
+);
+
+select is(
+  (select audio_size_limit_mb from public.tiers where code = 'premium'),
+  9,
+  'premium tier permits audio files up to 9MB'
+);
+select ok(
+  (select min(file_size_limit) >= 9 * 1024 * 1024
+   from storage.buckets
+   where id in ('invitation_upload_quarantine', 'invitation_media')),
+  'media buckets permit files of at least 9MB'
 );
 
 insert into auth.users (

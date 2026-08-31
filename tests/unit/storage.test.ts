@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/shared/lib/supabase/service-client", () => ({
   createSupabaseServiceClient: () => ({
+    rpc: vi.fn().mockResolvedValue({
+      data: { success: true, reservation_id: "reservation-1" },
+      error: null,
+    }),
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
@@ -22,7 +26,7 @@ vi.mock("@/shared/lib/supabase/service-client", () => ({
 
 vi.mock("server-only", () => ({}));
 
-import { StorageError } from "@/modules/storage/server/actions";
+import { requestUpload, StorageError } from "@/modules/storage/server/actions";
 
 describe("StorageError", () => {
   it("has correct name and code", () => {
@@ -43,8 +47,30 @@ describe("media types", () => {
   it("defines correct max file sizes", async () => {
     const { MAX_FILE_SIZES } = await import("@/modules/storage/types");
     expect(MAX_FILE_SIZES.image).toBe(10 * 1024 * 1024);
-    expect(MAX_FILE_SIZES.audio).toBe(5 * 1024 * 1024);
+    expect(MAX_FILE_SIZES.audio).toBe(9 * 1024 * 1024);
     expect(MAX_FILE_SIZES.video).toBe(0);
+  });
+
+  it("accepts audio at 9MB and rejects anything larger", async () => {
+    const input = {
+      invitationId: "10000000-0000-4000-8000-000000000001",
+      kind: "audio" as const,
+      purpose: "background_audio" as const,
+      filename: "background.mp3",
+      mimeType: "audio/mpeg",
+      byteSize: 9 * 1024 * 1024,
+    };
+
+    await expect(requestUpload("20000000-0000-4000-8000-000000000002", input))
+      .resolves.toMatchObject({ uploadMimeType: "audio/mpeg" });
+
+    await expect(requestUpload("20000000-0000-4000-8000-000000000002", {
+      ...input,
+      byteSize: (9 * 1024 * 1024) + 1,
+    })).rejects.toMatchObject({
+      code: "INVALID_FILE",
+      message: "File size exceeds maximum of 9MB.",
+    });
   });
 
   it("defines correct allowed MIME types", async () => {
