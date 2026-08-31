@@ -3030,3 +3030,17 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 
 - Menambahkan navigasi "Halaman Utama" dengan ikon Globe di sidebar dashboard (`src/app/(dashboard)/_components/dashboard-sidebar.tsx`) untuk memberikan jalan kembali ke halaman marketing dari dalam dashboard.
 
+
+## 2026-08-31 - Redesign Marketing Pages
+
+### Implemented
+
+- Mengikuti panduan `design-taste-frontend` untuk memperbaiki UX halaman marketing (landing, katalog, lead magnet).
+- **Hero Section**: Mengubah layout rata tengah yang membosankan menjadi split layout asimetris (kiri teks, kanan visual placeholder gambar nyata) dengan batasan font dan line-height yang tegas.
+- **Cara Kerja (Trust Strip)**: Menghapus card 3-kolom menjadi split layout (kiri headline, kanan vertical list) untuk menghindari perulangan visual beruntun (ZIGZAG ALTERNATION CAP).
+- **Featured Themes**: Menghapus border tebal gaya card dari grid tema (membiarkan gambar berdiri kuat) dan menyesuaikan padding serta tipografi grid.
+- **Pricing**: Memperbaiki karakter emoji error (o" menjadi ikon \Check\ dan \X\ dari \lucide-react\), mengubah layout title dari tengah ke format \grid-cols-12\ yang lebih menarik.
+- **FAQ**: Mengubah dari sekadar teks rata tengah menjadi format split 2-kolom.
+- **Layout global**: Menyesuaikan \max-w-5xl\ menjadi \max-w-6xl\ pada \marketing-navbar\ dan \marketing-footer\ agar nafas white-space lebih lega.
+- **Lead Magnet**: Mengganti form input native dan button bawaan ke \@/shared/components/ui\ (\Input\ dan \Button\) agar seragam dengan sistem.
+

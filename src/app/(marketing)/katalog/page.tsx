@@ -15,7 +15,7 @@ export default async function KatalogPage() {
         <h1 className="text-4xl font-bold tracking-tight">Katalog Tema</h1>
         <p className="text-muted-foreground mt-4">Temukan tema yang paling sesuai dengan kisah Anda.</p>
       </div>
-      <FeaturedThemes themes={themes} />
+      <FeaturedThemes themes={themes} hideHeader={true} />
     </div>
   );
 }

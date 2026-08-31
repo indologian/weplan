@@ -1,3 +1,6 @@
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+
 export const metadata = {
   title: "Panduan Persiapan Pernikahan | Weplan",
   description: "Dapatkan checklist dan panduan eksklusif dari Weplan.",
@@ -5,25 +8,30 @@ export const metadata = {
 
 export default function LeadMagnetPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-6 py-24">
-      <h1 className="text-4xl font-bold tracking-tight mb-4">Checklist Pernikahan Impian</h1>
-      <p className="text-muted-foreground max-w-2xl mx-auto mb-8">
-        Jangan sampai ada yang terlewat. Download checklist lengkap 12 bulan persiapan pernikahan secara gratis.
-      </p>
-      <form className="flex w-full max-w-sm flex-col gap-4 mx-auto">
-        <input 
-          type="email" 
-          placeholder="Masukkan email Anda" 
-          className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          required
-        />
-        <button 
-          type="submit"
-          className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring bg-primary text-primary-foreground shadow hover:bg-primary/90 h-11 px-8"
-        >
-          Kirim ke Email Saya
-        </button>
-      </form>
+    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-6 py-24">
+      <div className="max-w-xl mx-auto space-y-8">
+        <div>
+          <div className="inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium mb-6 bg-background/50">
+            Gratis
+          </div>
+          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">Checklist Pernikahan Impian</h1>
+          <p className="text-muted-foreground text-lg">
+            Jangan sampai ada yang terlewat. Download checklist lengkap 12 bulan persiapan pernikahan yang disusun oleh para ahli, gratis.
+          </p>
+        </div>
+        
+        <form className="flex w-full max-w-sm flex-col gap-3 mx-auto">
+          <Input 
+            type="email" 
+            placeholder="Masukkan email Anda" 
+            required
+            className="h-12"
+          />
+          <Button type="submit" size="lg" className="w-full">
+            Kirim ke Email Saya
+          </Button>
+        </form>
+      </div>
     </div>
   );
 }
