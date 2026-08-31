@@ -41,7 +41,7 @@ export function FeaturedThemes({
                     src={theme.thumbnail_url}
                     alt={theme.name}
                     fill
-                    sizes="(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) 50vw, 260px"
+                    sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 1023px) calc(50vw - 36px), 260px"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (

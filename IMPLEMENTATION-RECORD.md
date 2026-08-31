@@ -3064,12 +3064,10 @@ Make the marketing homepage and theme catalogue load efficiently while preservin
 - **Caching**: Created a Cloudflare Pages/Workers-compatible static caching rule in public/_headers to cache /theme-previews/* images (max-age=3600, stale-while-revalidate=86400).
 
 ### Verification & Testing
-- Performance was verified against a production build (
-pm run build) using Playwright.
+- Performance was verified against a production build (`npm run build`) using Playwright.
 - Reduced network requests on homepage from 39 to 34 (saving 4 demo prefetches and 1 unused font payload).
 - Improved LCP from ~332ms to ~315ms under consistent fast-network laboratory tests.
 - Preserved identical UI presentation and layout across mobile and desktop viewports.
 
 ### CI/CD Status
-- 
-pm run quality tests (typecheck, lint) passed successfully. Note: Pre-existing editor tests unrelated to this work package remain failing.
+- `npm run quality` tests (typecheck, lint) passed successfully. Note: Pre-existing editor tests unrelated to this work package remain failing.
