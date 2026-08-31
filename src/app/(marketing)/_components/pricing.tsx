@@ -9,7 +9,7 @@ export function Pricing() {
           <div className="lg:col-span-4 space-y-6">
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Harga Transparan</h2>
             <p className="text-muted-foreground text-lg">
-              Harga transparan untuk momen spesial Anda. Tidak ada biaya langganan bulanan atau biaya tersembunyi lainnya.
+              Mulai gratis atau pilih Premium untuk fitur dan pilihan tema yang lebih lengkap. Tidak ada biaya langganan bulanan atau biaya tersembunyi lainnya.
             </p>
           </div>
 
