@@ -9,7 +9,7 @@ export function Pricing() {
           <div className="lg:col-span-4 space-y-6">
             <h2 className="text-3xl md:text-4xl font-semibold tracking-tight">Harga Transparan</h2>
             <p className="text-muted-foreground text-lg">
-              Satu harga untuk semua fitur premium. Tidak ada biaya langganan bulanan atau biaya tersembunyi lainnya.
+              Harga transparan untuk momen spesial Anda. Tidak ada biaya langganan bulanan atau biaya tersembunyi lainnya.
             </p>
           </div>
 
@@ -45,7 +45,7 @@ export function Pricing() {
               <p className="text-muted-foreground text-sm mb-6">Fitur lengkap untuk momen tak terlupakan.</p>
               <ul className="space-y-4 text-sm mb-8 flex-1">
                 <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>Akses semua tema premium</span></li>
-                <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>Galeri foto tanpa batas</span></li>
+                <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>Galeri hingga 50 foto</span></li>
                 <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>RSVP & Buku Tamu</span></li>
                 <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>Tanpa watermark Weplan</span></li>
                 <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>Audio & Background Music</span></li>

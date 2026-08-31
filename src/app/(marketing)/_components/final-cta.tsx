@@ -9,7 +9,7 @@ export function FinalCta() {
           Siap membagikan hari bahagia Anda?
         </h2>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Bergabung dengan ribuan pasangan lainnya. Buat undangan digital eksklusif Anda dalam hitungan menit, tanpa perlu keahlian desain.
+          Buat undangan digital eksklusif Anda dalam hitungan menit, tanpa perlu keahlian desain.
         </p>
         <div className="pt-4">
           <Link
