@@ -155,23 +155,23 @@ export default async function PreviewPage({ params, searchParams }: Props) {
       <WeddingRenderer invitation={invitation} />
 
       <div
-        className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur"
+        className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[480px] border-t bg-background/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="mx-auto flex max-w-[480px] gap-2">
-          <Button asChild variant="outline" className="flex-1">
+        <div className="flex w-full gap-3">
+          <Button asChild variant="outline" className="flex-1 h-12 text-base font-medium">
             <Link href={`/dashboard/${invitation.invitationId}/edit`}>Kembali Edit</Link>
           </Button>
 
           {status === "published" ? (
-            <Button asChild className="flex-1">
+            <Button asChild className="flex-1 h-12 text-base font-medium">
               <Link href={`/${invitation.slug}`}>Buka Halaman Publik</Link>
             </Button>
           ) : (
             <CheckoutButton
               invitationId={invitation.invitationId}
               flushEditorBeforeCheckout={false}
-              className="flex-1"
+              className="flex-1 h-12 text-base font-medium"
             />
           )}
         </div>

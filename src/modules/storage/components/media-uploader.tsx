@@ -76,7 +76,7 @@ export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = 
         variant="outline" 
         onClick={() => fileInputRef.current?.click()}
         disabled={state === "reserving" || state === "uploading" || state === "processing"}
-        className="w-full sm:w-auto flex gap-2"
+        className="w-full sm:w-auto flex gap-2 h-10"
       >
         {(state === "reserving" || state === "uploading" || state === "processing") ? (
           <>
@@ -90,6 +90,9 @@ export function MediaUploader({ invitationId, kind, purpose, onSuccess, label = 
           </>
         )}
       </Button>
+      <p className="text-xs text-muted-foreground mt-1">
+        Maks. ukuran file: {kind === "audio" ? "9 MB" : kind === "video" ? "50 MB" : "10 MB"}
+      </p>
     </div>
   );
 }

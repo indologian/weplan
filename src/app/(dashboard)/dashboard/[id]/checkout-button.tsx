@@ -135,7 +135,7 @@ export function CheckoutButton({
     <>
       <Button onClick={handleCheckout} disabled={loading} className={cn("gap-2", className)}>
         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
-        Publish & Bayar
+        Publish Undangan
       </Button>
 
       <AlertDialog

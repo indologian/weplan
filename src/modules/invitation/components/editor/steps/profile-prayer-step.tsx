@@ -179,67 +179,83 @@ export function ProfilePrayerStep({
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <Card>
-        <CardHeader>
-          <CardTitle>Profil Mempelai</CardTitle>
-          <CardDescription>Masukkan nama panggilan atau nama pendek kedua mempelai.</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="groomName">Mempelai Pria</Label>
-              <Input id="groomName" {...register("groomName")} placeholder="Contoh: Romeo" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="groomParentNames">Nama Orang Tua Pria</Label>
-              <Input id="groomParentNames" {...register("groomParentNames")} placeholder="Contoh: Bpk. X, Ibu Y" />
-            </div>
-            <div className="space-y-2">
-              <Label>Foto Mempelai Pria</Label>
-              <MediaUploader
-                invitationId={initialData.invitationId}
-                kind="image"
-                purpose="couple_portrait"
-                label="Upload Foto Pria"
-                currentMediaId={groomPhotoMediaId}
-                onSuccess={(mediaId) => setValue("groomPhotoMediaId", mediaId, { shouldDirty: true })}
-              />
+      <section className="space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">Profil Mempelai</h2>
+          <p className="text-sm text-muted-foreground">Masukkan nama panggilan atau nama pendek kedua mempelai.</p>
+        </div>
+        
+        <div className="grid gap-x-12 gap-y-10 sm:grid-cols-2">
+          <div className="space-y-6">
+            <h3 className="font-medium flex items-center gap-2 border-b pb-2">
+              <span className="bg-primary/10 text-primary flex h-6 w-6 items-center justify-center rounded-full text-xs">1</span>
+              Mempelai Pria
+            </h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="groomName">Nama Panggilan</Label>
+                <Input id="groomName" {...register("groomName")} placeholder="Contoh: Romeo" className="max-w-xs" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="groomParentNames">Nama Orang Tua</Label>
+                <Input id="groomParentNames" {...register("groomParentNames")} placeholder="Contoh: Bpk. X, Ibu Y" className="max-w-xs" />
+              </div>
+              <div className="space-y-2 pt-2">
+                <Label>Foto Pria (Opsional)</Label>
+                <MediaUploader
+                  invitationId={initialData.invitationId}
+                  kind="image"
+                  purpose="couple_portrait"
+                  label="Upload Foto"
+                  currentMediaId={groomPhotoMediaId}
+                  onSuccess={(mediaId) => setValue("groomPhotoMediaId", mediaId, { shouldDirty: true })}
+                />
+              </div>
             </div>
           </div>
           
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="brideName">Mempelai Wanita</Label>
-              <Input id="brideName" {...register("brideName")} placeholder="Contoh: Juliet" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="brideParentNames">Nama Orang Tua Wanita</Label>
-              <Input id="brideParentNames" {...register("brideParentNames")} placeholder="Contoh: Bpk. A, Ibu B" />
-            </div>
-            <div className="space-y-2">
-              <Label>Foto Mempelai Wanita</Label>
-              <MediaUploader
-                invitationId={initialData.invitationId}
-                kind="image"
-                purpose="couple_portrait"
-                label="Upload Foto Wanita"
-                currentMediaId={bridePhotoMediaId}
-                onSuccess={(mediaId) => setValue("bridePhotoMediaId", mediaId, { shouldDirty: true })}
-              />
+          <div className="space-y-6">
+            <h3 className="font-medium flex items-center gap-2 border-b pb-2">
+              <span className="bg-primary/10 text-primary flex h-6 w-6 items-center justify-center rounded-full text-xs">2</span>
+              Mempelai Wanita
+            </h3>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="brideName">Nama Panggilan</Label>
+                <Input id="brideName" {...register("brideName")} placeholder="Contoh: Juliet" className="max-w-xs" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="brideParentNames">Nama Orang Tua</Label>
+                <Input id="brideParentNames" {...register("brideParentNames")} placeholder="Contoh: Bpk. A, Ibu B" className="max-w-xs" />
+              </div>
+              <div className="space-y-2 pt-2">
+                <Label>Foto Wanita (Opsional)</Label>
+                <MediaUploader
+                  invitationId={initialData.invitationId}
+                  kind="image"
+                  purpose="couple_portrait"
+                  label="Upload Foto"
+                  currentMediaId={bridePhotoMediaId}
+                  onSuccess={(mediaId) => setValue("bridePhotoMediaId", mediaId, { shouldDirty: true })}
+                />
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pembuka</CardTitle>
-          <CardDescription>Teks sambutan dan kutipan (doa/puisi) di bagian atas undangan.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-8">
+      <hr className="my-10" />
+
+      <section className="space-y-6">
+        <div className="space-y-1">
+          <h2 className="text-xl font-semibold tracking-tight">Pembuka</h2>
+          <p className="text-sm text-muted-foreground">Teks sambutan dan kutipan (doa/puisi) di bagian atas undangan.</p>
+        </div>
+        
+        <div className="grid gap-10 sm:grid-cols-2">
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <Label htmlFor="openingText">Teks Pembuka</Label>
+              <Label htmlFor="openingText">Teks Sambutan</Label>
               <div className="flex flex-wrap gap-2">
                 <span className="text-xs text-muted-foreground self-center mr-1">Generator:</span>
                 {OPENING_TEMPLATES.map((tmpl) => (
@@ -248,7 +264,7 @@ export function ProfilePrayerStep({
                     type="button" 
                     variant="outline" 
                     size="sm" 
-                    className="h-7 text-xs"
+                    className="h-7 text-[10px] uppercase tracking-wider"
                     onClick={() => applyTemplate("openingText", tmpl.value)}
                   >
                     {tmpl.label}
@@ -258,7 +274,7 @@ export function ProfilePrayerStep({
             </div>
             <textarea 
               id="openingText" 
-              className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" 
+              className="flex min-h-[140px] w-full rounded-md border border-input bg-background/50 px-4 py-3 text-sm leading-relaxed shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" 
               {...register("openingText")} 
               placeholder="Dengan memohon rahmat dan ridho Allah SWT..." 
             />
@@ -266,7 +282,7 @@ export function ProfilePrayerStep({
           
           <div className="space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <Label htmlFor="quoteText">Kutipan atau Doa</Label>
+              <Label htmlFor="quoteText">Kutipan / Doa</Label>
               <div className="flex flex-wrap gap-2">
                 <span className="text-xs text-muted-foreground self-center mr-1">Generator:</span>
                 {QUOTE_TEMPLATES.map((tmpl) => (
@@ -275,7 +291,7 @@ export function ProfilePrayerStep({
                     type="button" 
                     variant="outline" 
                     size="sm" 
-                    className="h-7 text-xs"
+                    className="h-7 text-[10px] uppercase tracking-wider"
                     onClick={() => applyTemplate("quoteText", tmpl.value)}
                   >
                     {tmpl.label}
@@ -285,13 +301,13 @@ export function ProfilePrayerStep({
             </div>
             <textarea 
               id="quoteText" 
-              className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50" 
+              className="flex min-h-[140px] w-full rounded-md border border-input bg-background/50 px-4 py-3 text-sm leading-relaxed shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" 
               {...register("quoteText")} 
               placeholder="Dan di antara tanda-tanda kekuasaan-Nya..." 
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       <AlertDialog open={!!templateConfirm} onOpenChange={(open) => !open && setTemplateConfirm(null)}>
         <AlertDialogContent>

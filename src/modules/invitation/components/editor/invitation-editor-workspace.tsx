@@ -123,21 +123,22 @@ export function InvitationEditorWorkspace({
         )}
       </div>
 
-      <div className="pt-8 flex justify-between items-center border-t">
-        <Button variant="ghost" disabled={currentStep === 1 || isNavigating} onClick={() => void handleStepChange(currentStep - 1)}>
-          Kembali
-        </Button>
-        <Button
-          disabled={isNavigating}
-          onClick={() => void (currentStep === 4
-            ? handlePreview()
-            : handleStepChange(currentStep + 1))}
-        >
-          {isNavigating ? "Menyimpan..." : currentStep === 4 ? "Preview" : "Lanjut"}
-        </Button>
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 p-4 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur sm:static sm:mt-12 sm:border-none sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-none">
+        <div className="mx-auto flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:items-center sm:justify-end">
+          <Button
+            size="lg"
+            className="w-full sm:w-auto sm:min-w-[200px]"
+            disabled={isNavigating}
+            onClick={() => void handlePreview()}
+          >
+            {isNavigating ? "Menyimpan..." : "Preview Undangan"}
+          </Button>
+        </div>
       </div>
 
-      <EditorPublishReadiness invitationId={initialData.invitationId} />
+      <div className="mt-8">
+        <EditorPublishReadiness invitationId={initialData.invitationId} />
+      </div>
     </div>
   );
 }

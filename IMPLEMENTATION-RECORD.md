@@ -2997,3 +2997,20 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - `npm run typecheck`: **PASS**.
 - `git commit`: **PASS**. (style: redesign dashboard UI/UX with modern SaaS guidelines)
 
+
+## 2026-08-31 - Redesign Create & Edit Invitation Flow
+
+### Implemented
+
+- Mengganti layout form Create Invitation menjadi antarmuka standar SaaS dengan indikator langkah yang jelas dan bebas dari Card tebal.
+- Mengubah navigasi editor (mobile dan desktop) dari kombinasi Tabs/Select menjadi Horizontal Scroll Segmented Tabs untuk akses yang lebih efisien.
+- Mengganti model Wizard linier pada Editor Workspace dengan Sticky Action Bar "Preview Undangan" yang selalu aksesibel, menghapus navigasi "Kembali/Lanjut".
+- Mengganti teks CheckoutButton menjadi "Publish Undangan" di halaman Preview.
+- Menyederhanakan UI Profile Prayer Step dengan desain whitespace-first dan negative space untuk mengurangi visual clutter.
+- Menambahkan visibilitas batas ukuran file (9MB/10MB/50MB) pada Media Uploader.
+
+### Verification
+
+- `npm run typecheck`: **PASS**.
+- `git commit & push`: **PASS**.
+

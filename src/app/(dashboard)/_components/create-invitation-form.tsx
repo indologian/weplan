@@ -109,106 +109,135 @@ export function CreateInvitationForm({
     }
   }
 
-  if (step === 1) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Pilih Tema</h1>
-          <p className="text-muted-foreground">Pilih desain dasar undangan Anda. Tema masih bisa diganti nanti.</p>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {isLoadingThemes && <p className="text-sm text-muted-foreground col-span-full">Memuat pilihan tema...</p>}
-          {themesError && <p className="text-sm text-red-500 col-span-full">{themesError}</p>}
-          {!isLoadingThemes && !themesError && themes.length === 0 && <p className="text-sm text-muted-foreground col-span-full">Tidak ada tema yang tersedia saat ini.</p>}
-          {themes.map((theme) => (
-            <button
-              key={theme.id}
-              onClick={() => setSelectedThemeId(theme.id)}
-              className={`group relative flex flex-col items-start gap-2 rounded-xl border-2 p-4 text-left transition-all ${
-                selectedThemeId === theme.id
-                  ? "border-primary bg-primary/5 ring-1 ring-primary"
-                  : "border-muted bg-background hover:border-primary/50"
-              }`}
-            >
-              <div className="w-full aspect-[3/4] rounded-md bg-muted flex items-center justify-center overflow-hidden mb-2 relative">
-                {theme.preview_image ? (
-                  <Image src={theme.preview_image} alt={theme.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 33vw" />
-                ) : (
-                  <span className="text-muted-foreground text-sm font-medium">Tidak ada gambar</span>
-                )}
-              </div>
-              <h3 className="font-semibold">{theme.name}</h3>
-              <p className="line-clamp-2 text-xs text-muted-foreground">{theme.description}</p>
-              <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground mt-auto">
-                {theme.category}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <div className="flex justify-end pt-4">
-          <Button
-            onClick={() => setStep(2)}
-            disabled={!selectedThemeId}
-            className="w-full sm:w-auto"
-          >
-            Lanjut <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      <div>
-        <Button variant="ghost" onClick={() => setStep(1)} className="mb-4 -ml-4 text-muted-foreground">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali pilih tema
-        </Button>
-        <h1 className="text-3xl font-bold tracking-tight">Detail Awal</h1>
-        <p className="text-muted-foreground">Isi nama panggilan kedua mempelai. Anda bisa melengkapinya nanti.</p>
+    <div className="mx-auto max-w-3xl space-y-12">
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-primary">Langkah {step} dari 2</p>
+        {step === 1 ? (
+          <>
+            <h1 className="text-3xl font-semibold tracking-tight">Pilih Tema Desain</h1>
+            <p className="text-muted-foreground text-lg">Tentukan tata letak dan nuansa undangan Anda. Tema dapat diubah kapan saja.</p>
+          </>
+        ) : (
+          <>
+            <h1 className="text-3xl font-semibold tracking-tight">Detail Mempelai</h1>
+            <p className="text-muted-foreground text-lg">Masukkan nama panggilan untuk melengkapi pembuatan awal undangan.</p>
+          </>
+        )}
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
-          <form onSubmit={handleCreate} className="space-y-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="groomName">Mempelai Pria</Label>
+      {step === 1 && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+            {isLoadingThemes && <p className="text-muted-foreground col-span-full">Memuat pilihan tema...</p>}
+            {themesError && <p className="text-destructive col-span-full">{themesError}</p>}
+            {!isLoadingThemes && !themesError && themes.length === 0 && <p className="text-muted-foreground col-span-full">Tidak ada tema yang tersedia saat ini.</p>}
+            {themes.map((theme) => {
+              const isSelected = selectedThemeId === theme.id;
+              return (
+                <button
+                  key={theme.id}
+                  onClick={() => setSelectedThemeId(theme.id)}
+                  className={`group relative flex flex-col items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                    isSelected
+                      ? "border-primary bg-primary/5 ring-1 ring-primary"
+                      : "border-border hover:border-foreground/30 hover:bg-muted/30"
+                  }`}
+                  aria-pressed={isSelected}
+                >
+                  <div className="w-full aspect-[3/4] rounded-lg bg-muted flex items-center justify-center overflow-hidden relative">
+                    {theme.preview_image ? (
+                      <Image src={theme.preview_image} alt={theme.name} fill className="object-cover transition-transform duration-500 group-hover:scale-105" sizes="(max-width: 768px) 100vw, 33vw" />
+                    ) : (
+                      <span className="text-muted-foreground text-xs font-medium">No preview</span>
+                    )}
+                  </div>
+                  <div className="w-full space-y-1">
+                    <div className="flex items-center justify-between w-full">
+                      <h3 className="font-medium leading-none">{theme.name}</h3>
+                      <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
+                        {theme.category}
+                      </span>
+                    </div>
+                    <p className="line-clamp-2 text-sm text-muted-foreground leading-relaxed">{theme.description}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center justify-end pt-4 border-t">
+            <Button
+              onClick={() => setStep(2)}
+              disabled={!selectedThemeId}
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              Lanjut ke Detail <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-right-8 duration-500">
+          <form onSubmit={handleCreate} className="space-y-8 max-w-xl">
+            <div className="space-y-6">
+              <div className="space-y-2.5">
+                <Label htmlFor="groomName" className="text-base font-medium">Mempelai Pria</Label>
                 <Input
                   id="groomName"
                   type="text"
                   value={groomName}
-                  onChange={(event) => setGroomName(event.target.value)}
-                  placeholder="Nama panggilan pria"
+                  onChange={(event) => {
+                    setGroomName(event.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder="Contoh: Romeo"
+                  className="h-12 text-lg px-4"
                   autoFocus
+                  required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="brideName">Mempelai Wanita</Label>
+              <div className="space-y-2.5">
+                <Label htmlFor="brideName" className="text-base font-medium">Mempelai Wanita</Label>
                 <Input
                   id="brideName"
                   type="text"
                   value={brideName}
-                  onChange={(event) => setBrideName(event.target.value)}
-                  placeholder="Nama panggilan wanita"
+                  onChange={(event) => {
+                    setBrideName(event.target.value);
+                    if (error) setError("");
+                  }}
+                  placeholder="Contoh: Juliet"
+                  className="h-12 text-lg px-4"
+                  required
                 />
               </div>
             </div>
 
-            {error && <p className="text-sm font-medium text-destructive" aria-live="polite">{error}</p>}
+            {error && (
+              <div className="rounded-lg bg-destructive/10 p-4 text-sm font-medium text-destructive" aria-live="polite">
+                {error}
+              </div>
+            )}
 
-            <Button
-              type="submit"
-              disabled={pending || !groomName.trim() || !brideName.trim()}
-              className="w-full"
-            >
-              {pending ? "Membuat Undangan..." : "Buat Undangan"}
-            </Button>
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 pt-4 border-t">
+              <Button type="button" variant="ghost" onClick={() => setStep(1)} className="w-full sm:w-auto text-muted-foreground">
+                <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
+              </Button>
+              <Button
+                type="submit"
+                size="lg"
+                disabled={pending || !groomName.trim() || !brideName.trim()}
+                className="w-full sm:w-auto min-w-[140px]"
+              >
+                {pending ? "Menyiapkan Draft..." : "Buat Undangan"}
+              </Button>
+            </div>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }
