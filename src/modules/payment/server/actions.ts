@@ -1,19 +1,26 @@
 import "server-only";
 
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
-import { createSnapTransaction, getTransactionStatus, cancelMidtransTransaction, type CreateSnapRequest } from "../provider/midtrans/client";
+import { createSnapTransaction, cancelMidtransTransaction, type CreateSnapRequest } from "../provider/midtrans/client";
 import type { PricingSnapshot, EntitlementSnapshot, TransactionRow } from "../types";
 import { evaluatePublishReadiness } from "@/modules/invitation/server/publish-readiness-evaluator";
 
 export class PaymentError extends Error {
   constructor(
     message: string,
-    public readonly code: "NOT_FOUND" | "ALREADY_ACTIVE" | "INVITATION_NOT_READY" | "PROVIDER_ERROR" | "DATABASE_ERROR" | "STATE_CONFLICT",
+    public readonly code: "NOT_FOUND" | "ALREADY_ACTIVE" | "ALREADY_FUNDED" | "INVITATION_NOT_READY" | "PROVIDER_ERROR" | "DATABASE_ERROR" | "STATE_CONFLICT",
+    public readonly activeCheckout?: ActiveCheckoutSummary,
   ) {
     super(message);
     this.name = "PaymentError";
   }
 }
+
+export type ActiveCheckoutSummary = {
+  transactionId: string;
+  paymentState: string;
+  canCancel: boolean;
+};
 
 const CHECKOUT_EXPIRY_MINUTES = 180; // 3 hours
 
@@ -50,14 +57,24 @@ export async function createCheckout(
   }
 
   // 2. Check for active checkout & reuse
-  const { data: activeTx } = await supabase
+  const { data: activeTx, error: activeTxError } = await supabase
     .from("transactions")
     .select("id, payment_state, amount_idr")
     .eq("invitation_id", invitationId)
-    .in("payment_state", ["creating", "provider_create_unknown", "awaiting_payment"])
+    .in("payment_state", [
+      "creating",
+      "provider_create_unknown",
+      "awaiting_payment",
+      "cancel_requested",
+      "requires_review",
+    ])
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (activeTxError) {
+    throw new PaymentError("Failed to inspect active checkout", "DATABASE_ERROR");
+  }
 
   // 3. Get theme tier pricing
   const { data: theme } = await supabase
@@ -78,7 +95,7 @@ export async function createCheckout(
 
   if (activeTx) {
     if (activeTx.payment_state === "awaiting_payment" && activeTx.amount_idr === tier.price_amount) {
-      const { data: activeAttempt } = await supabase
+      const { data: activeAttempt, error: activeAttemptError } = await supabase
         .from("payment_attempts")
         .select("id, snap_token_ciphertext, redirect_url_ciphertext, page_expires_at")
         .eq("transaction_id", activeTx.id)
@@ -86,17 +103,36 @@ export async function createCheckout(
         .order("attempt_no", { ascending: false })
         .limit(1)
         .maybeSingle();
+
+      if (activeAttemptError) {
+        throw new PaymentError("Failed to inspect active payment attempt", "DATABASE_ERROR");
+      }
       
-      if (activeAttempt?.snap_token_ciphertext && activeAttempt.page_expires_at && new Date(activeAttempt.page_expires_at) > new Date()) {
+      if (
+        activeAttempt?.snap_token_ciphertext
+        && activeAttempt.redirect_url_ciphertext
+        && activeAttempt.page_expires_at
+        && new Date(activeAttempt.page_expires_at) > new Date()
+      ) {
         return {
           transactionId: activeTx.id,
           snapToken: activeAttempt.snap_token_ciphertext,
-          redirectUrl: activeAttempt.redirect_url_ciphertext || ""
+          redirectUrl: activeAttempt.redirect_url_ciphertext,
         };
       }
     }
-    // If not reusable or amount changed, we should either cancel it or reject
-    throw new PaymentError("Active checkout already exists. Please cancel it first.", "ALREADY_ACTIVE");
+
+    throw new PaymentError(
+      activeTx.payment_state === "requires_review"
+        ? "Checkout sebelumnya memerlukan pemeriksaan pembayaran."
+        : "Checkout sebelumnya tidak dapat digunakan kembali.",
+      "ALREADY_ACTIVE",
+      {
+        transactionId: activeTx.id,
+        paymentState: activeTx.payment_state,
+        canCancel: activeTx.payment_state !== "requires_review",
+      },
+    );
   }
 
   const pricingSnapshot: PricingSnapshot = {
@@ -214,7 +250,7 @@ export async function createCheckout(
         updated_at: new Date().toISOString(),
       })
       .eq("id", transaction.id);
-  } catch (_error) {
+  } catch {
     await supabase
       .from("payment_attempts")
       .update({
@@ -256,24 +292,32 @@ export async function getActiveCheckout(userId: string, invitationId: string): P
 export async function cancelCheckout(
   userId: string,
   transactionId: string,
+  invitationId: string,
 ): Promise<void> {
   const supabase = createSupabaseServiceClient();
 
-  const { data: transaction } = await supabase
+  const { data: transaction, error: transactionError } = await supabase
     .from("transactions")
     .select("id, payment_state, invitation_id")
     .eq("id", transactionId)
     .eq("user_id", userId)
+    .eq("invitation_id", invitationId)
     .maybeSingle();
 
+  if (transactionError) throw new PaymentError("Failed to inspect transaction", "DATABASE_ERROR");
   if (!transaction) throw new PaymentError("Transaction not found", "NOT_FOUND");
 
-  const cancelableStates = ["creating", "provider_create_unknown", "awaiting_payment"];
+  const cancelableStates = [
+    "creating",
+    "provider_create_unknown",
+    "awaiting_payment",
+    "cancel_requested",
+  ];
   if (!cancelableStates.includes(transaction.payment_state)) {
     throw new PaymentError("Transaction cannot be cancelled", "STATE_CONFLICT");
   }
 
-  const { data: attempt } = await supabase
+  const { data: attempt, error: attemptError } = await supabase
     .from("payment_attempts")
     .select("order_id, create_state")
     .eq("transaction_id", transactionId)
@@ -281,39 +325,96 @@ export async function cancelCheckout(
     .limit(1)
     .maybeSingle();
 
+  if (attemptError) {
+    throw new PaymentError("Failed to inspect payment attempt", "DATABASE_ERROR");
+  }
+
   if (!attempt) {
-    await supabase
+    const { error } = await supabase
       .from("transactions")
       .update({ payment_state: "cancelled", updated_at: new Date().toISOString() })
-      .eq("id", transactionId);
+      .eq("id", transactionId)
+      .in("payment_state", cancelableStates);
+    if (error) throw new PaymentError("Failed to cancel checkout", "DATABASE_ERROR");
     return;
   }
 
-  if (attempt.create_state === "created" || attempt.create_state === "unknown") {
-    try {
-      await cancelMidtransTransaction(attempt.order_id);
-    } catch (error: unknown) {
-      const providerError = error as { httpStatus?: number; providerStatusCode?: string };
-      if (providerError.httpStatus !== 412 && providerError.httpStatus !== 404 && providerError.providerStatusCode !== "412" && providerError.providerStatusCode !== "404") {
-        await supabase
-          .from("transactions")
-          .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })
-          .eq("id", transactionId);
-        throw new PaymentError("Failed to cancel provider transaction", "PROVIDER_ERROR");
-      }
+  try {
+    await cancelMidtransTransaction(attempt.order_id);
+  } catch (error: unknown) {
+    const providerError = error as { httpStatus?: number; providerStatusCode?: string };
+    const providerCode = providerError.providerStatusCode
+      ?? (providerError.httpStatus?.toString());
+
+    if (providerCode === "404") {
+      const { error: updateError } = await supabase
+        .from("transactions")
+        .update({ payment_state: "cancelled", updated_at: new Date().toISOString() })
+        .eq("id", transactionId)
+        .in("payment_state", cancelableStates);
+      if (updateError) throw new PaymentError("Failed to cancel checkout", "DATABASE_ERROR");
+      return;
+    }
+
+    if (providerCode !== "412") {
+      await supabase
+        .from("transactions")
+        .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })
+        .eq("id", transactionId)
+        .in("payment_state", cancelableStates);
+      throw new PaymentError("Failed to cancel provider transaction", "PROVIDER_ERROR");
     }
   }
 
   const { processPaymentStatusAtomically } = await import("./processing");
   try {
     await processPaymentStatusAtomically(attempt.order_id, "status_poll");
-  } catch (e) {
-    // If reconciliation fails or is already updated by webhook, fallback to simple cancel
+  } catch {
     await supabase
       .from("transactions")
-      .update({ payment_state: "cancelled", updated_at: new Date().toISOString() })
-      .eq("id", transactionId);
+      .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })
+      .eq("id", transactionId)
+      .in("payment_state", cancelableStates);
+    throw new PaymentError(
+      "Pembatalan sedang menunggu konfirmasi Midtrans.",
+      "PROVIDER_ERROR",
+    );
   }
+
+  const { data: reconciled, error: reconcileError } = await supabase
+    .from("transactions")
+    .select("payment_state")
+    .eq("id", transactionId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (reconcileError || !reconciled) {
+    throw new PaymentError("Failed to verify checkout cancellation", "DATABASE_ERROR");
+  }
+
+  if (["cancelled", "expired", "failed"].includes(reconciled.payment_state)) {
+    return;
+  }
+
+  await supabase
+    .from("transactions")
+    .update({ payment_state: "cancel_requested", updated_at: new Date().toISOString() })
+    .eq("id", transactionId)
+    .in("payment_state", cancelableStates);
+
+  if (reconciled.payment_state === "paid") {
+    throw new PaymentError(
+      "Pembayaran sudah diproses.",
+      "ALREADY_FUNDED",
+    );
+  }
+
+  throw new PaymentError(
+    ["partially_reversed", "reversed"].includes(reconciled.payment_state)
+      ? "Status pengembalian pembayaran memerlukan pemeriksaan."
+      : "Pembatalan sedang menunggu konfirmasi Midtrans.",
+    "STATE_CONFLICT",
+  );
 }
 
 export async function publishPaidDraft(
@@ -322,13 +423,14 @@ export async function publishPaidDraft(
 ): Promise<void> {
   const supabase = createSupabaseServiceClient();
 
-  const { data: invitation } = await supabase
+  const { data: invitation, error: invitationError } = await supabase
     .from("invitations")
     .select("id, status, entitlement_tier_id, expires_at")
     .eq("id", invitationId)
     .eq("user_id", userId)
     .maybeSingle();
 
+  if (invitationError) throw new PaymentError("Failed to inspect invitation", "DATABASE_ERROR");
   if (!invitation) throw new PaymentError("Invitation not found", "NOT_FOUND");
 
   if (invitation.status !== "draft") {
@@ -349,7 +451,7 @@ export async function publishPaidDraft(
     throw new PaymentError("Invitation is not ready to publish", "INVITATION_NOT_READY");
   }
 
-  await supabase
+  const { data: publishedInvitation, error: publishError } = await supabase
     .from("invitations")
     .update({
       status: "published",
@@ -358,5 +460,14 @@ export async function publishPaidDraft(
     })
     .eq("id", invitationId)
     .eq("status", "draft")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .select("id")
+    .maybeSingle();
+
+  if (publishError) {
+    throw new PaymentError("Failed to publish invitation", "DATABASE_ERROR");
+  }
+  if (!publishedInvitation) {
+    throw new PaymentError("Invitation state changed before publish", "STATE_CONFLICT");
+  }
 }

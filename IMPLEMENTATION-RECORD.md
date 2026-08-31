@@ -2960,3 +2960,23 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - `npm run verify:migrations`: **PASS**.
 - `npm run build:cloudflare`: **PASS**.
 - Local Supabase reset/pgTAP: **NOT RUN** â€” Docker is unavailable in this workspace.
+
+## 2026-08-31 - Active Checkout Recovery
+
+### Implemented
+
+- Reuses an unexpired Midtrans checkout without creating another transaction or payment attempt.
+- Replaces the dead-end active-checkout toast with an accessible confirmation dialog for safe cancellation and checkout replacement.
+- Reconciles Midtrans cancellation before allowing a replacement; `404` is handled as provider-not-found while `412` requires status polling.
+- Prevents replacement when payment is funded or requires review, and publishes an already-funded ready draft without charging again.
+- Fails closed on transaction/payment-attempt query errors and keeps readiness evaluation before all checkout reuse or payment side effects.
+
+### Verification
+
+- `npm run typecheck`: **PASS**.
+- `npm run lint`: **PASS** (0 errors; existing repository warnings remain).
+- `npm run test`: **PASS** (45 files, 306 tests).
+- Targeted checkout lifecycle/readiness/UI tests: **PASS** (4 files, 14 tests).
+- `npm run verify:migrations`: **PASS**; no migration added.
+- `npm run build`: **PASS**.
+- `npm run build:cloudflare`: **PASS**.
