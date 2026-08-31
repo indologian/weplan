@@ -1,6 +1,7 @@
 import { Button } from "@/shared/components/ui/button";
 import Link from "next/link";
 import { ThemeToggle } from "./theme-toggle";
+import { MobileMenu } from "./mobile-menu";
 
 export function MarketingNavbar() {
   return (
@@ -15,12 +16,13 @@ export function MarketingNavbar() {
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <ThemeToggle />
-          <Button variant="ghost" asChild className="hidden sm:inline-flex min-h-[44px]">
+          <Button variant="ghost" asChild className="hidden md:inline-flex min-h-[44px]">
             <Link href="/login">Masuk</Link>
           </Button>
-          <Button asChild className="min-h-[44px]">
+          <Button asChild className="hidden md:inline-flex min-h-[44px]">
             <Link href="/create">Coba Tema Gratis</Link>
           </Button>
+          <MobileMenu />
         </div>
       </nav>
     </header>

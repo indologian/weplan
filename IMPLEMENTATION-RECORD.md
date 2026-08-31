@@ -3044,3 +3044,10 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - **Layout global**: Menyesuaikan \max-w-5xl\ menjadi \max-w-6xl\ pada \marketing-navbar\ dan \marketing-footer\ agar nafas white-space lebih lega.
 - **Lead Magnet**: Mengganti form input native dan button bawaan ke \@/shared/components/ui\ (\Input\ dan \Button\) agar seragam dengan sistem.
 
+
+## 2026-08-31 - Mobile Nav Marketing Fix
+
+### Implemented
+
+- Menambahkan komponen \MobileMenu\ (\src/app/(marketing)/_components/mobile-menu.tsx\) dengan menggunakan komponen \Sheet\ dari UI untuk menampilkan tautan navigasi (Katalog, Checklist) serta tombol *Login/Create* pada layar HP. \MarketingNavbar\ yang tadinya menyembunyikan tombol-tombol tersebut tanpa fallback kini menyediakan _hamburger menu_ yang rapi.
+
