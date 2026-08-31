@@ -276,6 +276,7 @@ export function AdvancedSettingsStep({
               kind="audio"
               purpose="background_audio"
               label="Upload Musik (MP3/M4A)"
+              accept="audio/mpeg,audio/mp4,audio/x-m4a,.mp3,.m4a"
               currentMediaId={backgroundAudioMediaId}
               onSuccess={(mediaId) =>
                 setValue("backgroundAudioMediaId", mediaId, {
@@ -284,7 +285,7 @@ export function AdvancedSettingsStep({
               }
             />
             <p className="text-xs text-muted-foreground mt-1">
-              Gunakan file MP3/M4A maksimal 5MB.
+              Gunakan file MP3 atau M4A (AAC), maksimal 5MB.
             </p>
           </div>
           <div className="space-y-2">

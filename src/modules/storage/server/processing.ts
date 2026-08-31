@@ -1,8 +1,9 @@
 import "server-only";
 
 import { createSupabaseServiceClient } from "@/shared/lib/supabase/service-client";
-import { FINAL_BUCKET, QUARANTINE_BUCKET } from "../types";
-import { canonicalizeAudio, probeAudio } from "./audio-probe";
+import { detectMimeFromBytes } from "@/shared/lib/validation/magic-bytes";
+import { validateMp4Audio } from "../audio-file-validation";
+import { ALLOWED_MIME_TYPES, FINAL_BUCKET, QUARANTINE_BUCKET } from "../types";
 import { detectImageFormat } from "./image-processor";
 
 type ProcessResult = {
@@ -10,6 +11,7 @@ type ProcessResult = {
   finalPath?: string;
   width?: number;
   height?: number;
+  durationSeconds?: number;
   error?: string;
 };
 
@@ -18,7 +20,7 @@ export async function processUploadedMedia(mediaId: string): Promise<ProcessResu
 
   const { data: media } = await supabase
     .from("media_assets")
-    .select("id, invitation_id, owner_id, kind, purpose, status, quarantine_path, original_filename")
+    .select("id, invitation_id, owner_id, kind, purpose, status, quarantine_path")
     .eq("id", mediaId)
     .maybeSingle();
 
@@ -97,40 +99,55 @@ export async function processUploadedMedia(mediaId: string): Promise<ProcessResu
       }
     }
 
-    // Audio / Other
-    const arrayBuffer = await fileData.arrayBuffer();
-    const audioBytes = new Uint8Array(arrayBuffer);
-
-    // Structural audio probe — fail-closed. Media tidak akan mencapai
-    // status "ready" kecuali terbukti audio-only (tidak ada track video).
-    const canon = canonicalizeAudio(audioBytes);
-    if (!canon) {
-      const probeResult = probeAudio(audioBytes);
-      const reason = probeResult.status === "rejected" ? probeResult.reason : "unknown";
+    if (media.kind !== "audio") {
       await supabase
         .from("media_assets")
-        .update({ status: "rejected", failure_code: `AUDIO_PROBE_${ reason.toUpperCase() }` })
+        .update({ status: "rejected", failure_code: "UNSUPPORTED_MEDIA_KIND" })
         .eq("id", mediaId);
-      await supabase.storage
-        .from(QUARANTINE_BUCKET)
-        .remove([media.quarantine_path])
-        .catch(() => { });
-      return {
-        success: false,
-        error:
-          reason === "has-video"
-            ? "File mengandung track video. Unggah audio-only (MP3/M4A)."
-            : reason === "truncated"
-              ? "File audio tidak lengkap atau rusak."
-              : reason === "adts-use-m4a"
-                ? "AAC mentah tidak didukung. Gunakan kontainer M4A."
-                : "Format audio tidak dikenali.",
-      };
+      return { success: false, error: "Unsupported media kind." };
     }
 
-    const ext = canon.ext;
-    const contentType = canon.mime;
-    const finalPath = `${ media.owner_id }/${ media.invitation_id }/${ media.purpose }/${ mediaId }.${ ext }`;
+    const arrayBuffer = await fileData.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    const contentType = detectMimeFromBytes(bytes.subarray(0, 4100));
+    if (!contentType || !ALLOWED_MIME_TYPES.audio.includes(contentType)) {
+      await supabase
+        .from("media_assets")
+        .update({ status: "rejected", failure_code: "UNSUPPORTED_AUDIO_FORMAT" })
+        .eq("id", mediaId);
+      return { success: false, error: "Unsupported audio format." };
+    }
+
+    let durationSeconds: number | undefined;
+    const extensionByMime: Record<string, string> = {
+      "audio/mpeg": "mp3",
+      "audio/mp4": "m4a",
+      "audio/ogg": "ogg",
+      "audio/wav": "wav",
+      "audio/webm": "webm",
+    };
+    const ext = extensionByMime[contentType];
+    if (!ext) {
+      await supabase
+        .from("media_assets")
+        .update({ status: "rejected", failure_code: "UNSUPPORTED_AUDIO_FORMAT" })
+        .eq("id", mediaId);
+      return { success: false, error: "Unsupported audio format." };
+    }
+
+    if (contentType === "audio/mp4") {
+      const validation = validateMp4Audio(bytes);
+      if (!validation.valid) {
+        await supabase
+          .from("media_assets")
+          .update({ status: "rejected", failure_code: validation.failureCode })
+          .eq("id", mediaId);
+        return { success: false, error: "Invalid M4A audio file." };
+      }
+      durationSeconds = validation.durationSeconds;
+    }
+
+    const finalPath = `${media.owner_id}/${media.invitation_id}/${media.purpose}/${mediaId}.${ext}`;
 
     const { error: uploadError } = await supabase.storage
       .from(FINAL_BUCKET)
@@ -147,19 +164,24 @@ export async function processUploadedMedia(mediaId: string): Promise<ProcessResu
       return { success: false, error: "Failed to upload final media." };
     }
 
-    await supabase
+    const { error: dbError } = await supabase
       .from("media_assets")
       .update({
         status: "ready",
         final_path: finalPath,
         detected_mime: contentType,
+        duration_seconds: durationSeconds,
         updated_at: new Date().toISOString(),
       })
       .eq("id", mediaId);
 
-    await supabase.storage.from(QUARANTINE_BUCKET).remove([media.quarantine_path]).catch(() => { });
+    if (dbError) {
+      throw new Error(`Database error: ${dbError.message}`);
+    }
 
-    return { success: true, finalPath };
+    await supabase.storage.from(QUARANTINE_BUCKET).remove([media.quarantine_path]).catch(() => {});
+
+    return { success: true, finalPath, durationSeconds };
   } catch (error) {
     await supabase
       .from("media_assets")

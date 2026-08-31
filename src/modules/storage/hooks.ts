@@ -75,7 +75,7 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
         throw new Error(requestData.error || "Failed to request upload.");
       }
 
-      const { mediaId, uploadUrl } = requestData.data;
+      const { mediaId, uploadUrl, uploadMimeType } = requestData.data;
 
       setState("uploading");
       setProgress(10);
@@ -97,7 +97,7 @@ export function useMediaUpload({ invitationId, kind, purpose, onComplete, onErro
         });
         xhr.addEventListener("error", () => reject(new Error("Upload failed.")));
         xhr.open("PUT", uploadUrl);
-        xhr.setRequestHeader("Content-Type", fileToUpload.type || file.type);
+        xhr.setRequestHeader("Content-Type", uploadMimeType || fileToUpload.type || file.type);
         xhr.send(fileToUpload);
       });
 

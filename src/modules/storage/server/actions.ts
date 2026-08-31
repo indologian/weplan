@@ -57,11 +57,11 @@ function getExtensionFromMime(mime: string): string {
     "image/webp": "webp",
     "image/avif": "avif",
     "audio/mpeg": "mp3",
+    "audio/mp4": "m4a",
     "audio/ogg": "ogg",
     "audio/wav": "wav",
     "audio/webm": "webm",
-    "audio/mp4": "m4a",
-    "audio/x-m4a": "m4a"
+    "audio/x-m4a": "m4a",
   };
   return map[mime] ?? "bin";
 }
@@ -122,7 +122,7 @@ export async function requestUpload(
       status: "pending_upload",
       version: 1,
       original_filename: input.filename,
-      declared_mime: input.mimeType,
+      declared_mime: input.declaredMimeType ?? input.mimeType,
       byte_size: input.byteSize,
       quarantine_path: quarantinePath,
     });
@@ -145,6 +145,7 @@ export async function requestUpload(
   return {
     mediaId,
     uploadUrl: signedUrl.signedUrl,
+    uploadMimeType: input.mimeType,
     quarantinePath,
     expiresAt: Math.floor(Date.now() / 1000) + UPLOAD_EXPIRY_SECONDS,
   };
@@ -248,10 +249,10 @@ export async function getMediaServingUrl(
     webp: "image/webp",
     avif: "image/avif",
     mp3: "audio/mpeg",
+    m4a: "audio/mp4",
     ogg: "audio/ogg",
     wav: "audio/wav",
     webm: "audio/webm",
-    m4a: "audio/mp4",
   };
   const ext = filePath.split(".").pop() ?? "";
   const contentType = contentTypeMap[ext] ?? "application/octet-stream";

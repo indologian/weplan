@@ -114,6 +114,39 @@ describe("media upload request validation", () => {
       expect.objectContaining({ kind: fixture.kind, purpose: fixture.purpose }),
     );
   });
+
+  it("canonicalizes a renamed AAC M4A before reserving its upload", async () => {
+    const m4aHeader = Buffer.from([
+      0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70,
+      0x64, 0x61, 0x73, 0x68, 0x00, 0x00, 0x00, 0x00,
+      0x69, 0x73, 0x6f, 0x36, 0x6d, 0x70, 0x34, 0x31,
+    ]);
+
+    const response = await POST(new NextRequest("http://localhost/api/media/upload", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        action: "request",
+        invitationId: "20000000-0000-4000-8000-000000000002",
+        kind: "audio",
+        purpose: "background_audio",
+        filename: "renamed-audio.mp3",
+        mimeType: "audio/mpeg",
+        byteSize: m4aHeader.length,
+        firstBytesBase64: m4aHeader.toString("base64"),
+      }),
+    }));
+
+    expect(response.status).toBe(200);
+    expect(mocks.requestUpload).toHaveBeenCalledWith(
+      "30000000-0000-4000-8000-000000000003",
+      expect.objectContaining({
+        filename: "renamed-audio.mp3",
+        mimeType: "audio/mp4",
+        declaredMimeType: "audio/mpeg",
+      }),
+    );
+  });
 });
 
 describe("media upload completion", () => {

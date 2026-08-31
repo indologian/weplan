@@ -28,6 +28,24 @@ describe("magic-bytes", () => {
       expect(detectMimeFromBytes(bytes)).toBe("audio/mpeg");
     });
 
+    it("detects a DASH-branded M4A container as audio/mp4", () => {
+      const bytes = new Uint8Array([
+        0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70,
+        0x64, 0x61, 0x73, 0x68, 0x00, 0x00, 0x00, 0x00,
+        0x69, 0x73, 0x6f, 0x36, 0x6d, 0x70, 0x34, 0x31,
+      ]);
+      expect(detectMimeFromBytes(bytes)).toBe("audio/mp4");
+    });
+
+    it("detects AVIF by its brand instead of any ftyp box", () => {
+      const bytes = new Uint8Array([
+        0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70,
+        0x61, 0x76, 0x69, 0x66, 0x00, 0x00, 0x00, 0x00,
+        0x6d, 0x69, 0x66, 0x31, 0x61, 0x76, 0x69, 0x66,
+      ]);
+      expect(detectMimeFromBytes(bytes)).toBe("image/avif");
+    });
+
     it("returns null for unknown bytes", () => {
       const bytes = new Uint8Array([0x00, 0x00, 0x00, 0x00]);
       expect(detectMimeFromBytes(bytes)).toBeNull();
@@ -48,6 +66,19 @@ describe("magic-bytes", () => {
       expect(result.valid).toBe(false);
       expect(result.detectedMime).toBe("image/jpeg");
       expect(result.error).toContain("does not match detected");
+    });
+
+    it("canonicalizes a renamed AAC M4A only when explicitly enabled", () => {
+      const bytes = new Uint8Array([
+        0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70,
+        0x64, 0x61, 0x73, 0x68, 0x00, 0x00, 0x00, 0x00,
+        0x69, 0x73, 0x6f, 0x36, 0x6d, 0x70, 0x34, 0x31,
+      ]);
+
+      expect(validateMagicBytes(bytes, "audio/mpeg", "audio").valid).toBe(false);
+      expect(validateMagicBytes(bytes, "audio/mpeg", "audio", {
+        allowAudioMp4Canonicalization: true,
+      })).toEqual({ valid: true, detectedMime: "audio/mp4" });
     });
 
     it("rejects wrong kind", () => {

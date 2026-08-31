@@ -47,6 +47,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         firstBytes,
         mimeType,
         kind as "image" | "audio",
+        { allowAudioMp4Canonicalization: kind === "audio" },
       );
       if (!validation.valid) {
         return NextResponse.json(
@@ -60,7 +61,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         kind,
         purpose,
         filename,
-        mimeType,
+        mimeType: validation.detectedMime!,
+        declaredMimeType: mimeType,
         byteSize,
       });
 

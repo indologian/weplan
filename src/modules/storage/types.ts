@@ -93,12 +93,14 @@ export type RequestUploadInput = {
   purpose: MediaPurpose;
   filename: string;
   mimeType: string;
+  declaredMimeType?: string;
   byteSize: number;
 };
 
 export type RequestUploadResult = {
   mediaId: string;
   uploadUrl: string;
+  uploadMimeType: string;
   quarantinePath: string;
   expiresAt: number;
 };
