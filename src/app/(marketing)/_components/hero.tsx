@@ -50,19 +50,18 @@ export function Hero({ theme }: { theme?: FeaturedThemeDTO }) {
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none"></div>
-          <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
-            <p className="text-sm font-medium opacity-90 mb-2">Tema: {theme?.name || "Eksklusif"}</p>
-            <div className="flex gap-2">
-              <span className="inline-flex rounded-full bg-white/20 backdrop-blur-md px-2.5 py-1 text-xs">
-                {theme?.category ? theme.category.charAt(0).toUpperCase() + theme.category.slice(1) : "Kustom"}
-              </span>
-              {theme?.is_premium && (
-                <span className="inline-flex rounded-full bg-white/20 backdrop-blur-md px-2.5 py-1 text-xs text-amber-200">
-                  Premium
-                </span>
+          {theme && (
+            <div className="absolute bottom-6 left-6 right-6 text-white pointer-events-none">
+              <p className="text-sm font-medium opacity-90 mb-2">Tema: {theme.name}</p>
+              {theme.is_premium && (
+                <div className="flex gap-2">
+                  <span className="inline-flex rounded-full bg-white/20 backdrop-blur-md px-2.5 py-1 text-xs text-amber-200">
+                    Premium
+                  </span>
+                </div>
               )}
             </div>
-          </div>
+          )}
           {theme?.code && (
             <Link href={`/demo/${theme.code}`} className="absolute inset-0 z-10" aria-label={`Lihat demo tema ${theme.name}`}>
               <span className="sr-only">Lihat demo</span>

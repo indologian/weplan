@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { type FeaturedThemeDTO } from "@/modules/theme/server/queries";
 import { Button } from "@/shared/components/ui/button";
 
@@ -36,11 +37,12 @@ export function FeaturedThemes({
             <div key={theme.id} className="group flex flex-col">
               <Link href={`/demo/${theme.code}`} className="block relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-muted mb-4">
                 {theme.thumbnail_url ? (
-                  <img
+                  <Image
                     src={theme.thumbnail_url}
                     alt={theme.name}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
                   <div className="flex h-full items-center justify-center text-muted-foreground text-sm">

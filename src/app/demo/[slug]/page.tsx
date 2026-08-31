@@ -91,7 +91,7 @@ export default async function DemoPage({
   return (
     <div className="relative w-full bg-zinc-950 min-h-screen">
       {/* Demo Floating Toolbar */}
-      <div className="fixed top-0 left-0 w-full z-50 p-4 flex justify-center pointer-events-none">
+      <div data-demo-toolbar className="fixed top-0 left-0 w-full z-50 p-4 flex justify-center pointer-events-none">
         <div className="bg-background/95 backdrop-blur shadow-lg border rounded-full px-4 py-2 flex items-center gap-4 pointer-events-auto">
           <Button variant="ghost" size="sm" asChild className="rounded-full">
             <Link href="/"><ArrowLeft className="w-4 h-4 mr-2" /> Kembali</Link>
@@ -106,7 +106,7 @@ export default async function DemoPage({
       </div>
 
       {/* Frame Mobile Render */}
-      <div className="mx-auto max-w-[480px] bg-white min-h-screen shadow-2xl relative overflow-x-hidden pt-[72px]">
+      <div data-demo-frame className="mx-auto max-w-[480px] bg-white min-h-screen shadow-2xl relative overflow-x-hidden pt-[72px]">
         <WeddingRenderer invitation={dummyInvitation} />
       </div>
     </div>
