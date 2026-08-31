@@ -2980,3 +2980,20 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 - `npm run verify:migrations`: **PASS**; no migration added.
 - `npm run build`: **PASS**.
 - `npm run build:cloudflare`: **PASS**.
+
+## 2026-08-31 - Redesign UI/UX Dashboard
+
+### Implemented
+
+- Merapikan struktur UI pada halaman dashboard (`layout.tsx` dan `dashboard-sidebar.tsx`) menggunakan panduan `ui-ux-pro-max`, `baseline-ui`, dan `fixing-accessibility`.
+- Mengimplementasikan `bg-muted/30 dark:bg-background` pada layout untuk membedakan layer antar komponen (kedalaman layout).
+- Mengurangi visual clutter pada sidebar (desktop/mobile) dengan menghapus border tebal dan teks yang tidak esensial.
+- Memperhalus active state pada link navigasi menggunakan `bg-primary/10 text-primary` agar memberikan kesan SaaS mature.
+- Meningkatkan tampilan native `<select>` (appearance-none) dan memberi indikator chevron agar konsisten secara UI lintas browser.
+- Merapikan hirarki indentasi pada menu undangan *nested* dan menambahkan transisi interaktif.
+
+### Verification
+
+- `npm run typecheck`: **PASS**.
+- `git commit`: **PASS**. (style: redesign dashboard UI/UX with modern SaaS guidelines)
+
