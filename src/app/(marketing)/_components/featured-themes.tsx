@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { type FeaturedThemeDTO } from "@/modules/theme/server/queries";
+import { Button } from "@/shared/components/ui/button";
 
 export function FeaturedThemes({ 
   themes, 
@@ -63,6 +64,11 @@ export function FeaturedThemes({
                   ) : (
                     "Gratis"
                   )}
+                </div>
+                <div className="mt-auto pt-2">
+                  <Button variant="outline" asChild className="w-full">
+                    <Link href={`/demo/${theme.code}`}>Lihat Demo</Link>
+                  </Button>
                 </div>
               </div>
             </div>
