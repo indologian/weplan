@@ -40,6 +40,15 @@ export function validateMagicBytes(
   declaredMime: string,
   kind: "image" | "audio",
 ): { valid: boolean; detectedMime: string | null; error?: string } {
+
+  // Di dalam fungsi validateMagicBytes atau sejenisnya
+  console.log("DEBUG:", {
+    declaredMime,
+    detectedMime,
+    mimeCompatible,
+    AUDIO_ALIASES,
+    firstBytes: Array.from(firstBytes).map(b => '0x' + b.toString(16).padStart(2, '0'))
+  });
   const detectedMime = detectMimeFromBytes(firstBytes);
 
   if (!detectedMime) {
