@@ -3051,3 +3051,25 @@ Memperbaiki arsitektur koordinasi editor agar menggunakan single revision author
 
 - Menambahkan komponen \MobileMenu\ (\src/app/(marketing)/_components/mobile-menu.tsx\) dengan menggunakan komponen \Sheet\ dari UI untuk menampilkan tautan navigasi (Katalog, Checklist) serta tombol *Login/Create* pada layar HP. \MarketingNavbar\ yang tadinya menyembunyikan tombol-tombol tersebut tanpa fallback kini menyediakan _hamburger menu_ yang rapi.
 
+
+## 2026-09-01: Performance & Image Optimization Audit (#2C)
+
+### Goal
+Make the marketing homepage and theme catalogue load efficiently while preserving the current visual design, real-product previews, accessibility, and user experience.
+
+### Implementation Details
+- **Images**: Fixed inaccurate sizes string in Hero and FeaturedThemes components to prevent the browser from requesting excessively large unconstrained variants (e.g., 100vw or 25vw which would scale on wide screens beyond the container limit).
+- **Network**: Prevented Next.js from automatically prefetching the heavy /demo/[theme] routes on the homepage by appending prefetch={false} to the links, saving multiple payload requests on initial load.
+- **Fonts**: Moved the Playfair_Display font out of the global root layout to prevent it from unnecessarily preloading on the marketing homepage (which doesn't use it), instead scoping it into the WeddingRenderer for themes that need it.
+- **Caching**: Created a Cloudflare Pages/Workers-compatible static caching rule in public/_headers to cache /theme-previews/* images (max-age=3600, stale-while-revalidate=86400).
+
+### Verification & Testing
+- Performance was verified against a production build (
+pm run build) using Playwright.
+- Reduced network requests on homepage from 39 to 34 (saving 4 demo prefetches and 1 unused font payload).
+- Improved LCP from ~332ms to ~315ms under consistent fast-network laboratory tests.
+- Preserved identical UI presentation and layout across mobile and desktop viewports.
+
+### CI/CD Status
+- 
+pm run quality tests (typecheck, lint) passed successfully. Note: Pre-existing editor tests unrelated to this work package remain failing.
