@@ -35,13 +35,13 @@ export function FeaturedThemes({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
           {themes.map((theme) => (
             <div key={theme.id} className="group flex flex-col">
-              <Link href={`/demo/${theme.code}`} className="block relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-muted mb-4">
+              <Link href={`/demo/${theme.code}`} prefetch={false} className="block relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-muted mb-4">
                 {theme.thumbnail_url ? (
                   <Image
                     src={theme.thumbnail_url}
                     alt={theme.name}
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    sizes="(max-width: 640px) calc(100vw - 48px), (max-width: 1024px) 50vw, 260px"
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                 ) : (
@@ -69,7 +69,7 @@ export function FeaturedThemes({
                 </div>
                 <div className="mt-auto pt-2">
                   <Button variant="outline" asChild className="w-full">
-                    <Link href={`/demo/${theme.code}`}>Lihat Demo</Link>
+                    <Link href={`/demo/${theme.code}`} prefetch={false}>Lihat Demo</Link>
                   </Button>
                 </div>
               </div>

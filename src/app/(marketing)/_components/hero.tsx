@@ -41,7 +41,7 @@ export function Hero({ theme }: { theme?: FeaturedThemeDTO }) {
               alt={`Tema undangan ${theme.name}`}
               fill
               priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 480px"
+              sizes="(max-width: 530px) calc(100vw - 48px), 480px"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : (
@@ -63,7 +63,7 @@ export function Hero({ theme }: { theme?: FeaturedThemeDTO }) {
             </div>
           )}
           {theme?.code && (
-            <Link href={`/demo/${theme.code}`} className="absolute inset-0 z-10" aria-label={`Lihat demo tema ${theme.name}`}>
+            <Link href={`/demo/${theme.code}`} prefetch={false} className="absolute inset-0 z-10" aria-label={`Lihat demo tema ${theme.name}`}>
               <span className="sr-only">Lihat demo</span>
             </Link>
           )}
