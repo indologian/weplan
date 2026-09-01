@@ -103,9 +103,9 @@ describe("InvitationEditorWorkspace navigation", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Buka langkah terakhir" }));
-    await screen.findByRole("button", { name: "Preview" });
+    await screen.findByRole("button", { name: "Preview Undangan" });
 
-    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    fireEvent.click(screen.getByRole("button", { name: "Preview Undangan" }));
 
     await waitFor(() => {
       expect(mocks.push).toHaveBeenCalledWith(
@@ -137,8 +137,8 @@ describe("InvitationEditorWorkspace navigation", () => {
     );
 
     fireEvent.click(screen.getByRole("button", { name: "Buka langkah terakhir" }));
-    await screen.findByRole("button", { name: "Preview" });
-    fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+    await screen.findByRole("button", { name: "Preview Undangan" });
+    fireEvent.click(screen.getByRole("button", { name: "Preview Undangan" }));
 
     await waitFor(() => {
       expect(mocks.flushAll).toHaveBeenCalledTimes(2);

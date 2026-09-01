@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { User } from "@supabase/supabase-js";
-import { createSupabaseServerClient } from "@/shared/lib/supabase/server-client";
+import { getOptionalUser } from "./get-optional-user";
 
 export class AuthenticationError extends Error {
   constructor() {
@@ -11,8 +11,7 @@ export class AuthenticationError extends Error {
 }
 
 export async function requireUser(): Promise<User> {
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.getUser();
-  if (error || !data.user) throw new AuthenticationError();
-  return data.user;
+  const user = await getOptionalUser();
+  if (!user) throw new AuthenticationError();
+  return user;
 }

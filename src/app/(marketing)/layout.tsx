@@ -3,6 +3,7 @@ import { getPublicEnv } from "@/shared/lib/env/public";
 import { ThemeProvider } from "./_components/theme-provider";
 import { MarketingNavbar } from "./_components/marketing-navbar";
 import { MarketingFooter } from "./_components/marketing-footer";
+import { getOptionalUser } from "@/modules/auth/server/get-optional-user";
 
 export const metadata: Metadata = {
   title: "weplan - Undangan Pernikahan Digital",
@@ -22,7 +23,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const user = await getOptionalUser();
+
   return (
     <ThemeProvider
       attribute="class"
@@ -31,7 +34,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       disableTransitionOnChange
     >
       <div className="min-h-screen flex flex-col bg-background text-foreground">
-        <MarketingNavbar />
+        <MarketingNavbar isAuthenticated={Boolean(user)} />
         <main className="flex-1">
           {children}
         </main>

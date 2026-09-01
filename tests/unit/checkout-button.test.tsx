@@ -64,7 +64,7 @@ describe("CheckoutButton", () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: "Publish & Bayar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Publish Undangan" }));
     expect(await screen.findByText("Checkout sebelumnya masih aktif")).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Batalkan & Buat Baru" }));

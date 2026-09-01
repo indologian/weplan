@@ -81,14 +81,14 @@ describe("editor authoritative revision coordination", () => {
       </EditorWorkspaceProvider>,
     );
 
-    fireEvent.change(screen.getByLabelText("Mempelai Pria"), {
+    fireEvent.change(screen.getAllByLabelText("Nama Panggilan")[0]!, {
       target: { value: "Groom 11" },
     });
     await runAutosaveDebounce();
 
     expect(screen.getByLabelText("workspace revision").textContent).toBe("11");
 
-    fireEvent.change(screen.getByLabelText("Mempelai Pria"), {
+    fireEvent.change(screen.getAllByLabelText("Nama Panggilan")[0]!, {
       target: { value: "Groom 12" },
     });
     await runAutosaveDebounce();

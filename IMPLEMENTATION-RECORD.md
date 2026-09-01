@@ -3821,3 +3821,49 @@ Valid H1 implemented in Cover. Heading hierarchy is preserved. Native Focus and 
 
 **Static Validation**: PASS
 **Performance**: Bundle: NOT MEASURED, Memory: NOT MEASURED, FPS: NOT MEASURED
+
+## [2026-09-01] Authenticated Auth-Route Guard and Marketing CTA
+
+### Goal and canonical references
+
+- Prevent authenticated users from reopening `/login` or `/register`.
+- Replace the marketing navbar `Masuk` action with `Dashboard` when the server verifies an active Supabase session.
+- References: File 01 auth/session boundary, File 03 marketing navigation, File 06 existing auth scope, File 08 bug-fix/completion procedure, current Next.js App Router guidance, and current Supabase SSR Auth guidance.
+
+### Implemented
+
+- Added one server-only optional-user resolver backed by `supabase.auth.getUser()` and reused it from `requireUser()`.
+- Made the shared auth layout guest-only: an authenticated request redirects to `/dashboard` before login/register UI renders.
+- Made the marketing layout resolve the session server-side and pass a serializable boolean to the navbar.
+- Updated desktop and mobile marketing actions to render `Dashboard -> /dashboard` for authenticated users and `Masuk -> /login` for visitors.
+- Fixed the Vitest global setup so Node-environment suites do not access `window`, and synchronized four stale UI assertions with current accessible labels.
+
+### Files
+
+- `src/modules/auth/server/{get-optional-user,require-user}.ts`
+- `src/app/(auth)/layout.tsx`
+- `src/app/(marketing)/layout.tsx`
+- `src/app/(marketing)/_components/{marketing-navbar,mobile-menu}.tsx`
+- `tests/setup.ts`
+- `tests/unit/{auth-route-guard,marketing-navbar-session,checkout-button,editor-authoritative-revision,invitation-editor-navigation}.test.tsx`
+
+### Verification and security evidence
+
+- Targeted auth/navbar regression tests: PASS — 2 files, 4 tests.
+- Full Vitest suite: PASS — 50 files, 319 tests.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS with 0 errors; existing warnings remain.
+- Structure and boundary verification: PASS.
+- Next.js production build: PASS.
+- OpenNext Cloudflare build: PASS.
+- No database or migration change. No service credential is exposed to the browser; the client receives only `isAuthenticated: boolean`.
+- No secret, token, cookie value, user profile, PII, or raw auth payload is logged or serialized.
+
+### Limitations and delivery
+
+- Live browser verification with a real production session requires deployment; automated tests cover both authenticated and unauthenticated branches, including the mobile Sheet action.
+- Commit, push, CI, and deployment evidence: pending at record creation.
+
+### Status
+
+`COMPLETE` for the auth-route guard and session-aware marketing CTA.

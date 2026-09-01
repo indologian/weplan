@@ -12,7 +12,7 @@ import {
   SheetTrigger,
 } from "@/shared/components/ui/sheet";
 
-export function MobileMenu() {
+export function MobileMenu({ isAuthenticated }: { isAuthenticated: boolean }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -47,7 +47,12 @@ export function MobileMenu() {
             <div className="h-px w-full bg-border" />
             <div className="flex flex-col gap-4">
               <Button variant="outline" asChild className="w-full justify-center min-h-[44px]">
-                <Link href="/login" onClick={() => setOpen(false)}>Masuk</Link>
+                <Link
+                  href={isAuthenticated ? "/dashboard" : "/login"}
+                  onClick={() => setOpen(false)}
+                >
+                  {isAuthenticated ? "Dashboard" : "Masuk"}
+                </Link>
               </Button>
               <Button asChild className="w-full justify-center min-h-[44px]">
                 <Link href="/create" onClick={() => setOpen(false)}>Coba Tema Gratis</Link>
