@@ -10,6 +10,7 @@
   "build": {
     "command": "npm run build:cloudflare"
   },
+  "minify": true,
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
