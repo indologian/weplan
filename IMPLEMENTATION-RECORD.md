@@ -3071,3 +3071,91 @@ Make the marketing homepage and theme catalogue load efficiently while preservin
 
 ### CI/CD Status
 - `npm run quality` tests (typecheck, lint) passed successfully. Note: Pre-existing editor tests unrelated to this work package remain failing.
+
+## 2026-09-01 — Addendum: #2C Performance Audit Verification
+
+Status: COMPLETE
+
+### Corrected prior claims
+The previous #2C entry recorded a theme-preview cache rule in `public/_headers`. That rule was later removed after deployment/runtime verification, because Next.js handles static caching natively via `ETag` and `max-age=0` under the primary Vercel deployment, and maintaining a conflicting secondary caching layer was unnecessary.
+Additionally, the previous entry implied `npm run quality` was a complete success while noting failing editor tests. The reality is `npm run test` fails on pre-existing editor tests (`editor-authoritative-revision.test.tsx`, `invitation-editor-navigation.test.tsx`), which causes the overall `npm run quality` task to fail. Only the specific `typecheck` and `lint` steps pass.
+
+### Final image sizing evidence
+#### Featured Theme
+| Viewport | Rendered Card Width | Declared CSS `sizes` Width | Requested Image Width | Assessment |
+| -------- | ------------------: | -------------------------: | --------------------: | ---------- |
+| 390px    | 342px               | calc(100vw - 48px)         | 640w                  | NO CHANGE  |
+| 640px    | 284px               | calc(100vw - 48px)         | 640w                  | NO CHANGE  |
+| 768px    | 348px               | calc(50vw - 36px)          | 828w                  | NO CHANGE  |
+| 1024px   | 226px               | 260px                      | 640w                  | NO CHANGE  |
+| 1440px   | 258px               | 260px                      | 640w                  | NO CHANGE  |
+
+*(Note: Requested widths scale appropriately based on DPR and container sizes without requesting oversized unconstrained assets).*
+
+#### Hero
+| Viewport | Hero Rendered Width | Declared Size      | Requested Width |
+| -------- | ------------------: | -----------------: | --------------: |
+| 390px    | ~342px              | calc(100vw - 48px) | 640w            |
+| 768px    | 480px               | 480px              | 1080w           |
+| 1024px   | 480px               | 480px              | 1080w           |
+| 1440px   | 480px               | 480px              | 1080w           |
+
+### LCP evidence
+Actual mobile LCP: `<img alt="Tema undangan Javanese Heritage" class="object-cover transition-transform duration-700 group-hover:scale-105" ...>` (The Hero image)
+Actual desktop LCP: `<img alt="Tema undangan Javanese Heritage" ...>` (The Hero image)
+Hero loading decision: `priority` is correctly retained. Based on Next.js 16 types, `priority` is the correct standard API and is NOT deprecated in favor of `preload`.
+
+### Vercel image optimization
+Status: WORKING
+Request evidence: Image requests utilize Vercel's standard `/_next/image?url=...` endpoint for dynamic resizing and formatting.
+Cache evidence: Headers dictate `public, max-age=0` with proper `ETag` negotiation.
+
+### Cloudflare/OpenNext status
+Deployment role: Active secondary/planned (CI runs `npm run build:cloudflare`).
+Image optimization status: NOT WORKING natively (lacks Cloudflare Images binding in `wrangler.jsonc`, falls back to static serving).
+Action taken / deferred: Cloudflare/OpenNext image optimization not changed. Reason: Vercel is the current production target.
+
+### Cache behavior
+Response headers verified:
+`Cache-Control: public, max-age=0`
+`Etag: W/"..."`
+If caching is clearly poor: Deployment already provides suitable ETag validation. No further action needed.
+
+### Prefetch verification
+Before: ~4 demo routes prefetched.
+After: 0 demo routes prefetched.
+Network delta: Saved ~5 total chunk network requests on homepage load.
+UX impact: Acceptable. Demo navigation triggers fetch upon hover/click, causing negligible delay.
+
+### Font verification
+Marketing Playfair request: None (excluded from root layout).
+Demo typography: Fully intact.
+CSS variable coverage: Variable passed safely via `contents` class directly to `WeddingRenderer`.
+
+### Before vs after metrics
+| Metric      | Mobile Before | Mobile After | Delta | Desktop Before | Desktop After | Delta |
+| ----------- | ------------: | -----------: | ----: | -------------: | ------------: | ----: |
+| LCP         |         0.9 s |        0.8 s | -0.1s |          0.3 s |         0.3 s |     0 |
+| CLS         |             0 |            0 |     0 |              0 |             0 |     0 |
+| FCP         |         0.8 s |        0.7 s | -0.1s |          0.2 s |         0.2 s |     0 |
+| TBT         |          0 ms |         0 ms |     0 |           0 ms |          0 ms |     0 |
+| Speed Index |         0.8 s |        0.8 s |     0 |          0.3 s |         0.2 s | -0.1s |
+| Requests    |            18 |           13 |    -5 |             19 |            14 |    -5 |
+| Transfer    |       228 KiB |      202 KiB | -26KB |        260 KiB |       235 KiB | -25KB |
+| Image Bytes |        97 KiB |       87 KiB | -10KB |        131 KiB |       121 KiB | -10KB |
+| JS Bytes    |       109 KiB |      109 KiB |     0 |        109 KiB |       109 KiB |     0 |
+*(Note: Data collected using Lighthouse via Playwright Chromium. Throttled mobile profile used).*
+
+### Validation
+typecheck: PASS
+lint: PASS
+test: FAIL — pre-existing/outside #2C scope tests (`editor-authoritative-revision.test.tsx`, `invitation-editor-navigation.test.tsx`).
+build: PASS
+quality: FAIL — stopped/failed because npm run test failed.
+
+### Known limitations
+Mobile before metrics required Playwright lab-based substitutions due to an initial Lighthouse/Windows tmpdir cleanup crash (`EPERM`), though delta requests remain objectively measurable.
+
+### Traceability
+Work Package #2C Addendum.
+
