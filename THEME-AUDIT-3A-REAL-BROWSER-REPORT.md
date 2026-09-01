@@ -208,3 +208,36 @@ Luxury Midnight → C (RICH 2D + CSS/DOM SPATIAL EFFECTS)
 # AB. Questions Requiring Product Decision
 - Do we want to overhaul the base renderer to allow non-linear section ordering (e.g. injecting a sticky-scroll section), or strictly keep the linear Cover->Couple->Events map but change internal section layouts?
 - Should we branch the RSVP component completely for Dark Mode themes, or just pass a CSS variable down?
+
+
+
+
+# AC. Corrective Root-Cause Verification
+
+## Keyboard Root-Cause Correction
+
+Previous observation:
+Navigation/music appeared skipped in the initial Tab sequence.
+
+Verification:
+The complete keyboard Tab sequence correctly visits the `InvitationNavigation` links and the music control. However, they appear at the very end of the DOM focus order (items 12–15) because they are fixed elements injected after the RSVP component. They are technically fully reachable and tabbable.
+
+Root cause:
+K2 — Natural DOM-order issue (control is fully tabbable, but appears late because fixed UI is rendered after page content).
+
+Corrected recommendation:
+DO NOT add manual `tabindex`. Instead, improve DOM order (e.g., render the Navigation semantic block earlier in the React tree while keeping its CSS position fixed).
+
+## Luxury Midnight Shared-Control Root-Cause Correction
+
+Previous observation:
+RSVP/navigation visually clashed with the dark theme.
+
+Verification:
+The shared controls depend on the `--theme-bg` and `--theme-surface` CSS variables. The demo database provides empty `designTokens`. The `luxury-midnight/theme.css` establishes internal aliases (e.g. `--lm-bg: var(--theme-bg, #0a0f1a)`) to style its own cards, but fails to define `--theme-bg` for the rest of the application. The shared controls subsequently fall back to `globals.css` white. In addition, `globals.css` hardcodes `color-scheme: light`, which prevents browser-native inputs from turning dark.
+
+Root cause:
+T1 — Theme variables not propagated (theme CSS creates its own isolated variables instead of providing default values to the global scope) and T4 (browser color-scheme hardcoded).
+
+Corrected recommendation:
+CSS custom properties are entirely sufficient. DO NOT introduce React theme context. The fix is simply updating `luxury-midnight/theme.css` to assign default values to the global `--theme-*` variables and setting `color-scheme: dark`.
