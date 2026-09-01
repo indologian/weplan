@@ -3372,3 +3372,33 @@ failed assets: None
 - `npm run lint`: PASS
 - `npm run test`: FAIL — pre-existing/outside #2E scope (invitation-editor-navigation, editor-authoritative-revision)
 - `npm run build`: PASS
+
+## 2026-09-01 — Addendum: #2E Evidence Corrections
+
+**Status:** COMPLETE
+
+### Keyboard semantics correction
+The previous #2E entry used overly broad wording for keyboard activation.
+
+Correct evidence:
+- Enter: activates links and buttons according to native semantics.
+- Space: activates buttons where applicable; links retain native browser behavior.
+
+No component changes were required.
+
+### Reduced-motion evidence correction
+The previous #2E entry incorrectly attributed reduced-motion handling to automatic Tailwind behavior.
+
+Correct evidence:
+- `src/app/globals.css` explicitly defines `@media (prefers-reduced-motion: reduce)` and reduces animation/transition durations.
+- Shared Sheet primitives additionally use `motion-reduce:animate-none`.
+- No source change was required.
+
+### Accessibility scan clarification
+Automated accessibility scan: Axe-core (via `@axe-core/playwright`) — 0 violations on the marketing homepage.
+
+### Files changed
+- `IMPLEMENTATION-RECORD.md`
+
+### Final status
+#2E remains COMPLETE. This addendum corrects evidence wording only and does not reopen the UI implementation.
