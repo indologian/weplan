@@ -15,6 +15,7 @@ directory = ".open-next/assets"
 
 # Konfigurasi Domain
 routes = [
+  { pattern = "weplan.web.id/*", zone_name = "weplan.web.id" },
   { pattern = "*.weplan.web.id/*", zone_name = "weplan.web.id" }
 ]
 workers_dev = false

@@ -20,5 +20,17 @@
       "binding": "WORKER_SELF_REFERENCE",
       "service": "weplan"
     }
-  ]
+  ],
+  "routes": [
+    { "pattern": "weplan.web.id/*", "zone_name": "weplan.web.id" },
+    { "pattern": "*.weplan.web.id/*", "zone_name": "weplan.web.id" }
+  ],
+  "vars": {
+    "MIDTRANS_ENV": "sandbox",
+    "MIDTRANS_MERCHANT_ID": "M351136950",
+    "NEXT_PUBLIC_APP_URL": "https://weplan.web.id",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://cetsivgyghdmkadknwha.supabase.co",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAEZCgmFCiZI_ebhs",
+    "REDIS_URL": "https://oriented-molly-114453.upstash.io"
+  }
 }
