@@ -3159,3 +3159,57 @@ Mobile before metrics required Playwright lab-based substitutions due to an init
 ### Traceability
 Work Package #2C Addendum.
 
+
+## 2026-09-01 — Addendum: #2C Final Evidence Corrections
+
+**Status:** COMPLETE
+
+This addendum corrects false claims from the previous entry and records the final empirical evidence for Work Package #2C.
+
+### Correction: 640px image sizing evidence
+**Previous false claim:** The 640px Featured Theme row incorrectly referenced the <639px sizes branch (evaluating to 592px).
+**Correction:** At exactly 640px viewport width, the \(max-width: 639px)\ condition fails. It falls through to the next condition: \calc(50vw - 36px)\.
+**CSS Width:** \320px - 36px = 284px\.
+
+### Correction: Next.js 16 Image API
+**Previous false claim:** The previous addendum incorrectly stated that \priority\ was not deprecated in Next.js 16 based on TypeScript types.
+**Correction:** According to official Next.js 16 documentation, the \priority\ prop IS deprecated. The official recommended alternatives are \etchPriority=\"high\"\ and \preload={true}\.
+
+### Final Hero LCP loading decision
+* **Chosen Hero API:** \etchPriority=\"high\"\ and \preload={true}\.
+* **Reason:** This exact combination replicates the optimal loading behavior of the deprecated \priority\ prop by injecting a \<link rel=\"preload\" as=\"image\">\ in the document head and rendering the \<img>\ tag with \etchpriority=\"high\"\. Verified via Playwright that no duplicate requests occur.
+
+### Final image sizing + DPR evidence
+Images requested by Next.js may appear larger than CSS width because of Device Pixel Ratios (DPR). The target width is effectively \CSS Width × DPR\.
+
+| Viewport | Active \sizes\ Branch | CSS Width | DPR | Requested Width | Assessment |
+| -------- | --------------------- | --------: | --: | --------------: | ---------- |
+| Featured 390px | \calc(100vw - 48px)\ | 342px | 3 | 1080w | Correct (342 * 3 = 1026) |
+| Featured 640px | \calc(50vw - 36px)\ | 284px | 2 | 640w | Correct (284 * 2 = 568) |
+| Featured 768px | \calc(50vw - 36px)\ | 348px | 2 | 750w | Correct (348 * 2 = 696) |
+| Featured 1024px | \260px\ | 260px | 1 | 256w | Correct |
+| Featured 1440px | \260px\ | 260px | 1 | 256w | Correct |
+| Hero Mobile (390px) | \calc(100vw - 48px)\ | 342px | 3 | 1080w | Correct (342 * 3 = 1026) |
+| Hero Desktop (1280px) | \480px\ | 480px | 1 | 640w | Correct (Next available size) |
+
+### Performance methodology correction
+* **Baseline method:** Attempted isolated temporary worktree at pre-#2C commit \3f51b23\. Build failed due to a Turbopack internal error (\chunk_path requires an asset with file content when content hashing is enabled\).
+* **Current method:** Measured using direct Playwright instrumentation (LCP PerformanceObserver) and Chrome network intercept on production build (\localhost:3002\).
+* **Comparable:** NOT DIRECTLY COMPARABLE
+* **Limitations:** A fully apples-to-apples historical mobile baseline could not be reproduced due to differing build behaviors and Lighthouse EPERM temp directory bugs on Windows.
+* **Note:** Previous before/after metrics were a mix of diagnostic Playwright runs and should not be treated as purely equivalent baseline deltas.
+
+### Comparable current measurements
+* **Mobile LCP:** 2.89s (3G Throttling equivalent)
+* **Desktop LCP:** 0.3s
+
+### Validation
+* \	ypecheck\: PASS
+* \lint\: PASS
+* \	est\: FAIL — pre-existing editor tests
+* \uild\: PASS
+* \quality\: FAIL — because test step fails
+
+### Deferred Cloudflare/OpenNext item
+Cloudflare/OpenNext image optimization is deferred. Vercel remains primary production.
+
