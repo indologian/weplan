@@ -1,78 +1,65 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
-import { Portrait } from "@/modules/theme/primitives/portrait";
 
 export function Couple({ invitation }: SectionRendererProps) {
   const groom = invitation.couple.groom;
   const bride = invitation.couple.bride;
+  
+  const groomPhoto = invitation.media.find(p => p.mediaId === groom?.photoMediaId);
+  const bridePhoto = invitation.media.find(p => p.mediaId === bride?.photoMediaId);
 
   return (
-    <section
-      className="luxury-midnight"
-      style={{ background: "var(--lm-bg)", textAlign: "center" }}
-    >
-      <p className="lm-overline">Mempelai</p>
-      <hr className="lm-gold-rule" style={{ marginBottom: "2rem" }} />
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "3rem",
-          flexWrap: "wrap",
-        }}
-      >
-        <div>
-          <Portrait invitation={invitation} mediaId={groom?.photoMediaId} name={groom?.name} variant="oval" />
-          <h2
-            style={{
-              fontFamily: "var(--lm-font-display)",
-              fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
-              fontWeight: 300,
-              margin: "0 0 0.5rem",
-              color: "var(--lm-text)",
-              letterSpacing: "0.08em",
-            }}
-          >
-            {groom?.name ?? ""}
-          </h2>
-          {groom?.parentNames && groom.parentNames.length > 0 && (
-            <p style={{ fontSize: "0.875rem", color: "var(--lm-muted)" }}>
-              {groom.parentNames.join(" & ")}
-            </p>
+    <section className="luxury-midnight lm-couple-section">
+      <div className="lm-couple">
+        <div className="lm-person lm-groom-card">
+          {groomPhoto ? (
+            <div className="lm-person-photo">
+              <img 
+                src={groomPhoto.url} 
+                alt={groom?.name ?? ""} 
+                style={{ objectPosition: `${groomPhoto.focusX * 100}% ${groomPhoto.focusY * 100}%` }}
+              />
+            </div>
+          ) : (
+            <div className="lm-person-photo" style={{ backgroundColor: "var(--lm-surface)" }} />
           )}
+          
+          <div className="lm-person-info">
+            <p className="lm-overline">The Groom</p>
+            <h3>{groom?.name ?? ""}</h3>
+            {groom?.parentNames && groom.parentNames.length > 0 && (
+              <p className="lm-person-parent">
+                {groom.parentNames.join(" & ")}
+              </p>
+            )}
+          </div>
         </div>
-        <span
-          style={{
-            fontFamily: "var(--lm-font-display)",
-            fontSize: "2rem",
-            color: "var(--lm-accent)",
-            fontWeight: 300,
-          }}
-          aria-hidden="true"
-        >
-          &
-        </span>
-        <div>
-          <Portrait invitation={invitation} mediaId={bride?.photoMediaId} name={bride?.name} variant="oval" />
-          <h2
-            style={{
-              fontFamily: "var(--lm-font-display)",
-              fontSize: "clamp(1.5rem, 5vw, 2.5rem)",
-              fontWeight: 300,
-              margin: "0 0 0.5rem",
-              color: "var(--lm-text)",
-              letterSpacing: "0.08em",
-            }}
-          >
-            {bride?.name ?? ""}
-          </h2>
-          {bride?.parentNames && bride.parentNames.length > 0 && (
-            <p style={{ fontSize: "0.875rem", color: "var(--lm-muted)" }}>
-              {bride.parentNames.join(" & ")}
-            </p>
+        
+        <div className="lm-person lm-bride-card">
+          <div className="lm-person-info" style={{ order: 1 }}>
+            <p className="lm-overline">The Bride</p>
+            <h3>{bride?.name ?? ""}</h3>
+            {bride?.parentNames && bride.parentNames.length > 0 && (
+              <p className="lm-person-parent">
+                {bride.parentNames.join(" & ")}
+              </p>
+            )}
+          </div>
+          
+          {bridePhoto ? (
+            <div className="lm-person-photo" style={{ order: 0, borderRadius: "0 0 100px 100px", borderTop: "none", borderBottom: "1px solid var(--lm-border)" }}>
+              <img 
+                src={bridePhoto.url} 
+                alt={bride?.name ?? ""} 
+                style={{ objectPosition: `${bridePhoto.focusX * 100}% ${bridePhoto.focusY * 100}%` }}
+              />
+            </div>
+          ) : (
+            <div className="lm-person-photo" style={{ order: 0, borderRadius: "0 0 100px 100px", borderTop: "none", borderBottom: "1px solid var(--lm-border)", backgroundColor: "var(--lm-surface)" }} />
           )}
         </div>
       </div>
     </section>
   );
 }
+
+
