@@ -5,16 +5,15 @@ export function Story({ invitation }: SectionRendererProps) {
   if (validStories.length === 0) return null;
 
   return (
-    <section className="modern-editorial" style={{ background: "var(--me-surface)", textAlign: "center" }}>
-      <p className="me-overline me-animate">Cerita Cinta</p>
-      <hr className="me-rule me-animate me-delay-1" style={{ marginBottom: "2rem" }} />
-      
+    <section className="me-section me-story" aria-labelledby="story-title">
+      <header className="me-story-header me-reveal"><span>02 / Feature</span><h2 id="story-title">Catatan perjalanan kami.</h2></header>
       <div className="me-story-container">
         {validStories.map((item, index) => (
           <article
             key={item.id}
-            className={`me-story-article me-animate me-delay-${(index % 3) + 1}`}
+            className="me-story-article me-reveal"
           >
+            <span className="me-story-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
             {item.date && (
               <p className="me-story-date">
                 {item.date}

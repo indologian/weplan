@@ -6,45 +6,34 @@ export function Couple({ invitation }: SectionRendererProps) {
   const bride = invitation.couple.bride;
 
   return (
-    <section className="modern-editorial" style={{ background: "var(--me-bg)", textAlign: "center" }}>
-      <p className="me-overline me-animate">Mempelai</p>
-      <hr className="me-rule me-animate me-delay-1" style={{ marginBottom: "4rem" }} />
-      
+    <section className="me-section me-couple" aria-labelledby="couple-title">
+      <header className="me-section-heading me-reveal"><span>01</span><h2 id="couple-title">Mempelai</h2></header>
       <div className="me-couple-container">
-        <div className="me-person me-animate me-delay-2">
-          {/* DEBUG: {JSON.stringify(invitation.media)} - groomMedia: {groom?.photoMediaId} */}
+        <article className="me-person me-person-groom me-reveal">
+          <span className="me-person-index" aria-hidden="true">01</span>
           <div className="me-person-photo-wrapper">
             <Portrait invitation={invitation} mediaId={groom?.photoMediaId} name={groom?.name} variant="arch" />
           </div>
-          <h2 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", margin: "1.5rem 0 0.5rem" }}>
-            {groom?.name ?? ""}
-          </h2>
+          <h3>{groom?.name ?? ""}</h3>
           {groom?.parentNames && groom.parentNames.length > 0 && (
             <p style={{ fontSize: "0.875rem", color: "var(--me-muted)" }}>
               Putra dari<br/>{groom.parentNames.join(" & ")}
             </p>
           )}
-        </div>
-        
-        <div className="me-animate flex items-center justify-center">
-          <span style={{ fontFamily: "var(--me-font-display)", fontSize: "4rem", color: "var(--me-accent)", fontStyle: "italic", lineHeight: 1.3 }}>
-            &
-          </span>
-        </div>
-        
-        <div className="me-person me-animate me-delay-2">
+        </article>
+        <span className="me-couple-and" aria-hidden="true">&amp;</span>
+        <article className="me-person me-person-bride me-reveal">
+          <span className="me-person-index" aria-hidden="true">02</span>
           <div className="me-person-photo-wrapper">
             <Portrait invitation={invitation} mediaId={bride?.photoMediaId} name={bride?.name} variant="arch" />
           </div>
-          <h2 style={{ fontSize: "clamp(2rem, 5vw, 3rem)", margin: "1.5rem 0 0.5rem" }}>
-            {bride?.name ?? ""}
-          </h2>
+          <h3>{bride?.name ?? ""}</h3>
           {bride?.parentNames && bride.parentNames.length > 0 && (
             <p style={{ fontSize: "0.875rem", color: "var(--me-muted)" }}>
               Putri dari<br/>{bride.parentNames.join(" & ")}
             </p>
           )}
-        </div>
+        </article>
       </div>
     </section>
   );

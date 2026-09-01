@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { SectionRendererProps } from "@/modules/theme/renderer";
 import { Lightbox } from "@/modules/theme/primitives/lightbox";
 
@@ -21,15 +20,14 @@ export function Gallery({ invitation }: SectionRendererProps) {
   if (items.length === 0) return null;
 
   return (
-    <section className="modern-editorial" style={{ background: "var(--me-bg)", textAlign: "center" }}>
-      <p className="me-overline me-animate">Potret Bahagia</p>
-      <hr className="me-rule me-animate me-delay-1" style={{ marginBottom: "3rem" }} />
+    <section className="me-section me-gallery" aria-labelledby="gallery-title">
+      <header className="me-gallery-header me-reveal"><h2 id="gallery-title">Dalam bingkai</h2><p>{String(items.length).padStart(2, "0")} photographs</p></header>
       
       <div className="me-gallery-editorial">
         {items.map((item, index) => (
           <div 
             key={item.mediaId} 
-            className={`me-gallery-item me-animate me-delay-${(index % 3) + 1}`}
+            className={`me-gallery-item me-gallery-item-${(index % 6) + 1} me-reveal`}
           >
             <Lightbox
               src={item.url}
@@ -38,6 +36,7 @@ export function Gallery({ invitation }: SectionRendererProps) {
               height={item.height}
               focusX={item.focusX}
               focusY={item.focusY}
+              className="me-gallery-button"
             />
           </div>
         ))}

@@ -1,41 +1,32 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
-import { ModernEditorialMotion } from "./motion";
 import "./theme.css";
-
-function LeafOrnament(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <path d="M50 10C50 10 20 30 20 60C20 80 50 90 50 90C50 90 80 80 80 60C80 30 50 10 50 10Z" stroke="currentColor" strokeWidth="1" />
-      <path d="M50 10V90" stroke="currentColor" strokeWidth="1" />
-    </svg>
-  );
-}
 
 export function Cover({ invitation }: SectionRendererProps) {
   const groom = invitation.couple.groom?.name ?? "";
   const bride = invitation.couple.bride?.name ?? "";
+  const image = invitation.media.find((item) => item.purpose === "gallery")
+    ?? invitation.media.find((item) => item.mediaId === invitation.couple.groom?.photoMediaId)
+    ?? invitation.media.find((item) => item.mediaId === invitation.couple.bride?.photoMediaId);
+  const firstEvent = invitation.events.find((event) => event.startsAt);
+  const date = firstEvent?.startsAt ? new Intl.DateTimeFormat("id-ID", { day: "2-digit", month: "long", year: "numeric", timeZone: firstEvent.timezone ?? "Asia/Jakarta" }).format(new Date(firstEvent.startsAt)) : null;
   
   return (
-    <section className="modern-editorial me-cover">
-      <ModernEditorialMotion />
-      
-      <LeafOrnament className="me-cover-ornament" />
-      
-      <div className="me-cover-content">
-        <p className="me-overline me-animate">Undangan Pernikahan</p>
-        
-        <h1 className="me-animate me-delay-1">
-          <span>{groom}</span>
-          <span className="me-cover-and">&</span>
-          <span>{bride}</span>
+    <section className="me-section me-cover" aria-labelledby="me-cover-title">
+      <div className="me-cover-copy">
+        <p className="me-kicker me-reveal">Wedding Edition</p>
+        <h1 id="me-cover-title" className="me-cover-title me-reveal">
+          <span>{groom}</span><span className="me-cover-ampersand">&amp;</span><span>{bride}</span>
         </h1>
-        
-        <hr className="me-rule me-animate me-delay-2" />
-        
-        <p className="me-cover-caption me-animate me-delay-3" style={{ maxWidth: '30ch', color: 'var(--me-muted)' }}>
-          Sebuah perayaan tentang cinta, keluarga, dan perjalanan baru.
-        </p>
+        <div className="me-cover-meta me-reveal">
+          {date && <time dateTime={firstEvent?.startsAt ?? undefined}>{date}</time>}
+          {(firstEvent?.venueName || firstEvent?.address) && <span>{firstEvent.venueName ?? firstEvent.address}</span>}
+        </div>
       </div>
+      <div className={`me-cover-visual me-paper-layer ${image ? "" : "me-cover-visual-empty"}`}>
+        {image ? <img src={image.url} alt={image.caption ?? `Potret pernikahan ${groom} dan ${bride}`} style={{ objectPosition: `${image.focusX * 100}% ${image.focusY * 100}%` }} /> : <span aria-hidden="true">ME / 01</span>}
+      </div>
+      <span className="me-crop-mark me-crop-mark-top" aria-hidden="true" />
+      <span className="me-crop-mark me-crop-mark-bottom" aria-hidden="true" />
     </section>
   );
 }

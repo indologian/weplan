@@ -321,8 +321,8 @@ The editor remains a data-entry and controlled presentation editor. It is NOT a 
 
 # AJ. Future Work Packages
 - `#3C` — Theme Foundation Architecture (IMPLEMENTED)
-- `#3D` — Modern Editorial Redesign (READY)
-- `#3E` — Luxury Midnight Redesign
+- `#3D` — Modern Editorial Redesign (IMPLEMENTED)
+- `#3E` — Luxury Midnight Redesign (READY)
 - `#3F` — Javanese Heritage Redesign
 - `#3G` — Romantic Floral Redesign
 - `#3H` — Cross-Theme Verification / Polish
@@ -359,7 +359,8 @@ Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes
 - #3C → IMPLEMENTED
 - #3C.1 → VALIDATED
 - #3C.2 → COMPLETE
-- #3D → READY
+- #3D → IMPLEMENTED
+- #3E → READY
 
 # AM. #3B.1 & #3B.2 Corrections Applied
 - **Section-order ownership:** Corrected to explicitly allow themes to alter composition; it is not a business invariant.

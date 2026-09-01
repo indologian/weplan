@@ -6,36 +6,15 @@ export function Closing({ invitation }: SectionRendererProps) {
 
   return (
     <section
-      className="modern-editorial"
-      style={{
-        padding: "6rem 1.5rem",
-        textAlign: "center",
-        background: "var(--me-bg)",
-      }}
+      className="me-section me-closing"
     >
-      <hr className="me-rule me-animate" style={{ marginBottom: "2rem" }} />
-      <p
-        className="me-animate me-delay-1"
-        style={{
-          fontFamily: "var(--me-font-display)",
-          fontSize: "1.25rem",
-          fontStyle: "italic",
-          color: "var(--me-muted)",
-          marginBottom: "1.5rem",
-        }}
-      >
+      <p className="me-closing-note me-reveal">
         Terima kasih telah menjadi bagian dari hari bahagia kami.
       </p>
-      <p
-        className="me-animate me-delay-2"
-        style={{
-          fontFamily: "var(--me-font-display)",
-          fontSize: "2rem",
-          fontWeight: 400,
-        }}
-      >
+      <h2 className="me-closing-names me-reveal">
         {groomName} & {brideName}
-      </p>
+      </h2>
+      <div className="me-closing-colophon"><span>Wedding Edition</span><span>Terima kasih</span></div>
     </section>
   );
 }

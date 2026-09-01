@@ -6,23 +6,15 @@ export function Gift({ invitation }: SectionRendererProps) {
 
   return (
     <section
-      className="modern-editorial"
-      style={{ background: "var(--me-bg)", textAlign: "center" }}
+      className="me-section me-gift"
+      aria-labelledby="gift-title"
     >
-      <p className="me-overline me-animate">Amplop Digital</p>
-      <hr className="me-rule me-animate me-delay-1" style={{ marginBottom: "1rem" }} />
-      <p className="me-animate me-delay-2" style={{ color: "var(--me-muted)", marginBottom: "3rem" }}>
+      <h2 id="gift-title" className="me-reveal">Hadiah pernikahan</h2>
+      <p className="me-gift-intro me-reveal">
         Terima kasih atas doa restu dan hadiah yang diberikan kepada mempelai.
       </p>
       <div
-        className="me-animate me-delay-3"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "1.5rem",
-          maxWidth: "400px",
-          margin: "0 auto",
-        }}
+        className="me-gift-list me-reveal"
       >
         {invitation.bankAccounts.map((account) => (
           <GiftCard
@@ -31,6 +23,7 @@ export function Gift({ invitation }: SectionRendererProps) {
             accountNumber={account.accountNumber}
             accountHolder={account.accountHolder}
             qris={invitation.media.find((media) => media.mediaId === account.qrisMediaId)}
+            className="me-gift-card"
           />
         ))}
       </div>

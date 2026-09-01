@@ -4,122 +4,27 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger, useGSAP);
-}
+if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export function ModernEditorialMotion() {
   useGSAP(() => {
     const mm = gsap.matchMedia();
-
     mm.add("(prefers-reduced-motion: no-preference)", () => {
-      // 1. General Staggered Reveal for Sections
-      const sections = gsap.utils.toArray<HTMLElement>("section.modern-editorial");
-
-    sections.forEach((section) => {
-      const animatables = section.querySelectorAll(".me-animate");
-      if (animatables.length > 0) {
-        gsap.set(animatables, { 
-          y: 40, 
-          opacity: 0,
-        });
-
-        ScrollTrigger.create({
-          trigger: section,
-          start: "top 85%", 
-          animation: gsap.to(animatables, {
-            y: 0,
-            opacity: 1,
-            duration: 1.2,
-            stagger: 0.15,
-            ease: "power3.out",
-          }),
-          toggleActions: "play none none reverse", 
-        });
-      }
-      
-      // 2. Cover Ornament Parallax & Rotation
-      const ornament = section.querySelector(".me-cover-ornament");
-      if (ornament) {
-        // Continuous slow rotation
-        gsap.to(ornament, {
-          rotation: 360,
-          duration: 120,
-          repeat: -1,
-          ease: "none",
-        });
-        
-        // Scroll Parallax
-        gsap.to(ornament, {
-          yPercent: 50,
-          opacity: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: "bottom top",
-            scrub: true
-          }
-        });
-      }
-
-      // 3. Cover Typography Parallax
-      const coverContent = section.querySelector(".me-cover-content");
-      if (coverContent) {
-        gsap.to(coverContent, {
-          yPercent: 30,
-          opacity: 0,
-          scrollTrigger: {
-            trigger: section,
-            start: "top top",
-            end: "bottom top",
-            scrub: true
-          }
-        });
-      }
-      
-      // 4. Asymmetrical Gallery Parallax
-      const galleryItems = section.querySelectorAll(".me-gallery-item");
-      if (galleryItems.length > 0) {
-        galleryItems.forEach((item, index) => {
-          gsap.fromTo(item, 
-            { y: index % 2 === 0 ? 30 : -30 },
-            {
-              y: index % 2 === 0 ? -30 : 30,
-              ease: "none",
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "bottom top",
-                scrub: 1 // smooth scrubbing
-              }
-            }
-          );
-        });
-      }
-
-      // 5. Couple Photos Elegant Scale-in
-      const couplePhotos = section.querySelectorAll(".me-person-photo-wrapper");
-      if (couplePhotos.length > 0) {
-        couplePhotos.forEach((photo) => {
-          gsap.fromTo(photo,
-            { scale: 0.9 },
-            {
-              scale: 1,
-              duration: 1.5,
-              ease: "power2.out",
-              scrollTrigger: {
-                trigger: photo,
-                start: "top 80%",
-                toggleActions: "play none none reverse",
-              }
-            }
-          );
-        });
-      }
+      gsap.from(".wedding-theme.modern-editorial .me-cover-title > span", { y: 36, opacity: 0, duration: 0.8, stagger: 0.08, ease: "power3.out" });
+      gsap.from(".wedding-theme.modern-editorial .me-cover-visual", { scale: 0.97, opacity: 0, duration: 0.9, ease: "power2.out" });
+      gsap.utils.toArray<HTMLElement>(".wedding-theme.modern-editorial .me-section").forEach((section) => {
+        const elements = section.querySelectorAll<HTMLElement>(".me-reveal");
+        if (!elements.length || section.classList.contains("me-cover")) return;
+        gsap.from(elements, { y: 24, opacity: 0, duration: 0.65, stagger: 0.08, ease: "power3.out", scrollTrigger: { trigger: section, start: "top 82%", once: true } });
+      });
     });
+    mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
+      gsap.to(".wedding-theme.modern-editorial .me-cover-visual img", { yPercent: 5, ease: "none", scrollTrigger: { trigger: ".wedding-theme.modern-editorial .me-cover", start: "top top", end: "bottom top", scrub: 0.8 } });
+      gsap.utils.toArray<HTMLElement>(".wedding-theme.modern-editorial .me-gallery-item").slice(0, 6).forEach((item, index) => {
+        gsap.fromTo(item, { y: index % 2 ? 18 : -18 }, { y: index % 2 ? -18 : 18, ease: "none", scrollTrigger: { trigger: ".wedding-theme.modern-editorial .me-gallery-editorial", start: "top bottom", end: "bottom top", scrub: 0.7 } });
+      });
     });
-  }, []);
-
+    return () => mm.revert();
+  });
   return null;
 }

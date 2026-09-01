@@ -3501,3 +3501,63 @@ Automated accessibility scan: Axe-core (via `@axe-core/playwright`) — 0 violat
 ### Final Gate
 #3C FOUNDATION: ACCEPTED
 #3D MODERN EDITORIAL: READY
+
+## [2026-09-01] WP #3D: Modern Editorial Redesign
+
+### Status and goal
+
+`COMPLETE` untuk redesign terisolasi renderer `modern-editorial-ivory`: membuktikan D1 Hybrid Responsive Canvas, D2 R3 slot-based Composition, D3 static theme-owned `next/font`, D4 canonical theme tokens/shared behavior, dan D5 theme-owned GSAP choreography. File 05, File 03, File 01 renderer/animation invariants, File 06, File 07, File 08 §13/§15/§22–22.1, serta keputusan D1–D5 pada architecture plan menjadi referensi canonical.
+
+### Existing implementation and implemented scope
+
+- Sebelum work package, Modern memakai global `weddingDisplay`, legacy 480px adapter, leaf ornament, portrait arch simetris, timeline terpusat, event cards, gallery grid seragam, dan motion per-section dengan rotasi infinite.
+- Menambahkan authored `Composition` dengan urutan Navigation, Cover, Opening, Couple, Story, Events, Gallery, Video, RSVP, Wishes, Gift, Closing; optional slot tetap berasal dari platform gating dan tidak menghasilkan gap buatan.
+- Cover menjadi split editorial dengan masthead serif, paper geometry/crop marks, metadata event yang tersedia, prioritas gallery/portrait image, dan fallback typography-only.
+- Couple, story, events, gallery, gift, closing, serta shared slots mendapat layout asimetris, sharp geometry, readable measures, inverse editorial event spread, sticky story header desktop, dan CSS Grid gallery yang tidak seragam.
+- Font aktif tepat dua: Playfair Display 500/600/700 dan Inter 400/500/600 melalui static `next/font/google`; mock `Inter` ditambahkan dengan nama export riil.
+- Motion GSAP hanya memakai transform/opacity, trigger dibatasi per section, parallax desktop dibatasi `min-width: 1024px`, tidak ada infinite loop, dan seluruh kinetic choreography berada di `prefers-reduced-motion: no-preference` dengan fallback CSS visible.
+- Shared behavior `InvitationShell`, navigation, audio, countdown, event actions, lightbox, RSVP, wishes, gift, physical gift, dan video tetap digunakan; tidak ada logic fork.
+
+### Files changed
+
+- `src/modules/theme/themes/modern-editorial/{renderer,composition,fonts,cover,couple,story,events,gallery,gift,closing,motion}.tsx`
+- `src/modules/theme/themes/modern-editorial/theme.css`
+- `tests/setup.ts`
+- `THEME-REDESIGN-ARCHITECTURE-PLAN.md`
+- `IMPLEMENTATION-RECORD.md`
+
+### Verification evidence
+
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS, 0 error; 42 warning baseline tetap dicatat.
+- `npm run test`: 302 PASS, 4 FAIL pada tiga file editor/checkout di luar scope (`checkout-button`, `editor-authoritative-revision`, `invitation-editor-navigation`) karena expected accessible labels lama tidak cocok dengan implementation baseline. Tidak ada kegagalan Modern/theme.
+- `npm run build`: PASS pada Next.js 16.3.3; warning middleware/Edge Runtime/metadataBase adalah baseline existing.
+- Chromium runtime: PASS pada viewport target 320×568, 393×852, 768×1024, 1024×768, 1440×900. Capability viewport browser melaporkan CSS client width berskala 1.25 pada host, tetapi seluruh breakpoint target diuji secara proporsional.
+- DOM assertion: `.me-composition` ada, `.theme-legacy-container` tidak ada pada Modern, cover desktop 1280 CSS px pada client width 1800 CSS px, dan readable sections tetap memakai measure primitives.
+- Overflow: `documentElement.scrollWidth`, `body.scrollWidth`, dan client width sama pada seluruh viewport. Satu bounds exception adalah inverse events spread yang sengaja bleed ke clip boundary; tidak ada real content overflow.
+- Keyboard: navigation focus bergerak logis dan focus outline solid 2.5px; positive tabindex = 0. Lightbox membuka dan Escape menutup.
+- Heading: satu H1; major sections H2; pasangan/event entities H3. RSVP mendapat major H2 sebelum shared form H3.
+- Font network: tiga local WOFF2 theme assets terobservasi tanpa font 404; Playfair dan Inter `document.fonts.check` bernilai true.
+- Console/runtime: tab bersih setelah perbaikan selector scope; tidak ada React, GSAP, hydration, atau missing-key error baru.
+- Reduced motion: implementation boundary dan fallback visibility diverifikasi; browser connector tidak menyediakan synthetic media emulation sehingga runtime toggle `reduce` tidak direkam. Default `no-preference` runtime PASS dan tidak ada infinite loop.
+- Other-theme smoke pada 393×852: Romantic Floral, Javanese Heritage, Luxury Midnight merender H1 dan tidak menghasilkan console error.
+- `git diff --check`: PASS; UTF-8/NUL scan: PASS (0 NUL).
+
+### Security, database, dependencies, and edge cases
+
+- Database impact: NONE. Migration impact: NONE. Supabase data mutation: NONE. `git diff -- supabase`: empty.
+- Dependency impact: NONE. `package.json` dan `package-lock.json` tidak berubah.
+- Business authorization, RLS, payment, entitlement, state machine, DTO, media ownership, guest/RSVP rules, dan feature gating tidak berubah.
+- Layout memiliki fallback untuk media kosong, parent names kosong, optional slots null, serta wrapping untuk nama/venue/alamat panjang. Demo fixture memberi evidence dua event, dua portrait, dua gallery image, RSVP, wish, dan audio; Story, Video, GiftCard, PhysicalGift N/A pada fixture browser.
+
+### Limitations, deviations, commit, and CI
+
+- Synthetic reduced-motion browser emulation tidak tersedia pada connector; source/runtime default/fallback evidence dicatat tanpa mengarang PASS toggle sintetis.
+- Full test failures adalah PRE-EXISTING / UNRELATED terhadap WP #3D dan tidak diperbaiki karena boundary melarang perubahan editor/checkout.
+- Tidak ada spec deviation atau business rule baru.
+- Commit: belum dibuat saat record ditulis; diisi melalui commit evidence pada handoff.
+- CI/deployment: belum dijalankan. Local production build PASS. Tidak ada push atau deployment.
+
+### Next work package
+
+`#3E — Luxury Midnight Redesign — READY`. Jangan dimulai tanpa persetujuan user.

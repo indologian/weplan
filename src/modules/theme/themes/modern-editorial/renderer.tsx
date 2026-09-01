@@ -1,5 +1,6 @@
-import { weddingDisplay } from "@/shared/fonts";
 import { createRenderer } from "@/modules/theme/renderer";
+import { modernEditorialBody, modernEditorialDisplay } from "./fonts";
+import { Composition } from "./composition";
 import { Cover } from "./cover";
 import { Couple } from "./couple";
 import { Events } from "./events";
@@ -9,7 +10,8 @@ import { Gift } from "./gift";
 import { Closing } from "./closing";
 
 export const ModernEditorialRenderer = createRenderer({
-  rootClassName: `wedding-theme modern-editorial ${weddingDisplay.variable}`,
+  rootClassName: `wedding-theme modern-editorial ${modernEditorialDisplay.variable} ${modernEditorialBody.variable}`,
+  Composition,
   Cover,
   Couple,
   Events,
