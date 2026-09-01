@@ -3616,6 +3616,21 @@ Automated accessibility scan: Axe-core (via `@axe-core/playwright`) — 0 violat
 #3D MODERN EDITORIAL: ACCEPTED
 #3E LUXURY MIDNIGHT: READY
 
+## [2026-09-01] Luxury Midnight Test Merge-Marker Repair
+
+### Goal and evidence
+
+- Removed nested Git conflict markers accidentally committed in `tests/unit/theme-luxury-midnight.test.tsx` by merge commit `fc4960e`.
+- Resolved the fixture against the current canonical `PublicInvitationDTO`; no production source, behavior, database, migration, Supabase state, or dependency changed.
+- Repository-wide anchored conflict-marker scan: PASS.
+- `npm run typecheck`: PASS.
+- Focused Luxury Midnight test: PASS, 4/4.
+- `npm run build`: PASS on Next.js 16.3.3 with existing middleware, Edge Runtime, and `metadataBase` warnings.
+
+### Status
+
+COMPLETE. Local corrective commit only; deployment and push not performed.
+
 
 ## [2026-09-01] Wedding Theme Market-Fit Visual & Motion Rule Refresh
 
