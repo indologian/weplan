@@ -3236,3 +3236,23 @@ Cloudflare/OpenNext image optimization is deferred. Vercel remains primary produ
 * `test`: FAIL — pre-existing editor tests
 * `build`: PASS
 * `quality`: FAIL — because test step fails
+
+## 2026-09-01 — #2D Real Browser Responsive & Interaction Audit
+
+**Status:** COMPLETE
+
+- **Goal:** Verify responsive layout and interactions across 8 viewport sizes in a real browser, fix any spacing, touch target, overflow, and crop issues without redesigning.
+- **Evidence:** 
+  - Playwright automated screenshots generated and visually inspected for 320x568, 360x800, 390x844, 430x932, 768x1024, 1024x768, 1280x800, and 1440x900 viewports.
+  - `scrollWidth === clientWidth` confirmed via JavaScript evaluation across all viewports (No horizontal overflow).
+  - Hover states, keyboard navigation, tab focus rings, theme toggle, and mobile menu (Sheet) tested via Playwright interaction scripts.
+  - All navigation links and demo themes tested and return HTTP 200/307.
+- **Findings & Fixes:**
+  - The implementation was remarkably robust. Most components (Hero, Themes grid, Pricing, Footer) naturally reflowed perfectly down to 320px.
+  - Minor fix: Enforced a 44x44px minimum touch target on the `MobileMenu` hamburger trigger (`min-h-[44px] min-w-[44px]`) to meet accessibility standards on small mobile screens.
+  - Verified that the black circle in the theme preview images is baked into the original mock asset (renderer UI), not a CSS crop issue in marketing.
+- **Validation:** 
+  - `typecheck` PASS.
+  - `lint` PASS.
+  - `test` FAIL (pre-existing editor tests).
+  - `build` PASS.

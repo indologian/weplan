@@ -18,7 +18,7 @@ export function MobileMenu() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="md:hidden" aria-label="Buka menu navigasi">
+        <Button variant="ghost" size="icon" className="md:hidden min-h-[44px] min-w-[44px] shrink-0" aria-label="Buka menu navigasi">
           <Menu className="h-5 w-5" />
         </Button>
       </SheetTrigger>
