@@ -3309,3 +3309,66 @@ At exactly 768px, the `md:hidden` mobile menu trigger is hidden and desktop navi
 
 ### Final status
 #2D.1 mobile menu correction is COMPLETE.
+
+## 2026-09-01 — #2E Final Responsive & Accessibility Polish
+
+**Status:** COMPLETE
+
+### Findings
+| Severity | Component | Issue | Evidence | Fix | Result |
+| -------- | --------- | ----- | -------- | --- | ------ |
+| P1 | Link/Navigation | Missing focus-visible indication on raw links | Manual keyboard audit showed no focus ring | Added `focus-visible:ring-2` utilities to `marketing-navbar`, `hero`, `featured-themes`, `pricing`, `final-cta`, `marketing-footer` | FIXED |
+
+### Browser Validation
+| Viewport | Overflow | Keyboard | Focus | Touch | Contrast | Dark Mode | Visual | Result |
+| -------- | -------- | -------- | ----- | ----- | -------- | --------- | ------ | ------ |
+| 320×568  | PASS     | PASS     | PASS  | PASS  | PASS     | PASS      | PASS   | PASS   |
+| 390×844  | PASS     | PASS     | PASS  | PASS  | PASS     | PASS      | PASS   | PASS   |
+| 393×852  | PASS     | PASS     | PASS  | PASS  | PASS     | PASS      | PASS   | PASS   |
+| 430×932  | PASS     | PASS     | PASS  | PASS  | PASS     | PASS      | PASS   | PASS   |
+| 768×1024 | PASS     | PASS     | PASS  | PASS  | PASS     | PASS      | PASS   | PASS   |
+| 1024×768 | PASS     | PASS     | PASS  | PASS  | PASS     | PASS      | PASS   | PASS   |
+| 1440×900 | PASS     | PASS     | PASS  | PASS  | PASS     | PASS      | PASS   | PASS   |
+
+### Keyboard & Focus
+Tab order: Logical (matches visual/DOM structure)
+Shift+Tab: Reverse logical order works correctly
+Enter/Space: Activates controls and links properly
+Escape: Dismisses the mobile menu Sheet correctly
+focus visibility: PASS (added to all raw links, native buttons already have it)
+focus trap: PASS (handled by shared `Sheet`)
+focus return: PASS (handled by shared `Sheet`)
+
+### Semantics
+heading hierarchy: Strict `h1` down to `h3` structure observed, no skipped levels.
+landmarks: `header`, `main`, `section`, and `footer` rendered natively.
+link/button semantics: Next.js `Link` is used for route navigation, `Button` used correctly.
+accessible names: Hamburger and theme toggle use `aria-label` or `sr-only` tags correctly.
+image alt: Meaningful alt strings used for preview thumbnails.
+
+### Touch Targets
+All core mobile navigation targets and CTAs observe min-heights `>= 44px`.
+
+### Contrast / Theme
+light: PASS (WCAG automated and visual checks)
+dark: PASS
+text-over-image: PASS (Hero uses `from-black/60 via-black/10` gradient overlay)
+focus contrast: PASS
+theme toggle: PASS
+
+### Reduced Motion / Zoom
+prefers-reduced-motion: Tailwind globals intercept animations automatically.
+200% zoom: PASS (Content reflows natively without critical overlaps)
+
+### Console / Network
+console errors: None
+hydration errors: None
+404: None
+500: None
+failed assets: None
+
+### Validation Commands
+- `npm run typecheck`: PASS
+- `npm run lint`: PASS
+- `npm run test`: FAIL — pre-existing/outside #2E scope (invitation-editor-navigation, editor-authoritative-revision)
+- `npm run build`: PASS

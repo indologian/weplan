@@ -27,7 +27,7 @@ export function Pricing() {
                 <li className="flex items-start gap-3 text-muted-foreground"><X className="h-5 w-5 shrink-0 opacity-50" /> <span>Tanpa watermark Weplan</span></li>
                 <li className="flex items-start gap-3 text-muted-foreground"><X className="h-5 w-5 shrink-0 opacity-50" /> <span>Audio & Background Music</span></li>
               </ul>
-              <Link href="/create" className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-border bg-background hover:bg-muted font-medium transition-colors">
+              <Link href="/create" className="inline-flex h-12 w-full items-center justify-center rounded-lg border border-border bg-background hover:bg-muted font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 Mulai Gratis
               </Link>
             </div>
@@ -50,7 +50,7 @@ export function Pricing() {
                 <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>Tanpa watermark Weplan</span></li>
                 <li className="flex items-start gap-3"><Check className="h-5 w-5 text-primary shrink-0" /> <span>Audio & Background Music</span></li>
               </ul>
-              <Link href="/create" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 font-medium transition-colors">
+              <Link href="/create" className="inline-flex h-12 w-full items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 Daftar Premium
               </Link>
             </div>

@@ -21,13 +21,13 @@ export function Hero({ theme }: { theme?: FeaturedThemeDTO }) {
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
             <Link
               href="/create"
-              className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground transition-colors hover:opacity-90"
+              className="inline-flex h-12 w-full sm:w-auto items-center justify-center rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Buat Undangan Sekarang
             </Link>
             <Link
               href="/katalog"
-              className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-lg px-6 text-base font-medium transition-colors hover:bg-muted"
+              className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-lg px-6 text-base font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Lihat Katalog <ArrowRight className="h-4 w-4" />
             </Link>
@@ -63,7 +63,7 @@ export function Hero({ theme }: { theme?: FeaturedThemeDTO }) {
             </div>
           )}
           {theme?.code && (
-            <Link href={`/demo/${theme.code}`} prefetch={false} className="absolute inset-0 z-10" aria-label={`Lihat demo tema ${theme.name}`}>
+            <Link href={`/demo/${theme.code}`} prefetch={false} className="absolute inset-0 z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-2xl" aria-label={`Lihat demo tema ${theme.name}`}>
               <span className="sr-only">Lihat demo</span>
             </Link>
           )}

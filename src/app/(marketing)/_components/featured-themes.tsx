@@ -25,7 +25,7 @@ export function FeaturedThemes({
             </div>
             <Link 
               href="/katalog" 
-              className="inline-flex h-10 items-center justify-center text-sm font-medium hover:text-primary whitespace-nowrap"
+              className="inline-flex h-10 items-center justify-center text-sm font-medium hover:text-primary whitespace-nowrap rounded-md px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               Lihat semua tema &rarr;
             </Link>
@@ -35,7 +35,7 @@ export function FeaturedThemes({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12">
           {themes.map((theme) => (
             <div key={theme.id} className="group flex flex-col">
-              <Link href={`/demo/${theme.code}`} prefetch={false} className="block relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-muted mb-4">
+              <Link href={`/demo/${theme.code}`} prefetch={false} className="block relative aspect-[3/4] w-full overflow-hidden rounded-xl bg-muted mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
                 {theme.thumbnail_url ? (
                   <Image
                     src={theme.thumbnail_url}

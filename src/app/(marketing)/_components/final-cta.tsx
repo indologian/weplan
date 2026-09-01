@@ -14,7 +14,7 @@ export function FinalCta() {
         <div className="pt-4">
           <Link
             href="/create"
-            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-primary px-10 py-4 text-base font-semibold text-primary-foreground transition-colors hover:opacity-90"
+            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-primary px-10 py-4 text-base font-semibold text-primary-foreground transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             Mulai Buat Undangan
           </Link>

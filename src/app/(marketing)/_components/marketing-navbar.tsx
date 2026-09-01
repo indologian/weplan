@@ -8,10 +8,10 @@ export function MarketingNavbar() {
     <header className="sticky top-0 z-30 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4" aria-label="Global">
         <div className="flex items-center gap-8">
-          <Link href="/" className="font-semibold tracking-tight text-xl">weplan</Link>
+          <Link href="/" className="font-semibold tracking-tight text-xl rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 px-1 -ml-1">weplan</Link>
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-muted-foreground">
-            <Link href="/katalog" className="hover:text-foreground transition-colors">Katalog Tema</Link>
-            <Link href="/lead-magnet" className="hover:text-foreground transition-colors">Checklist Pernikahan</Link>
+            <Link href="/katalog" className="hover:text-foreground transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Katalog Tema</Link>
+            <Link href="/lead-magnet" className="hover:text-foreground transition-colors rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">Checklist Pernikahan</Link>
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">

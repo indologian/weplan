@@ -31,14 +31,14 @@ export function MobileMenu() {
             <nav className="flex flex-col text-sm font-medium">
               <Link 
                 href="/katalog" 
-                className="hover:text-primary transition-colors py-3 flex items-center min-h-[44px]"
+                className="hover:text-primary transition-colors py-3 flex items-center min-h-[44px] rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onClick={() => setOpen(false)}
               >
                 Katalog Tema
               </Link>
               <Link 
                 href="/lead-magnet" 
-                className="hover:text-primary transition-colors py-3 flex items-center min-h-[44px]"
+                className="hover:text-primary transition-colors py-3 flex items-center min-h-[44px] rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onClick={() => setOpen(false)}
               >
                 Checklist Pernikahan
