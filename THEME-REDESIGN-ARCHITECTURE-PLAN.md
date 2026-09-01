@@ -320,9 +320,8 @@ The editor remains a data-entry and controlled presentation editor. It is NOT a 
 5. **Cross-Theme Polish:** Final performance and responsiveness verification.
 
 # AJ. Future Work Packages
-*Note: #3C is NOT READY and remains blocked until product decisions (D1-D7) are approved.*
-- `#3C` — Theme Foundation Architecture (Tokens, Layout Primitives, Typography, Motion Setup)
-- `#3D` — Modern Editorial Redesign
+- `#3C` — Theme Foundation Architecture (IMPLEMENTED)
+- `#3D` — Modern Editorial Redesign (READY)
 - `#3E` — Luxury Midnight Redesign
 - `#3F` — Javanese Heritage Redesign
 - `#3G` — Romantic Floral Redesign
@@ -332,46 +331,25 @@ The editor remains a data-entry and controlled presentation editor. It is NOT a 
 # AK. Product Decision Gates
 
 **D1 — Canvas strategy**
-- **Recommendation:** Hybrid Responsive Canvas.
-- **Reason:** Best balance of premium desktop experience and mobile readability.
-- **Tradeoff:** Higher QA cost than fixed 480px.
-- **Alternative:** Fixed 480px.
+- **APPROVED:** Hybrid Responsive Canvas.
 
 **D2 — Renderer composition flexibility**
-- **Recommendation:** R3 - Slot-based renderer.
-- **Reason:** Maximizes shared behavior reuse, type safety, and maintainability, while giving themes full control over visual composition wrappers.
-- **Tradeoff:** Slightly more verbose theme composition files.
-- **Alternative:** Fixed global order (too repetitive).
+- **APPROVED:** R3 - Slot-based renderer.
 
 **D3 — Theme-specific font strategy**
-- **Recommendation:** `next/font` scoped per theme renderer with max 2 families.
-- **Reason:** Prevents loading all font families globally while offering distinct theme identities.
-- **Tradeoff:** Setup complexity per theme.
-- **Alternative:** Global font loading (hurts performance significantly).
+- **APPROVED:** `next/font` scoped per theme renderer with max 2 families.
 
 **D4 — Shared controls visual divergence**
-- **Recommendation:** CSS Canonical Tokens with optional semantic variants (e.g., `variant="pill"`).
-- **Reason:** Prevents duplicating complex RSVP/Navigation logic per theme (Shared Behavior + Theme-Aware Presentation).
-- **Tradeoff:** Limits extreme bespoke visual deviations for RSVP forms.
-- **Alternative:** Completely distinct RSVP components per theme (maintenance nightmare).
+- **APPROVED:** CSS Canonical Tokens with optional semantic variants.
 
 **D5 — GSAP Motion choreography**
-- **Recommendation:** Extracted to `themes/<name>/motion.tsx` utilizing `useGSAP` (lifecycle integration) and `matchMedia` (media/reduced-motion handling).
-- **Reason:** Crucial for reduced-motion accessibility and reliable memory cleanup on unmount.
-- **Tradeoff:** Motion code cannot be easily shared globally.
-- **Alternative:** Keep generic `ThemeAnimator` (proven ineffective for distinct themes).
+- **APPROVED:** Extracted to `themes/<name>/motion.tsx` utilizing `useGSAP` and `matchMedia`.
 
 **D6 — Javanese Heritage Cultural Art Direction**
-- **Recommendation:** Option J3 — Hybrid (Authentic motif language + modern composition).
-- **Reason:** Respects cultural heritage while maintaining premium modern appeal.
-- **Tradeoff:** Requires careful design research to avoid cliché.
-- **Alternative:** Option J1 (Strictly Traditional) or J2 (Abstracted Contemporary).
+- **APPROVED:** Option J3 — Hybrid.
 
 **D7 — Luxury Spatial Intensity**
-- **Recommendation:** Option L1 — Subtle (Lighting, overlap, gentle parallax, small foil effects).
-- **Reason:** Achieves premium feel without WebGL or risking mobile performance issues.
-- **Tradeoff:** Less "flashy" than deep cinematic depth.
-- **Alternative:** Option L2 (Expressive: stronger depth, sticky transitions) or L3 (Cinematic CSS/DOM + GSAP: large scene transitions, strong perspective). **NO WEBGL** for any option under the current scope.
+- **APPROVED:** Option L1 — Subtle.
 
 # AL. Final Architecture Recommendation
 Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes own composition but share behavior. Enforce **Canonical Theme Tokens** with explicit `color-scheme` declarations to fix dark mode propagation. Implement theme-specific GSAP files wrapped in strict `matchMedia` hooks for reduced motion compliance, utilizing `useGSAP` for cleanup. Opt for UX DOM-order improvements for fixed controls over manual tabindexes. Utilize `next/font` at the theme root to secure bespoke typography safely. Future implementation (#3C) is blocked pending user approval of D1–D7.

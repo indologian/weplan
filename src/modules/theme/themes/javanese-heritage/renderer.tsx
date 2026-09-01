@@ -1,3 +1,4 @@
+import { weddingDisplay } from "@/shared/fonts";
 import { createRenderer } from "@/modules/theme/renderer";
 import { Cover } from "./cover";
 import { Couple } from "./couple";
@@ -8,7 +9,7 @@ import { Gift } from "./gift";
 import { Closing } from "./closing";
 
 export const JavaneseHeritageRenderer = createRenderer({
-  rootClassName: "wedding-theme javanese-heritage",
+  rootClassName: `wedding-theme javanese-heritage ${weddingDisplay.variable}`,
   Cover,
   Couple,
   Events,

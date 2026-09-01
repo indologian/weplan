@@ -1,6 +1,5 @@
 import type { PublicInvitationDTO } from "@/modules/invitation/types";
 import { getRendererLoader } from "./registry";
-import { weddingDisplay } from "@/shared/fonts";
 
 type Props = {
   invitation: PublicInvitationDTO;
@@ -20,8 +19,6 @@ export async function WeddingRenderer({ invitation, guestName, guestToken }: Pro
 
   const Renderer = await loadRenderer();
   return (
-    <div className={`${weddingDisplay.variable} contents`}>
-      <Renderer invitation={invitation} guestName={guestName} guestToken={guestToken} />
-    </div>
+    <Renderer invitation={invitation} guestName={guestName} guestToken={guestToken} />
   );
 }

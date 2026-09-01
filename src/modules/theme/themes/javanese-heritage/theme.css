@@ -1,13 +1,25 @@
 @layer theme_javanese_heritage {
 .wedding-theme.javanese-heritage {
-  --jh-bg: var(--theme-bg, #faf5ed);
-  --jh-surface: var(--theme-surface, #f0e8d8);
-  --jh-text: var(--theme-text, #3a3a3a);
-  --jh-muted: var(--theme-muted, #7a7060);
-  --jh-accent: var(--theme-accent, #b8860b);
+  color-scheme: light;
+
+  /* Canonical Theme Tokens */
+  --theme-bg: #faf5ed;
+  --theme-surface: #f0e8d8;
+  --theme-text: #3a3a3a;
+  --theme-muted: #7a7060;
+  --theme-accent: #b8860b;
+  --theme-accent-contrast: #ffffff;
+  --theme-border: #d4c8b0;
+
+  /* Theme-specific Aliases */
+  --jh-bg: var(--theme-bg);
+  --jh-surface: var(--theme-surface);
+  --jh-text: var(--theme-text);
+  --jh-muted: var(--theme-muted);
+  --jh-accent: var(--theme-accent);
   --jh-sogan: #c4a87c;
-  --jh-accent-contrast: var(--theme-accent-contrast, #ffffff);
-  --jh-border: var(--theme-border, #d4c8b0);
+  --jh-accent-contrast: var(--theme-accent-contrast);
+  --jh-border: var(--theme-border);
   --jh-gold-rule: #b8860b;
 
   --jh-font-display: var(--font-wedding-display), Georgia, serif;

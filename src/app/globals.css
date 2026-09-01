@@ -105,14 +105,19 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
   }
 }
 
+.theme-legacy-container {
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
+}
+
 .wedding-theme {
-  position: relative;
+  @apply relative;
   width: 100%;
   min-height: 100svh;
   overflow-x: clip;
   background: var(--theme-bg, #fff);
   color: var(--theme-text, #222);
-  color-scheme: light;
   isolation: isolate;
 }
 

@@ -1,5 +1,5 @@
 import type { SectionRendererProps } from "@/modules/theme/renderer";
-import { ThemeAnimator } from "@/modules/theme/primitives/theme-animator";
+import { ModernEditorialMotion } from "./motion";
 import "./theme.css";
 
 function LeafOrnament(props: React.SVGProps<SVGSVGElement>) {
@@ -17,7 +17,7 @@ export function Cover({ invitation }: SectionRendererProps) {
   
   return (
     <section className="modern-editorial me-cover">
-      <ThemeAnimator />
+      <ModernEditorialMotion />
       
       <LeafOrnament className="me-cover-ornament" />
       

@@ -1,12 +1,24 @@
 @layer theme_modern_editorial {
 .wedding-theme.modern-editorial {
-  --me-bg: var(--theme-bg, #faf8f5);
-  --me-surface: var(--theme-surface, #f5f0ea);
-  --me-text: var(--theme-text, #2c2c2c);
-  --me-muted: var(--theme-muted, #8a8580);
-  --me-accent: var(--theme-accent, #c4a87c);
-  --me-accent-contrast: var(--theme-accent-contrast, #ffffff);
-  --me-border: var(--theme-border, #e8e2da);
+  color-scheme: light;
+
+  /* Canonical Theme Tokens */
+  --theme-bg: #faf8f5;
+  --theme-surface: #f5f0ea;
+  --theme-text: #2c2c2c;
+  --theme-muted: #8a8580;
+  --theme-accent: #c4a87c;
+  --theme-accent-contrast: #ffffff;
+  --theme-border: #e8e2da;
+
+  /* Theme-specific Aliases */
+  --me-bg: var(--theme-bg);
+  --me-surface: var(--theme-surface);
+  --me-text: var(--theme-text);
+  --me-muted: var(--theme-muted);
+  --me-accent: var(--theme-accent);
+  --me-accent-contrast: var(--theme-accent-contrast);
+  --me-border: var(--theme-border);
 
   --me-font-display: var(--font-wedding-display), Georgia, serif;
   --me-font-body: var(--font-jakarta), system-ui, sans-serif;

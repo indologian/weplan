@@ -5,6 +5,7 @@ import type { PublicInvitationDTO } from "@/modules/invitation/types";
 import Link from "next/link";
 import { Button } from "@/shared/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { WeddingCanvas } from "@/modules/theme/primitives/layout/wedding-canvas";
 
 export default async function DemoPage({
   params,
@@ -106,8 +107,10 @@ export default async function DemoPage({
       </div>
 
       {/* Frame Mobile Render */}
-      <div data-demo-frame className="mx-auto max-w-[480px] bg-white min-h-screen shadow-2xl relative overflow-x-hidden pt-[72px]">
-        <WeddingRenderer invitation={dummyInvitation} />
+      <div data-demo-frame className="w-full relative pt-[72px]">
+        <WeddingCanvas>
+          <WeddingRenderer invitation={dummyInvitation} />
+        </WeddingCanvas>
       </div>
     </div>
   );

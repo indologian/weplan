@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { getPublicInvitation } from "@/modules/invitation/server/public-queries";
 import type { PublicInvitationDTO } from "@/modules/invitation/types";
 import { WeddingRenderer } from "@/modules/theme/wedding-renderer";
+import { WeddingCanvas } from "@/modules/theme/primitives/layout/wedding-canvas";
 import { PinGate } from "@/modules/guest/components/pin-gate";
 import { verifyPrivateSessionFromCookie, resolveGuestFromToken } from "@/modules/guest/server/pin-session";
 
@@ -131,9 +132,9 @@ export default async function WeddingPage({ params, searchParams }: Props) {
       guestName = resolved?.name;
     }
     return (
-      <div style={{ width: "100%", maxWidth: "480px", margin: "0 auto" }}>
+      <WeddingCanvas>
         <WeddingRenderer invitation={publicInvitation} guestName={guestName} guestToken={guestName ? guestToken : undefined} />
-      </div>
+      </WeddingCanvas>
     );
   }
 
@@ -147,9 +148,9 @@ export default async function WeddingPage({ params, searchParams }: Props) {
         guestName = resolved?.name;
       }
       return (
-        <div style={{ width: "100%", maxWidth: "480px", margin: "0 auto" }}>
+        <WeddingCanvas>
           <WeddingRenderer invitation={privateInvitation} guestName={guestName} guestToken={guestName ? guestToken : undefined} />
-        </div>
+        </WeddingCanvas>
       );
     }
   }
@@ -158,8 +159,8 @@ export default async function WeddingPage({ params, searchParams }: Props) {
   if (!slugInvitation) notFound();
 
   return (
-    <div style={{ width: "100%", maxWidth: "480px", margin: "0 auto" }}>
+    <WeddingCanvas>
       <PinGate invitationId={slugInvitation.invitationId} slug={slug} />
-    </div>
+    </WeddingCanvas>
   );
 }

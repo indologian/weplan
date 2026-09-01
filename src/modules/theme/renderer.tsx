@@ -6,6 +6,21 @@ import type { RendererProps } from "./types";
 
 export type SectionRendererProps = { invitation: PublicInvitationDTO; guestName?: string };
 
+export type ThemeCompositionProps = {
+  Cover: React.ReactNode;
+  Opening: React.ReactNode;
+  Couple: React.ReactNode;
+  Events: React.ReactNode;
+  Story: React.ReactNode;
+  Gallery: React.ReactNode;
+  Video: React.ReactNode;
+  Rsvp: React.ReactNode;
+  Wishes: React.ReactNode;
+  Gift: React.ReactNode;
+  Closing: React.ReactNode;
+  Navigation: React.ReactNode;
+};
+
 export type ThemeSectionRenderers = {
   rootClassName: string;
   Cover: React.ComponentType<SectionRendererProps>;
@@ -15,6 +30,7 @@ export type ThemeSectionRenderers = {
   Gallery: React.ComponentType<SectionRendererProps>;
   Gift: React.ComponentType<SectionRendererProps>;
   Closing: React.ComponentType<SectionRendererProps>;
+  Composition?: React.ComponentType<ThemeCompositionProps>;
 };
 
 function isVisible(invitation: PublicInvitationDTO, key: string, fallback = true): boolean {
@@ -68,27 +84,59 @@ export function createRenderer(sections: ThemeSectionRenderers) {
       ...(showGift ? [{ id: "gift", label: "Hadiah" }] : []),
     ];
 
+    const CoverNode = <div id="cover"><sections.Cover {...sectionProps} /></div>;
+    const OpeningNode = (invitation.settings.openingText || invitation.settings.quoteText) ? (
+      <section className="theme-opening" aria-labelledby="opening-title">
+        <p className="theme-overline">Dengan penuh sukacita</p>
+        <h2 id="opening-title" className="sr-only">Pembuka</h2>
+        {invitation.settings.openingText && <p>{invitation.settings.openingText}</p>}
+        {invitation.settings.quoteText && <blockquote>{invitation.settings.quoteText}</blockquote>}
+      </section>
+    ) : null;
+    const CoupleNode = <div id="couple"><sections.Couple {...sectionProps} /></div>;
+    const EventsNode = <div id="events"><sections.Events {...sectionProps} /></div>;
+    const StoryNode = showStory ? <div id="story"><sections.Story {...sectionProps} /></div> : null;
+    const GalleryNode = showGallery ? <div id="gallery"><sections.Gallery {...sectionProps} /></div> : null;
+    const VideoNode = showVideo ? <div id="video"><VideoSection invitation={invitation} /></div> : null;
+    const RsvpNode = showRsvp ? <div id="rsvp"><RsvpForm invitationId={invitation.invitationId} guestName={invitation.guestName ?? guestName} guestToken={guestToken} className="theme-generic-section theme-rsvp" /></div> : null;
+    const WishesNode = showWishes ? <div id="wishes"><Wishes invitation={invitation} /></div> : null;
+    const GiftNode = showGift ? <div id="gift"><sections.Gift {...sectionProps} /><PhysicalGift invitation={invitation} /></div> : null;
+    const ClosingNode = <sections.Closing {...sectionProps} />;
+    const NavigationNode = <InvitationNavigation items={navigation} />;
+
     return (
       <InvitationShell className={sections.rootClassName} guestName={displayGuestName} audioUrl={audioUrl} style={getThemeStyle(invitation)}>
-        <div id="cover"><sections.Cover {...sectionProps} /></div>
-        {(invitation.settings.openingText || invitation.settings.quoteText) && (
-          <section className="theme-opening" aria-labelledby="opening-title">
-            <p className="theme-overline">Dengan penuh sukacita</p>
-            <h2 id="opening-title" className="sr-only">Pembuka</h2>
-            {invitation.settings.openingText && <p>{invitation.settings.openingText}</p>}
-            {invitation.settings.quoteText && <blockquote>{invitation.settings.quoteText}</blockquote>}
-          </section>
+        {sections.Composition ? (
+          <sections.Composition
+            Cover={CoverNode}
+            Opening={OpeningNode}
+            Couple={CoupleNode}
+            Events={EventsNode}
+            Story={StoryNode}
+            Gallery={GalleryNode}
+            Video={VideoNode}
+            Rsvp={RsvpNode}
+            Wishes={WishesNode}
+            Gift={GiftNode}
+            Closing={ClosingNode}
+            Navigation={NavigationNode}
+          />
+        ) : (
+          <div className="theme-legacy-container">
+            {NavigationNode}
+            {CoverNode}
+            {OpeningNode}
+            {CoupleNode}
+            {EventsNode}
+            {StoryNode}
+            {GalleryNode}
+            {VideoNode}
+            {RsvpNode}
+            {WishesNode}
+            {GiftNode}
+            {ClosingNode}
+          </div>
         )}
-        <div id="couple"><sections.Couple {...sectionProps} /></div>
-        <div id="events"><sections.Events {...sectionProps} /></div>
-        {showStory && <div id="story"><sections.Story {...sectionProps} /></div>}
-        {showGallery && <div id="gallery"><sections.Gallery {...sectionProps} /></div>}
-        {showVideo && <div id="video"><VideoSection invitation={invitation} /></div>}
-        {showRsvp && <div id="rsvp"><RsvpForm invitationId={invitation.invitationId} guestName={invitation.guestName ?? guestName} guestToken={guestToken} className="theme-generic-section theme-rsvp" /></div>}
-        {showWishes && <div id="wishes"><Wishes invitation={invitation} /></div>}
-        {showGift && <div id="gift"><sections.Gift {...sectionProps} /><PhysicalGift invitation={invitation} /></div>}
-        <sections.Closing {...sectionProps} />
-        <InvitationNavigation items={navigation} />
       </InvitationShell>
     );
   }

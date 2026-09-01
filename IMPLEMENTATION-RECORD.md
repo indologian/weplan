@@ -3402,3 +3402,55 @@ Automated accessibility scan: Axe-core (via `@axe-core/playwright`) — 0 violat
 
 ### Final status
 #2E remains COMPLETE. This addendum corrects evidence wording only and does not reopen the UI implementation.
+
+## [2026-09-01] WP #3C: Wedding Theme Foundation Architecture Implementation
+
+### Scope
+- Implement Hybrid Responsive Canvas primitive (\WeddingCanvas\).
+- Implement Slot-Based Renderer (R3) with transitional adapter for legacy themes.
+- Implement Canonical Theme Tokens and explicitly set per-theme \color-scheme\.
+- Fix Luxury Midnight token inheritance for shared controls.
+- Adopt \
+ext/font\ per-theme injection pattern.
+- Create structural layout primitives (\NarrowMeasure\, \WideMeasure\, \Breakout\).
+- Isolate Modern Editorial GSAP animation to its own motion controller and implement \matchMedia\ for reduced-motion safety.
+- Verify Demo / Preview / Public route parity.
+
+### Files Changed
+- \src/app/globals.css\
+- \src/app/(wedding)/[slug]/page.tsx\
+- \src/app/demo/[slug]/page.tsx\
+- \src/app/preview/[id]/page.tsx\
+- \src/modules/theme/renderer.tsx\
+- \src/modules/theme/wedding-renderer.tsx\
+- \src/modules/theme/primitives/layout/wedding-canvas.tsx\ (NEW)
+- \src/modules/theme/primitives/layout/narrow-measure.tsx\ (NEW)
+- \src/modules/theme/primitives/layout/wide-measure.tsx\ (NEW)
+- \src/modules/theme/primitives/layout/breakout.tsx\ (NEW)
+- \src/modules/theme/themes/modern-editorial/motion.tsx\ (RENAMED and MODIFIED from \	heme-animator.tsx\)
+- \src/modules/theme/themes/modern-editorial/cover.tsx\
+- \src/modules/theme/themes/modern-editorial/theme.css\
+- \src/modules/theme/themes/modern-editorial/renderer.tsx\
+- \src/modules/theme/themes/luxury-midnight/theme.css\
+- \src/modules/theme/themes/luxury-midnight/renderer.tsx\
+- \src/modules/theme/themes/romantic-floral/theme.css\
+- \src/modules/theme/themes/romantic-floral/renderer.tsx\
+- \src/modules/theme/themes/javanese-heritage/theme.css\
+- \src/modules/theme/themes/javanese-heritage/renderer.tsx\
+- \src/modules/theme/themes/_baseline/renderer.tsx\
+
+### Browser Evidence & QA
+- **Mobile Width Verification**: No horizontal overflow in all viewports.
+- **Route Parity**: \/demo\, \/preview\, and public routes all now use \<WeddingCanvas>\.
+- **Legacy Layout**: Legacy themes continue to render precisely within 480px via \.theme-legacy-container\ transitional adapter.
+- **Dark Mode**: Luxury Midnight explicitly declares \color-scheme: dark\. Form controls visually match. Shared primitives correctly resolve \ar(--theme-*)\ from root CSS.
+- **Typography**: Removed global font injection. Fonts are statically resolved via \
+ext/font\ per theme root \className\.
+- **Reduced Motion**: \ModernEditorialMotion\ wraps \gsap.utils.toArray\ in \gsap.matchMedia()\ omitting GSAP setters on \(prefers-reduced-motion: reduce)\.
+
+### Known Limitations
+- The visual redesigns for WP #3D-#3G are yet to be implemented. All themes currently retain their legacy visual appearance inside the transitional adapter wrapper.
+
+### Next Work Package
+#3D - Modern Editorial Redesign
+

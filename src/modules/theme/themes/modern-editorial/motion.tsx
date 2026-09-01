@@ -8,10 +8,13 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
 }
 
-export function ThemeAnimator() {
+export function ModernEditorialMotion() {
   useGSAP(() => {
-    // 1. General Staggered Reveal for Sections
-    const sections = gsap.utils.toArray<HTMLElement>("section.modern-editorial");
+    const mm = gsap.matchMedia();
+
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      // 1. General Staggered Reveal for Sections
+      const sections = gsap.utils.toArray<HTMLElement>("section.modern-editorial");
 
     sections.forEach((section) => {
       const animatables = section.querySelectorAll(".me-animate");
@@ -115,7 +118,7 @@ export function ThemeAnimator() {
         });
       }
     });
-
+    });
   }, []);
 
   return null;

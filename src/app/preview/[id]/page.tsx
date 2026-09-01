@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/shared/lib/supabase/server-client";
 import { WeddingRenderer } from "@/modules/theme/wedding-renderer";
+import { WeddingCanvas } from "@/modules/theme/primitives/layout/wedding-canvas";
 import type { PublicInvitationDTO } from "@/modules/invitation/types";
 import { CheckoutButton } from "@/app/(dashboard)/dashboard/[id]/checkout-button";
 import { Button } from "@/shared/components/ui/button";
@@ -151,8 +152,10 @@ export default async function PreviewPage({ params, searchParams }: Props) {
   const { invitation, status } = preview;
 
   return (
-    <div className="relative mx-auto min-h-svh max-w-[480px] pb-24">
-      <WeddingRenderer invitation={invitation} />
+    <div className="relative min-h-svh pb-24">
+      <WeddingCanvas>
+        <WeddingRenderer invitation={invitation} />
+      </WeddingCanvas>
 
       <div
         className="fixed inset-x-0 bottom-0 z-50 mx-auto w-full max-w-[480px] border-t bg-background/95 px-4 pt-3 shadow-[0_-8px_24px_rgba(0,0,0,0.08)] backdrop-blur"

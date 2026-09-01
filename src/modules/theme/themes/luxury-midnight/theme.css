@@ -1,12 +1,24 @@
 @layer theme_luxury_midnight {
 .wedding-theme.luxury-midnight {
-  --lm-bg: var(--theme-bg, #0a0f1a);
-  --lm-surface: var(--theme-surface, #141b2d);
-  --lm-text: var(--theme-text, #f5f0e8);
-  --lm-muted: var(--theme-muted, #a0a8b8);
-  --lm-accent: var(--theme-accent, #c9a84c);
-  --lm-accent-contrast: var(--theme-accent-contrast, #0a0f1a);
-  --lm-border: var(--theme-border, #2a3040);
+  color-scheme: dark;
+
+  /* Canonical Theme Tokens (Foundation) */
+  --theme-bg: #0a0f1a;
+  --theme-surface: #141b2d;
+  --theme-text: #f5f0e8;
+  --theme-muted: #a0a8b8;
+  --theme-accent: #c9a84c;
+  --theme-accent-contrast: #0a0f1a;
+  --theme-border: #2a3040;
+
+  /* Theme-specific Aliases (Backward Compatibility) */
+  --lm-bg: var(--theme-bg);
+  --lm-surface: var(--theme-surface);
+  --lm-text: var(--theme-text);
+  --lm-muted: var(--theme-muted);
+  --lm-accent: var(--theme-accent);
+  --lm-accent-contrast: var(--theme-accent-contrast);
+  --lm-border: var(--theme-border);
 
   --lm-font-display: var(--font-wedding-display), Georgia, serif;
   --lm-font-body: var(--font-jakarta), system-ui, sans-serif;
