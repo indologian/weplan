@@ -4,12 +4,14 @@
 >
 > **SINGLE SOURCE OF TRUTH teknis/bisnis:** `01 - arsitektur-dan-konvensi.md`.
 > **SINGLE SOURCE OF TRUTH renderer/theme visual:** **File 05 ini**.
+>
+> **Normative market-fit amendment — 1 September 2026:** `05A - market-fit-visual-motion-rules.md`. Untuk visual/motion, photography/mask, SVG/raster, gallery, dan responsive composition yang bertentangan, File 05A memiliki precedence sampai aturan ini dikonsolidasikan kembali ke File 05.
 > **UI/UX platform:** `03 - panduan-ui-ux.md`.
 > **Security:** `02 - panduan-keamanan.md`.
 >
 > Theme hanya menerima data/capability yang sudah diputuskan domain layer. Dokumen ini **tidak mengulang** harga, tier rank, entitlement state machine, PIN threshold, signed-URL lifetime, RSVP authorization matrix, autosave, atau payment rules.
 >
-> **Basis riset pasar Indonesia — 25 Agustus 2026:** pola di dokumen ini disintesis dari katalog/live demo penyedia undangan digital Indonesia yang aktif, termasuk Wevitation, Mer.id, Undweb, Sitemu, WeddingPress/ekosistem Invit, serta referensi visual tema adat/floral/editorial yang tersedia pada pasar Indonesia. Temuan pasar dipakai sebagai **input desain**, bukan sebagai sumber business rule aplikasi.
+> **Basis riset pasar Indonesia:** baseline 25 Agustus 2026 diperbarui pada **1 September 2026** melalui File 05A dengan studi Indoinvite, Wevitation, Our Wedding Link, WebNikah, LinkUndangan, Inveet, dan Katsudoto. Temuan pasar dipakai sebagai **input desain**, bukan sebagai sumber business rule aplikasi.
 >
 > **Arah market-fit:** katalog harus mengutamakan Modern/Editorial, Floral/Botanical, Minimalist, Adat/Heritage Nusantara, Royal/Luxury, Islamic, dan beberapa niche visual yang benar-benar berbeda. Banyak theme boleh memakai feature skeleton yang sama, tetapi **tidak boleh terasa hanya sebagai pergantian warna/background**.
 >
@@ -50,19 +52,20 @@ Theme yang benar-benar berbeda minimal harus mengubah beberapa dimensi berikut:
 
 Mengganti hanya palette, background image, atau satu ornament **bukan theme baru**; itu hanya variant.
 
-### 1.2 Mobile Poster, Bukan Desktop Website yang Diperkecil
+### 1.2 Mobile-First Interactive Poster + Hybrid Desktop Canvas
 
-Undangan diperlakukan sebagai **interactive vertical poster** yang terutama dikonsumsi pada layar portrait.
+Undangan tetap diperlakukan sebagai **interactive vertical poster** dengan portrait mobile sebagai primary storytelling surface, tetapi desktop **tidak** dikunci ke simulasi ponsel 440–480px.
 
-Baseline composition:
+Baseline composition mengikuti Hybrid Responsive Canvas:
 
 ```text
-primary viewport target  : 360–430px portrait
-comfortable content width: 320–390px
-full renderer desktop    : center-constrained visual stage
+primary mobile      : 320–430px portrait
+readable core       : kira-kira 360–560px sesuai section
+medium composition  : sampai ±720–900px
+desktop breakout    : sampai ±1100–1280px bila art direction membutuhkannya
 ```
 
-Desktop tidak boleh membuat wedding composition melebar seperti SaaS landing page. Theme dapat mempertahankan visual stage sekitar 440–480px, dengan outer background/texture/derived low-resolution visual sebagai framing.
+Paragraph tetap constrained. Foto, ornament, gallery, sticky visual, dan cinematic section boleh breakout secara intentional. Detail normatif mengikuti File 05A §2.1 dan §16.
 
 ### 1.3 Premium = Art Direction, Bukan Keramaian
 
@@ -1231,26 +1234,13 @@ Setiap theme wajib diuji pada:
 - Chrome Android low-end;
 - WhatsApp/Instagram/LINE/Facebook in-app browser bila tersedia pada test device.
 
-### 25.2 Desktop Stage
+### 25.2 Desktop Hybrid Stage
 
-Desktop dapat menggunakan:
+Desktop mengikuti Hybrid Responsive Canvas, bukan center-phone-only. Readable text tetap constrained, sedangkan visual section dapat menggunakan split composition, sticky visual, side framing, wide gallery, asymmetric spread, atau cinematic full-bleed sampai batas layout yang aman.
 
-```text
-outer canvas
-  ↓
-center wedding stage ±440–480px
-  ↓
-invitation content
-```
+Outer canvas tetap boleh memakai solid, gradient, low-res derived image, atau subtle texture. Jangan menduplikasi full-resolution portrait sebagai background blur besar.
 
-Outer canvas dapat:
-
-- solid;
-- gradient;
-- low-res blurred derived image;
-- subtle texture.
-
-Jangan menduplikasi full-resolution portrait sebagai background blur besar.
+Detail breakpoint/composition mengikuti File 05A §2.1 dan §16.
 
 ### 25.3 Safe Area
 
@@ -1623,7 +1613,7 @@ Hindari:
 - heavy drop shadow pada semua card;
 - terlalu banyak floating button;
 - particle/flower loop terus-menerus;
-- auto-scroll atau scroll-jacking;
+- auto-scroll otomatis/tanpa kontrol user atau scroll-jacking;
 - theme adat hanya berupa floral generic + satu symbol budaya;
 - 10 “theme” yang sebenarnya satu layout dengan palette berbeda;
 - RSVP/gift memakai dekorasi yang mengganggu form/data;
@@ -1670,17 +1660,21 @@ Canonical route/auth/save/readiness contract berada di File 01. Tanggung jawab r
 - [ ] 320/360px narrow mobile.
 - [ ] 390–430px common mobile.
 - [ ] tablet portrait.
-- [ ] desktop center stage.
+- [ ] desktop Hybrid Canvas: readable core + intentional breakout.
 - [ ] safe-area bottom.
 - [ ] in-app browser smoke test.
 
 ### Motion
 
-- [ ] Hero motion tidak menghalangi akses konten.
-- [ ] Tidak semua section memakai choreography kuat.
-- [ ] `prefers-reduced-motion` tetap lengkap.
-- [ ] hidden tab tidak menjalankan loop berat.
+- [ ] Hero/access-gate mempunyai choreography yang terlihat dan tidak menghalangi akses konten.
+- [ ] Photography-led theme memiliki photo mask/clip/zoom/sequence motion, bukan wrapper fade saja.
+- [ ] Ornament-led theme mengintegrasikan ornament ke composition/motion.
+- [ ] Key sections tidak semuanya memakai choreography identik.
+- [ ] Event/countdown dan story/gallery mempunyai entrance yang sesuai narrative.
+- [ ] `prefers-reduced-motion` tetap lengkap dan semua content langsung visible.
+- [ ] ambient loop/auto-gallery berhenti offscreen/document hidden.
 - [ ] cleanup theme/unmount benar.
+- [ ] Runtime evidence direkam; source inspection saja tidak dianggap motion QA.
 
 ### Functional Components
 

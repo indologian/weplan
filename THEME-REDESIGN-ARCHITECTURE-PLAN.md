@@ -323,7 +323,8 @@ The editor remains a data-entry and controlled presentation editor. It is NOT a 
 - `#3C` — Theme Foundation Architecture (IMPLEMENTED)
 - `#3D` — Modern Editorial Redesign (IMPLEMENTED / ACCEPTED)
 - `#3D.1` — Corrective QA & Final Acceptance (COMPLETE)
-- `#3E` — Luxury Midnight Redesign (READY)
+- `#3D.2` — Modern Editorial Market-Fit Visual & Motion Polish (READY)
+- `#3E` — Luxury Midnight Redesign (BLOCKED UNTIL #3D.2 ACCEPTED)
 - `#3F` — Javanese Heritage Redesign
 - `#3G` — Romantic Floral Redesign
 - `#3H` — Cross-Theme Verification / Polish
@@ -362,7 +363,9 @@ Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes
 - #3C.2 → COMPLETE
 - #3D → IMPLEMENTED / ACCEPTED
 - #3D.1 → COMPLETE
-- #3E → READY
+- Theme Rule Refresh 2026-09-01 → ACTIVE (`05A - market-fit-visual-motion-rules.md`)
+- #3D.2 → READY
+- #3E → BLOCKED UNTIL #3D.2 ACCEPTED
 
 # AM. #3B.1 & #3B.2 Corrections Applied
 - **Section-order ownership:** Corrected to explicitly allow themes to alter composition; it is not a business invariant.
@@ -374,3 +377,18 @@ Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes
 - **WebGL wording:** Limited to "Not justified for current redesign scope", and completely removed from D7 (L3 is now Cinematic CSS/DOM + GSAP).
 - **Motion Responsibilities:** Clarified that `matchMedia` handles responsive/reduced-motion conditions, while `useGSAP` provides React lifecycle integration and context cleanup.
 - **Canonical Tokens:** Added `--theme-accent-contrast` to complete the contract.
+
+
+# AN. Market-Fit Wedding Theme Rule Refresh — 1 September 2026
+
+User feedback after #3D/#3D.1 identified that the accepted Modern Editorial implementation is technically sound but visually/motion-wise too restrained for the target Indonesian wedding-invitation market.
+
+The normative visual/motion amendment is:
+
+`05A - market-fit-visual-motion-rules.md`
+
+It is based on refreshed study of Indoinvite, Wevitation, Our Wedding Link, WebNikah, LinkUndangan, Inveet, and Katsudoto.
+
+Architecture decisions D1–D7 remain valid. The refresh changes the **quality bar** for photography, clipping/masking, ornament layering, typography hierarchy, gallery behavior, and theme-specific motion. It does not change authorization, persistence, entitlement, payment, RSVP semantics, or database design.
+
+Modern Editorial therefore keeps its architecture acceptance from #3D/#3D.1 but requires #3D.2 visual/motion polish before the redesign program advances to #3E.

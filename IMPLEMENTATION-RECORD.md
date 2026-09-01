@@ -3615,3 +3615,48 @@ Automated accessibility scan: Axe-core (via `@axe-core/playwright`) — 0 violat
 
 #3D MODERN EDITORIAL: ACCEPTED
 #3E LUXURY MIDNIGHT: READY
+
+
+## [2026-09-01] Wedding Theme Market-Fit Visual & Motion Rule Refresh
+
+### Reason
+
+User review of the accepted Modern Editorial implementation concluded that its design and animation remained too restrained compared with Indonesian digital wedding invitation market expectations.
+
+### Research scope
+
+Public catalogue/feature/demo research covered:
+
+- Indoinvite
+- Wevitation
+- Our Wedding Link
+- WebNikah
+- LinkUndangan
+- Inveet
+- Katsudoto
+
+The research separates directly verifiable provider features/catalogue patterns from the synthesized implementation-level motion grammar.
+
+### Rule changes
+
+- Added normative amendment `05A - market-fit-visual-motion-rules.md`.
+- Replaced fixed center-phone desktop guidance with Hybrid Responsive Canvas wording in File 05.
+- Expanded visual standards for authored SVG/raster ornament layers, photography selection, photo masks/clipping, face-safe crops, and typography hierarchy.
+- Expanded motion grammar to include cover choreography, mask/clip photo reveals, section-specific entrances, ornament motion, gallery slideshow/carousel options, low-density theme-specific ambient accents, and reduced-motion behavior.
+- Changed automatic/uncontrolled auto-scroll prohibition wording while keeping WePlan auto-scroll opt-in/user-controlled only.
+- Strengthened visual/motion runtime QA requirements.
+- Reopened Modern Editorial visual/motion quality as `#3D.2` while preserving #3D/#3D.1 architecture/accessibility acceptance.
+- #3E is held until #3D.2 is accepted so later themes start from the refreshed quality bar.
+
+### Boundaries
+
+- Production source impact: NONE.
+- Database impact: NONE.
+- Migration impact: NONE.
+- Supabase mutation: NONE.
+- Dependency impact: NONE.
+- D1–D7 architecture decisions remain unchanged.
+
+### Next work package
+
+`#3D.2 — Modern Editorial Market-Fit Visual & Motion Polish`
