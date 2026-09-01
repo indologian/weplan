@@ -3561,3 +3561,57 @@ Automated accessibility scan: Axe-core (via `@axe-core/playwright`) — 0 violat
 ### Next work package
 
 `#3E — Luxury Midnight Redesign — READY`. Jangan dimulai tanpa persetujuan user.
+
+## [2026-09-01] WP #3D.1: Modern Editorial Corrective QA & Final Acceptance
+
+### Goal, authority, and baseline
+
+- Menutup acceptance WP #3D secara korektif dan terukur tanpa redesign ulang atau memulai #3E.
+- Referensi canonical: File 01–08, keputusan D1–D7 pada architecture plan, serta implementation evidence WP #3D yang dicocokkan kembali dengan repository dan test aktual.
+- Baseline repository bersih pada `fad128bdb6b62db83b65327faf3f78c72c752878` (`feat: redesign modern editorial wedding theme (WP 3D)`).
+
+### Corrective changes
+
+- Menghapus `overflow-x: clip` dari root `.wedding-theme.modern-editorial`; tidak menambahkan root/composition mask pengganti dan tidak mengubah global platform foundation.
+- Memperbaiki mock `next/font/google` agar setiap factory mengembalikan CSS variable milik caller, bukan satu variable hard-coded.
+- Menambahkan focused regression test untuk variable `weddingDisplay`, Modern Editorial Playfair/Inter, dan caller Plus Jakarta Sans.
+- Tidak ada perubahan terhadap composition, art direction, shared behavior, business rule, database, dependency, atau tema lain.
+
+### Browser and responsive evidence
+
+- Playwright Chromium menggunakan fresh browser contexts dan `emulateMedia` sebelum navigation untuk `reducedMotion: "reduce"` dan `"no-preference"`.
+- Reduced motion: media query benar-benar match; cover title, cover visual, event reveal, gallery item, closing reveal, dan RSVP tetap visible pada initial load serta lima posisi scroll, dengan computed `opacity: 1`, `transform: none`, dan tanpa inline GSAP hidden state. Cover/gallery parallax tidak berjalan.
+- No preference: event reveal mulai dari opacity 0/translateY dan menjadi visible setelah scroll; cover image desktop menunjukkan perubahan transform parallax dan tetap visible. `useGSAP`, `gsap.matchMedia()`, dan `mm.revert()` dipertahankan; tidak ada `repeat: -1`.
+- Viewport matrix PASS pada 320×568, 393×852, 768×1024, 1024×768, dan 1440×900.
+- Pada kondisi platform normal, `documentElement`, `body`, dan client width tetap sama di seluruh matrix. Setelah root Modern sengaja dipaksa `overflow-x: visible` oleh harness diagnostik, satu-satunya bounds exception pada empat viewport di bawah desktop adalah `.me-section.me-events`, yaitu inverse event-spread background bleed yang disengaja; tidak ada nama, alamat, event content, navigation, gallery control, atau form yang keluar bounds. Desktop 1440×900 tidak memiliki exception.
+- Composition assertion PASS: `.me-composition` ada dan legacy adapter tidak digunakan pada Modern.
+
+### Accessibility, font, and regression evidence
+
+- Heading hierarchy PASS: tepat satu H1; major sections H2; couple/event entities dan shared RSVP form H3, dengan RSVP wrapper H2 sebelum form H3.
+- Keyboard smoke PASS untuk gate/navigation/gallery lightbox/RSVP/EventActions yang tersedia pada fixture; positive tabindex = 0, first navigation focus memiliki visible solid outline, dan Escape menutup lightbox.
+- Font runtime PASS: `document.fonts.check` untuk Playfair Display dan Inter bernilai true; tiga local WOFF2 resources termuat dan tidak ada font 404.
+- Other-theme smoke pada 393×852 PASS untuk Romantic Floral, Javanese Heritage, dan Luxury Midnight: masing-masing merender satu H1 tanpa React/page error.
+- Tidak ada React, GSAP, hydration, missing-key, atau page runtime regression. Satu HTTP 403 berasal dari URL audio Pixabay eksternal pada demo fixture dan bukan perubahan aplikasi/theme.
+- WP #3D sebelumnya tidak merekam synthetic reduced-motion runtime evidence. WP #3D.1 kini memverifikasinya menggunakan Playwright `emulateMedia`.
+
+### Static verification
+
+- Focused font mock test: PASS, 1/1.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS dengan 0 error dan 42 warning baseline.
+- `npm run test`: 303 PASS, 4 FAIL dari 307 tests (43/46 files PASS). Empat failure identik dengan baseline WP #3D dan berada di luar scope: expected label lama pada `checkout-button`, `editor-authoritative-revision`, dan dua test `invitation-editor-navigation`; tidak ada failure Modern/theme/font-mock baru.
+- `npm run build`: PASS pada Next.js 16.3.3. Warning middleware/Edge Runtime/metadataBase tetap baseline existing.
+
+### Boundaries, measurements, and delivery
+
+- Database impact: NONE. Migration impact: NONE. Supabase mutation: NONE.
+- Dependency impact: NONE; `package.json` dan `package-lock.json` tidak berubah.
+- Formal memory profiling: NOT MEASURED. Bundle-size reduction: NOT MEASURED. FPS: NOT MEASURED.
+- Commit target: `fix: finalize modern editorial acceptance (WP 3D.1)`; commit hash dicatat pada handoff setelah record ini di-commit.
+- CI/deployment: NOT RUN. Local production build PASS. Push/deployment: NONE.
+
+### Final Gate
+
+#3D MODERN EDITORIAL: ACCEPTED
+#3E LUXURY MIDNIGHT: READY

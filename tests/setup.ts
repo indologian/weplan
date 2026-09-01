@@ -1,9 +1,18 @@
 import { vi } from "vitest";
 
+type FontOptions = {
+  variable?: string;
+};
+
+const createFontMock = (options?: FontOptions) => ({
+  variable: options?.variable ?? "",
+  style: { fontFamily: "mocked" },
+});
+
 vi.mock("next/font/google", () => {
   return {
-    Playfair_Display: () => ({ variable: "--font-wedding-display", style: { fontFamily: "mocked" } }),
-    Inter: () => ({ variable: "--font-modern-editorial-body", style: { fontFamily: "mocked" } }),
-    Plus_Jakarta_Sans: () => ({ variable: "--font-jakarta", style: { fontFamily: "mocked" } })
+    Playfair_Display: createFontMock,
+    Inter: createFontMock,
+    Plus_Jakarta_Sans: createFontMock,
   };
 });

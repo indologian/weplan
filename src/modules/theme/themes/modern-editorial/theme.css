@@ -7,7 +7,7 @@
   --me-muted: var(--theme-muted); --me-oxblood: var(--theme-accent); --me-rule: var(--theme-border);
   --me-font-display: var(--font-modern-editorial-display), Georgia, serif;
   --me-font-body: var(--font-modern-editorial-body), Arial, sans-serif;
-  min-height: 100svh; overflow-x: clip; background: var(--me-paper); color: var(--me-ink); font-family: var(--me-font-body); line-height: 1.65;
+  min-height: 100svh; background: var(--me-paper); color: var(--me-ink); font-family: var(--me-font-body); line-height: 1.65;
 }
 .modern-editorial *, .modern-editorial *::before, .modern-editorial *::after { box-sizing: border-box; }
 .modern-editorial img { max-width: 100%; }
