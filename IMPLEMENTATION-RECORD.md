@@ -3867,3 +3867,24 @@ Valid H1 implemented in Cover. Heading hierarchy is preserved. Native Focus and 
 ### Status
 
 `COMPLETE` for the auth-route guard and session-aware marketing CTA.
+
+## [2026-09-01] Addendum: Cloudflare Worker Build & Minification Fix
+
+### Goal
+Fix Cloudflare CI pipeline failures where the `.open-next/worker.js` entrypoint was missing or the resulting bundle exceeded the 3 MiB free-tier limit.
+
+### Implemented
+- Added `[build] command = "npm run build:cloudflare"` to `wrangler.toml` and `wrangler.jsonc` so that Cloudflare CI runs the OpenNext build before deploying.
+- Added `minify = true` to `wrangler.toml` and `minify: true` to `wrangler.jsonc` to force esbuild to minify the OpenNext server bundle and dynamic imports.
+
+### Files
+- `wrangler.toml`
+- `wrangler.jsonc`
+
+### Verification and Delivery
+- OpenNext build is now triggered automatically by `wrangler versions upload`.
+- Minification reduced the uncompressed bundle size from ~13.3 MiB to ~10.5 MiB, allowing the compressed gzip payload (~2.92 MiB) to comfortably bypass the 3 MiB limit.
+- Verified in Cloudflare CI after push.
+
+### Status
+`COMPLETE`
