@@ -3758,3 +3758,51 @@ The previous implementation immediately unmounted the invitation access gate on 
 - database NONE.
 - migration NONE.
 - dependencies NONE.
+
+## [2026-09-01] WP #3E: Luxury Midnight Redesign
+
+**Reason**: Redesign the Luxury Midnight theme to meet Level C (Rich 2D + CSS/DOM Spatial Effects) standard, adding cinematic photography, controlled metallic accents, and slow sophisticated choreography.
+
+**Starting SHA**: fc7e79f3ede7317ac066e5cfa9dd743ad3f21559
+
+**Architecture**: 
+- **R3 Composition**: Implemented via ThemeSectionRenderers.Composition with shared Breakout, NarrowMeasure, WideMeasure.
+- **Fonts**: Bodoni Moda (display) + Montserrat (body) configured as static next/font/google.
+- **Color/Material System**: Preserved canonical dark tokens (color-scheme: dark), using --lm-bg, --lm-surface aliases for semantic dark material depth. Gold accents used selectively.
+- **Photography**: Focal points (focusX/Y) applied safely across Cover, Couple, and Gallery images.
+- **Ornaments**: Authored SVG LuxuryMonogram and CSS FineLineFrame.
+- **Cover Design**: Cinematic photography-led layout, dark-to-image gradient mask, offset typography, and a styled monogram fallback if zero photo.
+- **Couple Design**: Asymmetrical fashion editorial portrait spread, tall/oval variations.
+- **Events Design**: Luxury wedding program style, large date numerals, dark surface shifts.
+- **Story Design**: Cinematic chapters with fine timelines and sparse photography integration.
+- **Gallery Design**: Signature cinematic hero image with a minimal luxury film strip below, retaining shared Lightbox.
+- **Closing**: Echoes the Cover with monogram reveal, large names, and a final metallic rule.
+
+**Motion Map**:
+| Section | Motion Grammar |
+|---|---|
+| Cover | scale settle (media), translate clip (monogram, names), opacity reveal (rule) |
+| Opening | (Shared Gate upward slide) |
+| Couple | stagger masked y-translate (photo), x-translate (text) |
+| Events | slow y-translate with opacity fade |
+| Story | slow x-translate with opacity fade |
+| Gallery | slow scale settle on hero entrance |
+| Closing | monogram rotation reveal, names y-translate |
+
+**Shared Opening Synchronization**: 
+Cover choreography correctly uses experienceStarted (phase !== 'closed') as the GSAP dependency so it waits for the 'Buka Undangan' click and does not restart on opening -> open.
+
+**Responsive QA**:
+Mobile 393x852 retains dominant photography, masking, and choreography. Desktop 1440x900 utilizes Hybrid Canvas breakouts for full-width cinematic Cover, Gallery, and Closing, preventing a clamped mobile column look.
+
+**Reduced Motion QA**:
+CSS @media (prefers-reduced-motion: reduce) disables animations entirely, overriding them to their final visible states.
+
+**Accessibility**:
+Valid H1 implemented in Cover. Heading hierarchy is preserved. Native Focus and Keyboard interactions remain via shared Lightbox/RSVP components. Contrast on form labels and dark mode surfaces verified.
+
+**Database Impact**: NONE
+**Dependency Impact**: NONE
+
+**Static Validation**: PASS
+**Performance**: Bundle: NOT MEASURED, Memory: NOT MEASURED, FPS: NOT MEASURED

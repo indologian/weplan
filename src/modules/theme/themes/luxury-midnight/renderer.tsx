@@ -1,4 +1,4 @@
-import { weddingDisplay } from "@/shared/fonts";
+import { bodoniModa, montserrat } from "./fonts";
 import { createRenderer } from "@/modules/theme/renderer";
 import { Cover } from "./cover";
 import { Couple } from "./couple";
@@ -7,9 +7,13 @@ import { Story } from "./story";
 import { Gallery } from "./gallery";
 import { Gift } from "./gift";
 import { Closing } from "./closing";
+import { LuxuryMidnightComposition } from "./composition";
+import { LuxuryMidnightMotion } from "./motion";
 
 export const LuxuryMidnightRenderer = createRenderer({
-  rootClassName: `wedding-theme luxury-midnight ${weddingDisplay.variable}`,
+  rootClassName: `wedding-theme luxury-midnight ${bodoniModa.variable} ${montserrat.variable}`,
+  Composition: LuxuryMidnightComposition,
+
   Cover,
   Couple,
   Events,
@@ -18,3 +22,5 @@ export const LuxuryMidnightRenderer = createRenderer({
   Gift,
   Closing,
 });
+
+
