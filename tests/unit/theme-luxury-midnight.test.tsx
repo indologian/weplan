@@ -20,15 +20,21 @@ describe("Luxury Midnight Theme Renderer", () => {
     wishes: [],
     rsvpMode: "open",
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
+>>>>>>> 75ea195d1975aa2de537c523c6290166236684a8
+=======
 >>>>>>> 75ea195d1975aa2de537c523c6290166236684a8
     media: [],
     bankAccounts: [],
     invitationId: "test-id",
     isPrivate: false,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 75ea195d1975aa2de537c523c6290166236684a8
 =======
     physicalGifts: [],
     media: [],
@@ -39,6 +45,9 @@ describe("Luxury Midnight Theme Renderer", () => {
     status: "draft",
     viewCount: 0,
 >>>>>>> cca1586eb4c8e725dd24790e7c34c2415fbd4dc6
+<<<<<<< HEAD
+>>>>>>> 75ea195d1975aa2de537c523c6290166236684a8
+=======
 >>>>>>> 75ea195d1975aa2de537c523c6290166236684a8
   };
 
@@ -72,3 +81,7 @@ describe("Luxury Midnight Theme Renderer", () => {
   });
 });
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 75ea195d1975aa2de537c523c6290166236684a8
