@@ -3743,3 +3743,18 @@ The previous implementation immediately unmounted the invitation access gate on 
 - Other themes (Luxury Midnight, Javanese Heritage, Romantic Floral) verified to maintain baseline shell functionality with the new gate phase.
 - Static checks: npm run typecheck, npm run lint, npm run test (303 PASS, 4 out-of-scope FAILs remain), and npm run build all pass.
 - Database, migration, and dependency impact: NONE.
+
+## [2026-09-01] WP #3D.3.1: Opening Transition Corrective Acceptance
+
+- focus handoff timing defect corrected.
+- focus moved to post-commit open-phase effect to guarantee inert is removed first.
+- fallback timer unmount cleanup added via useEffect return.
+- focused test additions for focus handoff, fallback focus, unmount cleanup, and reduced-motion zero timers.
+- File 03 stale UX correction (removed smooth-scroll-after-open).
+- File 03 480px desktop rule correction (Hybrid Responsive Canvas).
+- Architecture Plan synchronization.
+- no visual transition change.
+- no Modern choreography change.
+- database NONE.
+- migration NONE.
+- dependencies NONE.

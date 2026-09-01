@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, cleanup } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { InvitationShell } from "@/modules/theme/primitives/invitation-shell";
 
@@ -27,6 +27,7 @@ describe("InvitationShell Opening Transition", () => {
   });
 
   afterEach(() => {
+    cleanup();
     vi.restoreAllMocks();
     vi.useRealTimers();
     document.body.style.overflow = "";
@@ -61,6 +62,9 @@ describe("InvitationShell Opening Transition", () => {
     expect(content.getAttribute("aria-hidden")).toBe("true");
     expect(document.body.style.overflow).toBe("hidden");
     expect(window.HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
+    
+    // Content is not focused yet
+    expect(document.activeElement).not.toBe(content);
 
     // Transition end
     await act(async () => {
@@ -72,15 +76,21 @@ describe("InvitationShell Opening Transition", () => {
     expect(content.getAttribute("inert")).toBeNull();
     expect(content.getAttribute("aria-hidden")).toBe("false");
     expect(document.body.style.overflow).toBe("");
+    
+    // Post-open focus handoff
+    expect(document.activeElement).toBe(content);
+    expect(content.getAttribute("tabIndex")).toBe("-1");
   });
 
-  it("should open immediately with reduced motion", async () => {
+  it("should open immediately with reduced motion and leave no timer", async () => {
     Object.defineProperty(window, "matchMedia", {
       writable: true,
       value: vi.fn().mockImplementation((query) => ({
         matches: query === "(prefers-reduced-motion: reduce)",
       })),
     });
+
+    const setTimeoutSpy = vi.spyOn(global, 'setTimeout');
 
     render(
       <InvitationShell className="test" guestName="John Doe" audioUrl="/test.mp3">
@@ -89,12 +99,18 @@ describe("InvitationShell Opening Transition", () => {
     );
 
     const button = screen.getByRole("button", { name: /Buka Undangan/i });
+    const content = screen.getByTestId("content").parentElement!;
     
     await act(async () => {
       fireEvent.click(button);
     });
 
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(content.getAttribute("inert")).toBeNull();
+    expect(document.activeElement).toBe(content);
+    
+    // Should have not called setTimeout for the fallback
+    expect(setTimeoutSpy).not.toHaveBeenCalledWith(expect.any(Function), 1300);
   });
 
   it("should fallback to open state if transitionend is lost", async () => {
@@ -105,6 +121,7 @@ describe("InvitationShell Opening Transition", () => {
     );
 
     const button = screen.getByRole("button", { name: /Buka Undangan/i });
+    const content = screen.getByTestId("content").parentElement!;
     
     await act(async () => {
       fireEvent.click(button);
@@ -117,8 +134,29 @@ describe("InvitationShell Opening Transition", () => {
     });
 
     expect(screen.queryByRole("dialog")).toBeNull();
+    expect(content.getAttribute("inert")).toBeNull();
+    expect(document.activeElement).toBe(content);
+  });
+  
+  it("should clean up fallback timer on unmount", async () => {
+    const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
+
+    const { unmount } = render(
+      <InvitationShell className="test" guestName="John Doe" audioUrl="/test.mp3">
+        <div data-testid="content" />
+      </InvitationShell>
+    );
+
+    const button = screen.getByRole("button", { name: /Buka Undangan/i });
+    
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    
+    // Component unmount
+    unmount();
+    
+    // Timer should be cleared on unmount
+    expect(clearTimeoutSpy).toHaveBeenCalled();
   });
 });
-
-
-

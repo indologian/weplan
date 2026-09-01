@@ -17,7 +17,7 @@ export function InvitationShell({ children, className, guestName, audioUrl, styl
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
-  const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (phase === "open") return;
@@ -28,15 +28,26 @@ export function InvitationShell({ children, className, guestName, audioUrl, styl
     };
   }, [phase]);
 
+  useEffect(() => {
+    if (phase === "open") {
+      contentRef.current?.focus({ preventScroll: true });
+    }
+  }, [phase]);
+
+  useEffect(() => {
+    return () => {
+      if (fallbackTimerRef.current) {
+        clearTimeout(fallbackTimerRef.current);
+        fallbackTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const completeOpening = useCallback(() => {
     setPhase("open");
     if (fallbackTimerRef.current) {
       clearTimeout(fallbackTimerRef.current);
       fallbackTimerRef.current = null;
-    }
-    // Focus handoff
-    if (contentRef.current) {
-      contentRef.current.focus({ preventScroll: true });
     }
   }, []);
 
@@ -143,5 +154,4 @@ export function InvitationShell({ children, className, guestName, audioUrl, styl
     </InvitationExperienceProvider>
   );
 }
-
 

@@ -210,7 +210,7 @@ Kontrak Cloudflare/Rocket Loader dimiliki **File 01 §1.11.2**. File 03 hanya me
 
 ### 1.7 Responsive Design
 
-Pendekatan **mobile-first** wajib diterapkan di seluruh aplikasi karena riset pasar wedding Indonesia menunjukkan penggunaan mobile sangat dominan. Jangan hardcode klaim “>90% traffic” sebagai fakta weplan sebelum first-party analytics tersedia; setelah launch, keputusan breakpoint/interaction dievaluasi dari data perangkat aktual. Setiap komponen tetap dirancang untuk layar kecil terlebih dahulu, baru diperluas ke tablet dan desktop. Breakpoint yang digunakan mengikuti standar Tailwind CSS: `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px). Semua unit spacing menggunakan rem (relatif terhadap root font-size). Testing wajib dilakukan di perangkat nyata (bukan hanya DevTools) terutama untuk: (1) In-App Browser (Instagram, LINE, Facebook, WhatsApp), (2) Safari iOS (autoplay policy, safe area), dan (3) Chrome Android low-end (performa animasi). Halaman undangan pernikahan di desktop dibatasi lebar maksimal 480px dan di-center, mensimulasikan tampilan mobile untuk menjaga konsistensi desain.
+Pendekatan **mobile-first** wajib diterapkan di seluruh aplikasi karena riset pasar wedding Indonesia menunjukkan penggunaan mobile sangat dominan. Jangan hardcode klaim “>90% traffic” sebagai fakta weplan sebelum first-party analytics tersedia; setelah launch, keputusan breakpoint/interaction dievaluasi dari data perangkat aktual. Setiap komponen tetap dirancang untuk layar kecil terlebih dahulu, baru diperluas ke tablet dan desktop. Breakpoint yang digunakan mengikuti standar Tailwind CSS: `sm` (640px), `md` (768px), `lg` (1024px), `xl` (1280px). Semua unit spacing menggunakan rem (relatif terhadap root font-size). Testing wajib dilakukan di perangkat nyata (bukan hanya DevTools) terutama untuk: (1) In-App Browser (Instagram, LINE, Facebook, WhatsApp), (2) Safari iOS (autoplay policy, safe area), dan (3) Chrome Android low-end (performa animasi). Untuk aturan desain desktop dan responsive layout, ikuti panduan Hybrid Responsive Canvas di **File 05A**.
 
 ### 1.8 Sistem Z-Index
 
@@ -832,7 +832,9 @@ Algoritme PIN, session, brute-force threshold, Turnstile/risk policy, signed-med
 
 #### 2. Cover/Hero
 
-Section pembuka memakai viewport mobile-safe: `min-height: 100svh` dengan fallback `100vh` (dan `100dvh` hanya bila perilaku dynamic viewport sudah diuji). Menampilkan nama mempelai (groom & bride) dengan typography yang menarik sesuai tema. Terdapat tombol "Buka Undangan" yang berfungsi ganda: (1) memicu autoplay musik latar (memenuhi kebijakan autoplay browser yang mengharuskan interaksi user pertama), dan (2) melakukan smooth scroll ke section berikutnya. Animasi masuk section ini harus memukau — envelope opening, split-screen, atau fade-in yang elegan, tergantung tema. Pada desain desktop, area di luar container 480px diisi dengan background blur dari foto pasangan (gambar resolusi rendah maks 200px, bukan foto asli) atau CSS gradient solid sebagai fallback.
+Section pembuka memakai viewport mobile-safe: `min-height: 100svh` dengan fallback `100vh` (dan `100dvh` hanya bila perilaku dynamic viewport sudah diuji). Menampilkan nama mempelai (groom & bride) dengan typography yang menarik sesuai tema.
+Alur opening invitation: Buka Undangan -> audio first-play request -> phase closed -> opening -> shared access gate slides upward -> theme Cover choreography begins underneath -> phase open -> content becomes interactive.
+Untuk aturan desain desktop dan responsive layout, ikuti panduan Hybrid Responsive Canvas di **File 05A**.
 
 #### 3. Doa/Quote
 
@@ -914,7 +916,7 @@ UA/IAB detection hanya boleh menjadi targeted workaround setelah device testing 
 
 #### Desktop
 
-Pada desktop, konten undangan **tidak** ditarik full-width. Konten dibatasi dalam container maksimal **480px** yang di-center di tengah layar, mensimulasikan tampilan mobile. Area di luar container diisi dengan **background blur** dari foto pasangan menggunakan gambar resolusi rendah (maks 200px, bukan foto asli) atau **CSS gradient solid** sebagai fallback jika gambar belum dimuat. Gambar background diberi `loading="lazy"` agar tidak membebani initial paint.
+Pada desktop, ikuti panduan Hybrid Responsive Canvas di **File 05A**. Visual stage boleh jauh lebih lebar dari 480px; readable text tetap constrained. Gambar background diberi `loading="lazy"` agar tidak membebani initial paint.
 
 ### 4.3 Musik
 
@@ -1138,4 +1140,6 @@ Rasio kontras minimum antara teks dan background adalah **4.5:1** untuk teks nor
 ### 7.5 Navigasi Keyboard
 
 Semua form harus bisa dinavigasi menggunakan keyboard saja (Tab, Shift+Tab, Enter, Escape). CTA/control penting pada mobile menggunakan target praktis minimal sekitar 44px walaupun WCAG minimum lebih kecil. Tombol dan link harus memiliki focus indicator yang terlihat (outline atau ring). Jangan menghapus focus outline tanpa menyediakan alternatif yang setara jelasnya — pengguna yang mengandalkan keyboard perlu tahu di mana posisi focus mereka. Halaman undangan juga harus bisa di-scroll menggunakan keyboard (Page Up/Down, Space, Arrow keys) tanpa hambatan.
+
+
 
