@@ -3406,47 +3406,45 @@ Automated accessibility scan: Axe-core (via `@axe-core/playwright`) — 0 violat
 ## [2026-09-01] WP #3C: Wedding Theme Foundation Architecture Implementation
 
 ### Scope
-- Implement Hybrid Responsive Canvas primitive (\WeddingCanvas\).
+- Implement Hybrid Responsive Canvas primitive (`WeddingCanvas`).
 - Implement Slot-Based Renderer (R3) with transitional adapter for legacy themes.
-- Implement Canonical Theme Tokens and explicitly set per-theme \color-scheme\.
+- Implement Canonical Theme Tokens and explicitly set per-theme `color-scheme`.
 - Fix Luxury Midnight token inheritance for shared controls.
-- Adopt \
-ext/font\ per-theme injection pattern.
-- Create structural layout primitives (\NarrowMeasure\, \WideMeasure\, \Breakout\).
-- Isolate Modern Editorial GSAP animation to its own motion controller and implement \matchMedia\ for reduced-motion safety.
+- Adopt `next/font` per-theme injection pattern.
+- Create structural layout primitives (`NarrowMeasure`, `WideMeasure`, `Breakout`).
+- Isolate Modern Editorial GSAP animation to its own motion controller and implement `matchMedia` for reduced-motion safety.
 - Verify Demo / Preview / Public route parity.
 
 ### Files Changed
-- \src/app/globals.css\
-- \src/app/(wedding)/[slug]/page.tsx\
-- \src/app/demo/[slug]/page.tsx\
-- \src/app/preview/[id]/page.tsx\
-- \src/modules/theme/renderer.tsx\
-- \src/modules/theme/wedding-renderer.tsx\
-- \src/modules/theme/primitives/layout/wedding-canvas.tsx\ (NEW)
-- \src/modules/theme/primitives/layout/narrow-measure.tsx\ (NEW)
-- \src/modules/theme/primitives/layout/wide-measure.tsx\ (NEW)
-- \src/modules/theme/primitives/layout/breakout.tsx\ (NEW)
-- \src/modules/theme/themes/modern-editorial/motion.tsx\ (RENAMED and MODIFIED from \	heme-animator.tsx\)
-- \src/modules/theme/themes/modern-editorial/cover.tsx\
-- \src/modules/theme/themes/modern-editorial/theme.css\
-- \src/modules/theme/themes/modern-editorial/renderer.tsx\
-- \src/modules/theme/themes/luxury-midnight/theme.css\
-- \src/modules/theme/themes/luxury-midnight/renderer.tsx\
-- \src/modules/theme/themes/romantic-floral/theme.css\
-- \src/modules/theme/themes/romantic-floral/renderer.tsx\
-- \src/modules/theme/themes/javanese-heritage/theme.css\
-- \src/modules/theme/themes/javanese-heritage/renderer.tsx\
-- \src/modules/theme/themes/_baseline/renderer.tsx\
+- `src/app/globals.css`
+- `src/app/(wedding)/[slug]/page.tsx`
+- `src/app/demo/[slug]/page.tsx`
+- `src/app/preview/[id]/page.tsx`
+- `src/modules/theme/renderer.tsx`
+- `src/modules/theme/wedding-renderer.tsx`
+- `src/modules/theme/primitives/layout/wedding-canvas.tsx` (NEW)
+- `src/modules/theme/primitives/layout/narrow-measure.tsx` (NEW)
+- `src/modules/theme/primitives/layout/wide-measure.tsx` (NEW)
+- `src/modules/theme/primitives/layout/breakout.tsx` (NEW)
+- `src/modules/theme/themes/modern-editorial/motion.tsx` (RENAMED and MODIFIED from `src/modules/theme/primitives/theme-animator.tsx`)
+- `src/modules/theme/themes/modern-editorial/cover.tsx`
+- `src/modules/theme/themes/modern-editorial/theme.css`
+- `src/modules/theme/themes/modern-editorial/renderer.tsx`
+- `src/modules/theme/themes/luxury-midnight/theme.css`
+- `src/modules/theme/themes/luxury-midnight/renderer.tsx`
+- `src/modules/theme/themes/romantic-floral/theme.css`
+- `src/modules/theme/themes/romantic-floral/renderer.tsx`
+- `src/modules/theme/themes/javanese-heritage/theme.css`
+- `src/modules/theme/themes/javanese-heritage/renderer.tsx`
+- `src/modules/theme/themes/_baseline/renderer.tsx`
 
 ### Browser Evidence & QA
 - **Mobile Width Verification**: No horizontal overflow in all viewports.
-- **Route Parity**: \/demo\, \/preview\, and public routes all now use \<WeddingCanvas>\.
-- **Legacy Layout**: Legacy themes continue to render precisely within 480px via \.theme-legacy-container\ transitional adapter.
-- **Dark Mode**: Luxury Midnight explicitly declares \color-scheme: dark\. Form controls visually match. Shared primitives correctly resolve \ar(--theme-*)\ from root CSS.
-- **Typography**: Removed global font injection. Fonts are statically resolved via \
-ext/font\ per theme root \className\.
-- **Reduced Motion**: \ModernEditorialMotion\ wraps \gsap.utils.toArray\ in \gsap.matchMedia()\ omitting GSAP setters on \(prefers-reduced-motion: reduce)\.
+- **Route Parity**: `/demo`, `/preview`, and public routes all now use `<WeddingCanvas>`.
+- **Legacy Layout**: Legacy themes continue to render precisely within 480px via `.theme-legacy-container` transitional adapter.
+- **Dark Mode**: Luxury Midnight explicitly declares `color-scheme: dark`. Form controls visually match. Shared primitives correctly resolve `var(--theme-*)` from root CSS.
+- **Typography**: Removed global font injection. Fonts are statically resolved via `next/font` per-theme root `className`.
+- **Reduced Motion**: `ModernEditorialMotion` wraps `gsap.utils.toArray` in `gsap.matchMedia()` while omitting GSAP setters under `(prefers-reduced-motion: reduce)`.
 
 ### Known Limitations
 - The visual redesigns for WP #3D-#3G are yet to be implemented. All themes currently retain their legacy visual appearance inside the transitional adapter wrapper.
@@ -3462,7 +3460,7 @@ ext/font\ per theme root \className\.
 - Validated Reduced Motion compliance using `matchMedia` on Modern Editorial.
 - Validated `color-scheme`, canonical token propagation, and UI component styling for Luxury Midnight.
 - The optional K2 focus-order optimization was implemented and smoke-tested.
-- Verified test suite status and resolved vitest `next/font` mocking.
+- Verified test suite status and resolved Vitest `next/font` mocking.
 
 ### Corrective Changes
 - Added `tests/setup.ts` to mock `next/font` to restore Vitest execution of registry components.
@@ -3472,12 +3470,34 @@ ext/font\ per theme root \className\.
 - **Luxury Midnight Dark Mode**: Computed styles verify `color-scheme: dark` and canonical background propagation successfully styles native RSVP components.
 - **Reduced Motion**: Confirmed `useGSAP` + `matchMedia` fully cancels transformation matrices on `(prefers-reduced-motion: reduce)` while keeping content fully visible (opacity: 1).
 - **Accessibility**: Focus shifts correctly to the relocated `InvitationNavigation` post-gate (K2 optimization).
-- **Measurements**: Browser runtime and font-network behavior were verified. Formal memory profiling was NOT MEASURED. Bundle-size reduction: NOT MEASURED.
+
+### Measurements
+- Browser runtime and font-network behavior: VERIFIED.
+- Formal memory profiling: NOT MEASURED.
+- Bundle-size reduction: NOT MEASURED.
+- FPS: NOT MEASURED.
 
 ### Final Status
-- Repaired #3C/#3C.1 encoding artifacts
-- Removed canvas-level blanket horizontal clipping
-- Reran all 20 viewport overflow tests
-- Cleaned next/font Vitest mock
-- Corrected unsupported measurement wording
-#3C FOUNDATION ACCEPTED.
+#3C.1 VALIDATED.
+
+## [2026-09-01] WP #3C.2: Foundation Cleanup & True Overflow Verification
+
+### Corrective Changes
+- Repaired UTF-8 / NUL documentation corruption.
+- Removed global `WeddingCanvas` overflow masking.
+- Re-ran all 20 responsive viewport cases after removing canvas-level masking.
+- Confirmed no actual horizontal overflow across the verified viewport matrix.
+- Cleaned Vitest `next/font` mocks.
+- Corrected unsupported measurement wording.
+
+### Validation
+- Static validation remained successful.
+- Database impact: NONE.
+- Dependency impact: NONE.
+- Formal memory profiling: NOT MEASURED.
+- Bundle-size reduction: NOT MEASURED.
+- FPS: NOT MEASURED.
+
+### Final Gate
+#3C FOUNDATION: ACCEPTED
+#3D MODERN EDITORIAL: READY
