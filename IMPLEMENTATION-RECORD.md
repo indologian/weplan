@@ -3278,3 +3278,34 @@ Cloudflare/OpenNext image optimization is deferred. Vercel remains primary produ
   - `lint` PASS.
   - `test` FAIL — pre-existing/outside mobile-menu scope.
   - `build` PASS.
+
+## 2026-09-01 — Addendum: #2D.1 Final Verification Closure
+
+**Status:** COMPLETE
+
+### Corrected 768px breakpoint evidence
+At exactly 768px, the `md:hidden` mobile menu trigger is hidden and desktop navigation is active. Mobile menu open/close is therefore N/A at this viewport.
+
+### Interaction verification
+- Hamburger open: PASS
+- X close: PASS
+- Backdrop close: PASS
+- Escape close: PASS
+- Scroll lock: PASS
+- Focus trap: PASS
+- Focus return: PASS
+- Katalog navigation: PASS
+- Checklist navigation: PASS
+- Masuk navigation: PASS
+- Create navigation: PASS
+
+### Validation
+- `npm run typecheck`: PASS
+- `npm run lint`: PASS
+- `npm run test`: FAIL — pre-existing/outside #2D.1 scope:
+  - tests/unit/invitation-editor-navigation.test.tsx
+  - tests/unit/editor-authoritative-revision.test.tsx
+- `npm run build`: PASS
+
+### Final status
+#2D.1 mobile menu correction is COMPLETE.
