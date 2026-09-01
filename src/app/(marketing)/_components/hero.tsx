@@ -41,7 +41,6 @@ export function Hero({ theme }: { theme?: FeaturedThemeDTO }) {
               alt={`Tema undangan ${theme.name}`}
               fill
               fetchPriority="high"
-              preload={true}
               sizes="(max-width: 530px) calc(100vw - 48px), 480px"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
             />

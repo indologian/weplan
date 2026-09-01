@@ -2292,60 +2292,60 @@ Tidak ada specification deviation yang disetujui. Temuan merupakan implementatio
 `WP-AUDIT-REMEDIATION-01 — Migration Chain and CI Recovery`.
 
 Work package berikutnya hanya boleh dimulai setelah persetujuan eksplisit user. Prioritas pertama adalah memulihkan executable clean migration chain dan CI sebelum memperbaiki milestone berikutnya.
- 
- # #   [ 2 0 2 6 - 0 8 - 2 7 ]   W P - R E M - 0 1 :   M i g r a t i o n   C h a i n   &   C I   R e c o v e r y  
- -   * * G o a l : * *   M e m p e r b a i k i   u r u t a n   f o r e i g n   k e y   p a d a   m i g r a t i o n ,   S Q L   s i n t a k s   p a d a   c r o n   m i g r a t i o n ,   d a n   m e m u l i h k a n   C I .  
- -   * * C h a n g e s : * *  
-     -   E k s t r a k s i   t a b e l   \ d r a f t _ e x t e n s i o n _ p r o d u c t s \   k e   \ 2 0 2 6 0 8 2 7 0 0 5 0 0 0 _ d r a f t _ e x t e n s i o n _ p r o d u c t s . s q l \ .  
-     -   P e r b a i k a n   \ 
- e t . h t t p _ g e t \   h e a d e r s   k e   \ j s o n b _ b u i l d _ o b j e c t \   p a d a   \ 2 0 2 6 0 8 2 7 0 7 0 0 0 0 _ c r o n _ j o b s . s q l \ .  
-     -   P e n g g a n t i a n   t a g   \ < a > \   k e   \ < L i n k > \   d i   U I   ( l o g i n ,   r e g i s t e r ,   d a s h b o a r d ,   m a r k e t i n g )   u n t u k   m e n y e l e s a i k a n   7   l i n t   e r r o r s .  
-     -   M e n a m b a h k a n   \ @ t e s t i n g - l i b r a r y / d o m \   u n t u k   m e n y e l e s a i k a n   u n i t   t e s t .  
- -   * * E v i d e n c e : * *  
-     -   \ 
- p m   r u n   l i n t \ :   0   e r r o r s .  
-     -   \ 
- p m   r u n   t e s t \ :   2 0 4 / 2 0 4   t e s t s   p a s s e d .  
- -   * * S t a t u s : * *   C O M P L E T E  
-  
- # #   [ 2 0 2 6 - 0 8 - 2 7 ]   W P - R E M - 0 2 :   O p e r a t i o n a l   B o u n d a r y   S e c u r i t y  
- -   * * G o a l : * *   M e l i n d u n g i   o p e r a t i o n a l   e n d p o i n t s   ( c r o n ,   a d m i n   m e t r i c s )   d a n   m e m p e r b a i k i   c e l a h   w e b h o o k   v e r i f i c a t i o n .  
- -   * * C h a n g e s : * *  
-     -   M e n a m b a h k a n   s c h e m a   \ C R O N _ S E C R E T \   d a n   \ A D M I N _ S E C R E T \   p a d a   e n v   s e r v e r .  
-     -   M e n a m b a h k a n   v a l i d a s i   B e a r e r   T o k e n   v i a   \ c r y p t o . t i m i n g S a f e E q u a l \   ( h a s h - b a s e d   c o m p a r i s o n )   p a d a   \ / a p i / c r o n / d i s p a t c h \ ,   \ / a p i / c r o n / l i f e c y c l e \ ,   d a n   \ / a p i / a d m i n / m e t r i c s \ .  
-     -   M e n g u b a h   l o g i c   R e s e n d   w e b h o o k   v e r i f i c a t i o n   m e n j a d i   f a i l - c l o s e d .  
-     -   M e n a m b a h k a n   i n t e g r a t i o n   t e s t s   b a r u   ( \ 	 e s t s / i n t e g r a t i o n / o p e r a t i o n a l - s e c u r i t y . t e s t . t s \ ) .  
-     -   M e m p e r b a r u i   C S P   ( \ 
- e x t . c o n f i g . t s \ )   u n t u k   m e n d u k u n g   M i d t r a n s ,   T u r n s t i l e ,   d a n   M a p s ,   s e r t a   o v e r r i d e   w e b h o o k   C S P   i n h e r i t a n c e .  
- -   * * E v i d e n c e : * *  
-     -   N e g a t i v e   t e s t s   p a d a   \ o p e r a t i o n a l - s e c u r i t y . t e s t . t s \   l u l u s   m e m a s t i k a n   4 0 1   d i k e m b a l i k a n   p a d a   p e r c o b a a n   a k s e s   i l e g a l .  
-     -   S e l u r u h   t e s t   ( 2 1 1 / 2 1 1 )   l u l u s .  
- -   * * S t a t u s : * *   C O M P L E T E  
-  
- # #   [ 2 0 2 6 - 0 8 - 2 7 ]   W P - R E M - 0 3 :   A t o m i c   P a y m e n t   C o r r e c t n e s s  
- -   * * G o a l : * *   M e m b u a t   t r a n s i s i   p e m b a y a r a n   m e n j a d i   a t o m i c ,   m e n g e k s e k u s i   s t r i c t   i n v a r i a n t   v a l i d a t i o n   ( a m o u n t ,   c u r r e n c y ) ,   d a n   m e m p e r b a i k i   c o n s u m e r   r e k o n s i l i a s i   a g a r   m e m a n g g i l   S t a t u s   A P I .  
- -   * * C h a n g e s : * *  
-     -   M e m b u a t   m i g r a t i o n   \ 2 0 2 6 0 8 2 7 0 9 0 0 0 0 _ f u n d e d _ t r a n s i t i o n _ r p c . s q l \   d e n g a n   f u n g s i   \ p r o c e s s _ p a y m e n t _ w e b h o o k _ a t o m i c \ .  
-     -   M e n g g a n t i   o p e r a s i   m a t e m a t i k a   f l o a t   ( \ p a r s e F l o a t \ ,   \ M a t h . r o u n d \ )   d e n g a n   \ p a r s e I n t \   +   s p l i t   u n t u k   p a r s e   j u m l a h   G r o s s   A m o u n t   s e c a r a   p r e s i s i   i n t e g e r .  
-     -   R e f a c t o r   \  p i / w e b h o o k s / m i d t r a n s / r o u t e . t s \   d a n   \  p i / c r o n / d i s p a t c h / r o u t e . t s \   u n t u k   m e n g e k s e k u s i   p r o c e s s i n g   s e c a r a   r e u s a b l e   v i a   \ p r o c e s s P a y m e n t S t a t u s A t o m i c a l l y \   ( i n v a r i a n t   c h e c k s   l a l u   a t o m i c   D B   c a l l ) .  
- -   * * E v i d e n c e : * *  
-     -   \ 
- p m   r u n   t e s t \ :   2 1 1   t e s t s   p a s s e d .  
-     -   \ 
- p m   r u n   l i n t \ :   0   e r r o r s .  
- -   * * S t a t u s : * *   C O M P L E T E  
-  
- # #   [ 2 0 2 6 - 0 8 - 2 7 ]   W P - R E M - 0 4 :   S t o r a g e   D o m a i n   C o n s t r a i n t s  
- -   * * G o a l : * *   M e n g h i n d a r i   a n c a m a n   D o S   p a d a   p e m r o s e s a n   i m a g e   d e n g a n   m e n e r a p k a n   b a t a s a n   m e t a d a t a   t i n g k a t   d a t a b a s e ,   s e r t a   m e n g - h a r d c o d e   u k u r a n   i m a g e .  
- -   * * C h a n g e s : * *  
-     -   M e n a m b a h k a n   C H E C K   c o n s t r a i n t   ( \ w i d t h   < =   4 0 9 6 \ ,   \ h e i g h t   < =   4 0 9 6 \ ,   \  y t e _ s i z e   < =   5 0 M B \ ,   \ d u r a t i o n _ s e c o n d s   < =   1 0   j a m \ )   d i   t a b e l   \ m e d i a _ a s s e t s \   v i a   m i g r a t i o n   \ 2 0 2 6 0 8 2 7 1 0 0 0 0 0 _ s t o r a g e _ c o n s t r a i n t s . s q l \ .  
-     -   M e m p e r b a r u i   l i m i t   u k u r a n   g a m b a r   \ I M A G E _ V A R I A N T _ S I Z E S . l a r g e \   m e n j a d i   1 9 2 0 p x   ( h i - r e s )   d i   k o n f i g u r a s i   T S .  
-     -   M e n y e l a r a s k a n   u n i t   t e s t   ( \ s t o r a g e . t e s t . t s \ )   d e n g a n   e k s p e k t a s i   u k u r a n   y a n g   b a r u .  
- -   * * E v i d e n c e : * *  
-     -   \ 	 e s t s / u n i t / s t o r a g e . t e s t . t s \   l u l u s   v e r i f i k a s i   d e n g a n   \ w i d t h :   1 9 2 0 \ .  
-     -   T e s t   p i p e l i n e   s e p e n u h n y a   p a s s .  
- -   * * S t a t u s : * *   C O M P L E T E  
- 
+
+## [2026-08-27] WP-REM-01: Migration Chain & CI Recovery
+- **Goal:** Memperbaiki urutan foreign key pada migration, SQL sintaks pada cron migration, dan memulihkan CI.
+- **Changes:**
+  - Ekstraksi tabel \draft_extension_products\ ke \20260827005000_draft_extension_products.sql\.
+  - Perbaikan \
+et.http_get\ headers ke \jsonb_build_object\ pada \20260827070000_cron_jobs.sql\.
+  - Penggantian tag \<a>\ ke \<Link>\ di UI (login, register, dashboard, marketing) untuk menyelesaikan 7 lint errors.
+  - Menambahkan \@testing-library/dom\ untuk menyelesaikan unit test.
+- **Evidence:**
+  - \
+pm run lint\: 0 errors.
+  - \
+pm run test\: 204/204 tests passed.
+- **Status:** COMPLETE
+
+## [2026-08-27] WP-REM-02: Operational Boundary Security
+- **Goal:** Melindungi operational endpoints (cron, admin metrics) dan memperbaiki celah webhook verification.
+- **Changes:**
+  - Menambahkan schema \CRON_SECRET\ dan \ADMIN_SECRET\ pada env server.
+  - Menambahkan validasi Bearer Token via \crypto.timingSafeEqual\ (hash-based comparison) pada \/api/cron/dispatch\, \/api/cron/lifecycle\, dan \/api/admin/metrics\.
+  - Mengubah logic Resend webhook verification menjadi fail-closed.
+  - Menambahkan integration tests baru (`tests/integration/operational-security.test.ts\).
+  - Memperbarui CSP (\
+ext.config.ts\) untuk mendukung Midtrans, Turnstile, dan Maps, serta override webhook CSP inheritance.
+- **Evidence:**
+  - Negative tests pada \operational-security.test.ts\ lulus memastikan 401 dikembalikan pada percobaan akses ilegal.
+  - Seluruh test (211/211) lulus.
+- **Status:** COMPLETE
+
+## [2026-08-27] WP-REM-03: Atomic Payment Correctness
+- **Goal:** Membuat transisi pembayaran menjadi atomic, mengeksekusi strict invariant validation (amount, currency), dan memperbaiki consumer rekonsiliasi agar memanggil Status API.
+- **Changes:**
+  - Membuat migration \20260827090000_funded_transition_rpc.sql\ dengan fungsi \process_payment_webhook_atomic\.
+  - Mengganti operasi matematika float (\parseFloat\, \Math.round\) dengan \parseInt\ + split untuk parse jumlah Gross Amount secara presisi integer.
+  - Refactor \pi/webhooks/midtrans/route.ts\ dan \pi/cron/dispatch/route.ts\ untuk mengeksekusi processing secara reusable via \processPaymentStatusAtomically\ (invariant checks lalu atomic DB call).
+- **Evidence:**
+  - \
+pm run test\: 211 tests passed.
+  - \
+pm run lint\: 0 errors.
+- **Status:** COMPLETE
+
+## [2026-08-27] WP-REM-04: Storage Domain Constraints
+- **Goal:** Menghindari ancaman DoS pada pemrosesan image dengan menerapkan batasan metadata tingkat database, serta meng-hardcode ukuran image.
+- **Changes:**
+  - Menambahkan CHECK constraint (\width <= 4096\, \height <= 4096\, \yte_size <= 50MB\, \duration_seconds <= 10 jam\) di tabel \media_assets\ via migration \20260827100000_storage_constraints.sql\.
+  - Memperbarui limit ukuran gambar \IMAGE_VARIANT_SIZES.large\ menjadi 1920px (hi-res) di konfigurasi TS.
+  - Menyelaraskan unit test (\storage.test.ts\) dengan ekspektasi ukuran yang baru.
+- **Evidence:**
+  - `tests/unit/storage.test.ts\ lulus verifikasi dengan \width: 1920\.
+  - Test pipeline sepenuhnya pass.
+- **Status:** COMPLETE
+
 ## [2026-08-27] WP-REM-05: TypeScript Strict Conformance
 - **Goal:** Memutus dependency cycle (theme vs invitation), menghapus tipe data implicit/explicit any, dan memvalidasi structure/boundaries.
 - **Changes:**
@@ -2797,7 +2797,7 @@ Mengaudit dan merancang ulang `/dashboard` sebagai wedding workspace task-first 
 
 ---
 
-## 2026-08-30 � Refactor Create/Edit Invitation Flow (Wizard)
+## 2026-08-30 — Refactor Create/Edit Invitation Flow (Wizard)
 
 Status: **COMPLETE**
 
@@ -3160,41 +3160,41 @@ Mobile before metrics required Playwright lab-based substitutions due to an init
 Work Package #2C Addendum.
 
 
-## 2026-09-01 � Addendum: #2C Final Evidence Corrections
+## 2026-09-01 — Addendum: #2C Final Evidence Corrections
 
 **Status:** COMPLETE
 
 This addendum corrects false claims from the previous entry and records the final empirical evidence for Work Package #2C.
 
 ### Correction: 640px image sizing evidence
-**Previous false claim:** The 640px Featured Theme row incorrectly referenced the <639px sizes branch (evaluating to 592px).
-**Correction:** At exactly 640px viewport width, the \(max-width: 639px)\ condition fails. It falls through to the next condition: \calc(50vw - 36px)\.
-**CSS Width:** \320px - 36px = 284px\.
+**Previous false claim:** The 640px Featured Theme row incorrectly referenced the `<639px` sizes branch (evaluating to 592px).
+**Correction:** At exactly 640px viewport width, the `(max-width: 639px)` condition fails. It falls through to the next condition: `calc(50vw - 36px)`.
+**CSS Width:** `320px - 36px = 284px`.
 
 ### Correction: Next.js 16 Image API
-**Previous false claim:** The previous addendum incorrectly stated that \priority\ was not deprecated in Next.js 16 based on TypeScript types.
-**Correction:** According to official Next.js 16 documentation, the \priority\ prop IS deprecated. The official recommended alternatives are \etchPriority=\"high\"\ and \preload={true}\.
+**Previous false claim:** The previous addendum incorrectly stated that `priority` was not deprecated in Next.js 16 based on TypeScript types.
+**Correction:** According to official Next.js 16 documentation, the `priority` prop IS deprecated. The official recommended alternatives are `fetchPriority="high"` and `preload={true}`.
 
 ### Final Hero LCP loading decision
-* **Chosen Hero API:** \etchPriority=\"high\"\ and \preload={true}\.
-* **Reason:** This exact combination replicates the optimal loading behavior of the deprecated \priority\ prop by injecting a \<link rel=\"preload\" as=\"image\">\ in the document head and rendering the \<img>\ tag with \etchpriority=\"high\"\. Verified via Playwright that no duplicate requests occur.
+* **Chosen Hero API:** `fetchPriority="high"` and `preload={true}`.
+* **Reason:** This exact combination replicates the optimal loading behavior of the deprecated `priority` prop by injecting a `<link rel="preload" as="image">` in the document head and rendering the `<img>` tag with `fetchpriority="high"`. Verified via Playwright that no duplicate requests occur.
 
 ### Final image sizing + DPR evidence
-Images requested by Next.js may appear larger than CSS width because of Device Pixel Ratios (DPR). The target width is effectively \CSS Width � DPR\.
+Images requested by Next.js may appear larger than CSS width because of Device Pixel Ratios (DPR). The target width is effectively `CSS Width × DPR`.
 
-| Viewport | Active \sizes\ Branch | CSS Width | DPR | Requested Width | Assessment |
+| Viewport | Active `sizes` Branch | CSS Width | DPR | Requested Width | Assessment |
 | -------- | --------------------- | --------: | --: | --------------: | ---------- |
-| Featured 390px | \calc(100vw - 48px)\ | 342px | 3 | 1080w | Correct (342 * 3 = 1026) |
-| Featured 640px | \calc(50vw - 36px)\ | 284px | 2 | 640w | Correct (284 * 2 = 568) |
-| Featured 768px | \calc(50vw - 36px)\ | 348px | 2 | 750w | Correct (348 * 2 = 696) |
-| Featured 1024px | \260px\ | 260px | 1 | 256w | Correct |
-| Featured 1440px | \260px\ | 260px | 1 | 256w | Correct |
-| Hero Mobile (390px) | \calc(100vw - 48px)\ | 342px | 3 | 1080w | Correct (342 * 3 = 1026) |
-| Hero Desktop (1280px) | \480px\ | 480px | 1 | 640w | Correct (Next available size) |
+| Featured 390px | `calc(100vw - 48px)` | 342px | 3 | 1080w | Correct (342 * 3 = 1026) |
+| Featured 640px | `calc(50vw - 36px)` | 284px | 2 | 640w | Correct (284 * 2 = 568) |
+| Featured 768px | `calc(50vw - 36px)` | 348px | 2 | 750w | Correct (348 * 2 = 696) |
+| Featured 1024px | `260px` | 260px | 1 | 256w | Correct |
+| Featured 1440px | `260px` | 260px | 1 | 256w | Correct |
+| Hero Mobile (390px) | `calc(100vw - 48px)` | 342px | 3 | 1080w | Correct (342 * 3 = 1026) |
+| Hero Desktop (1280px) | `480px` | 480px | 1 | 640w | Correct (Next available size) |
 
 ### Performance methodology correction
-* **Baseline method:** Attempted isolated temporary worktree at pre-#2C commit \3f51b23\. Build failed due to a Turbopack internal error (\chunk_path requires an asset with file content when content hashing is enabled\).
-* **Current method:** Measured using direct Playwright instrumentation (LCP PerformanceObserver) and Chrome network intercept on production build (\localhost:3002\).
+* **Baseline method:** Attempted isolated temporary worktree at pre-#2C commit `3f51b23`. Build failed due to a Turbopack internal error (`chunk_path requires an asset with file content when content hashing is enabled`).
+* **Current method:** Measured using direct Playwright instrumentation (LCP PerformanceObserver) and Chrome network intercept on production build (`localhost:3002`).
 * **Comparable:** NOT DIRECTLY COMPARABLE
 * **Limitations:** A fully apples-to-apples historical mobile baseline could not be reproduced due to differing build behaviors and Lighthouse EPERM temp directory bugs on Windows.
 * **Note:** Previous before/after metrics were a mix of diagnostic Playwright runs and should not be treated as purely equivalent baseline deltas.
@@ -3204,12 +3204,35 @@ Images requested by Next.js may appear larger than CSS width because of Device P
 * **Desktop LCP:** 0.3s
 
 ### Validation
-* \	ypecheck\: PASS
-* \lint\: PASS
-* \	est\: FAIL � pre-existing editor tests
-* \uild\: PASS
-* \quality\: FAIL � because test step fails
+* `typecheck`: PASS
+* `lint`: PASS
+* `test`: FAIL — pre-existing editor tests
+* `build`: PASS
+* `quality`: FAIL — because test step fails
 
 ### Deferred Cloudflare/OpenNext item
 Cloudflare/OpenNext image optimization is deferred. Vercel remains primary production.
 
+## 2026-09-01 — Addendum: #2C Hero Loading and Ledger Encoding Correction
+
+**Status:** COMPLETE
+
+### Hero Image API correction
+* **Previous Hero API:** `fetchPriority="high"` + `preload={true}`
+* **Next.js 16 guidance rechecked:** Next.js documentation states `preload` should not be combined unnecessarily with `fetchPriority`. Since the Hero image is already above the fold and rendered immediately, `fetchPriority="high"` alone is sufficient to prioritize the image download.
+* **Final chosen API:** `fetchPriority="high"` without `preload={true}`.
+* **Browser verification result:** Playwright confirms the Desktop Hero image remains properly prioritized (LCP) and Mobile LCP (H1 text) does not regress. No visual changes or layout shifts occurred.
+* **Duplicate request result:** Verified no duplicate requests.
+
+### Ledger encoding correction
+* `IMPLEMENTATION-RECORD.md` previously contained mixed/invalid encodings (a UTF-8 file with UTF-16LE appended) resulting in null bytes and replacement characters (``).
+* The entire file was normalized to pure UTF-8.
+* Historical content was preserved intact.
+* Corrupted punctuation (em dashes `—` and multiplication signs `×`) was restored only where unambiguous.
+
+### Validation
+* `typecheck`: PASS
+* `lint`: PASS
+* `test`: FAIL — pre-existing editor tests
+* `build`: PASS
+* `quality`: FAIL — because test step fails
