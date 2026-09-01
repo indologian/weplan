@@ -4,7 +4,8 @@ import "./theme.css";
 export function Cover({ invitation }: SectionRendererProps) {
   const groom = invitation.couple.groom?.name ?? "";
   const bride = invitation.couple.bride?.name ?? "";
-  const image = invitation.media.find((item) => item.purpose === "gallery")
+  const galleryImages = invitation.media.filter((item) => item.purpose === "gallery");
+  const image = galleryImages[0]
     ?? invitation.media.find((item) => item.mediaId === invitation.couple.groom?.photoMediaId)
     ?? invitation.media.find((item) => item.mediaId === invitation.couple.bride?.photoMediaId);
   const firstEvent = invitation.events.find((event) => event.startsAt);
@@ -23,7 +24,12 @@ export function Cover({ invitation }: SectionRendererProps) {
         </div>
       </div>
       <div className={`me-cover-visual me-paper-layer ${image ? "" : "me-cover-visual-empty"}`}>
-        {image ? <img src={image.url} alt={image.caption ?? `Potret pernikahan ${groom} dan ${bride}`} style={{ objectPosition: `${image.focusX * 100}% ${image.focusY * 100}%` }} /> : <span aria-hidden="true">ME / 01</span>}
+        <span className="me-cover-frame" aria-hidden="true" />
+        <div className="me-cover-photo-mask">
+          {image ? <img src={image.url} alt={image.caption ?? `Potret pernikahan ${groom} dan ${bride}`} style={{ objectPosition: `${image.focusX * 100}% ${image.focusY * 100}%` }} /> : <span aria-hidden="true">ME / 01</span>}
+        </div>
+        {galleryImages[1] && <div className="me-cover-secondary" aria-hidden="true"><img src={galleryImages[1].url} alt="" style={{ objectPosition: `${galleryImages[1].focusX * 100}% ${galleryImages[1].focusY * 100}%` }} /></div>}
+        <span className="me-cover-folio" aria-hidden="true">VOL. 01 / WEPLAN</span>
       </div>
       <span className="me-crop-mark me-crop-mark-top" aria-hidden="true" />
       <span className="me-crop-mark me-crop-mark-bottom" aria-hidden="true" />

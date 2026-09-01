@@ -323,8 +323,8 @@ The editor remains a data-entry and controlled presentation editor. It is NOT a 
 - `#3C` — Theme Foundation Architecture (IMPLEMENTED)
 - `#3D` — Modern Editorial Redesign (IMPLEMENTED / ACCEPTED)
 - `#3D.1` — Corrective QA & Final Acceptance (COMPLETE)
-- `#3D.2` — Modern Editorial Market-Fit Visual & Motion Polish (READY)
-- `#3E` — Luxury Midnight Redesign (BLOCKED UNTIL #3D.2 ACCEPTED)
+- `#3D.2` — Modern Editorial Market-Fit Visual & Motion Polish (COMPLETE)
+- `#3E` — Luxury Midnight Redesign (READY)
 - `#3F` — Javanese Heritage Redesign
 - `#3G` — Romantic Floral Redesign
 - `#3H` — Cross-Theme Verification / Polish
@@ -364,8 +364,8 @@ Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes
 - #3D → IMPLEMENTED / ACCEPTED
 - #3D.1 → COMPLETE
 - Theme Rule Refresh 2026-09-01 → ACTIVE (`05A - market-fit-visual-motion-rules.md`)
-- #3D.2 → READY
-- #3E → BLOCKED UNTIL #3D.2 ACCEPTED
+- #3D.2 → COMPLETE
+- #3E → READY
 
 # AM. #3B.1 & #3B.2 Corrections Applied
 - **Section-order ownership:** Corrected to explicitly allow themes to alter composition; it is not a business invariant.

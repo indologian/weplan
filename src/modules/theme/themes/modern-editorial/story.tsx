@@ -11,7 +11,7 @@ export function Story({ invitation }: SectionRendererProps) {
         {validStories.map((item, index) => (
           <article
             key={item.id}
-            className="me-story-article me-reveal"
+            className="me-story-article"
           >
             <span className="me-story-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
             {item.date && (

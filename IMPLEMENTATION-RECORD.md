@@ -3660,3 +3660,56 @@ The research separates directly verifiable provider features/catalogue patterns 
 ### Next work package
 
 `#3D.2 — Modern Editorial Market-Fit Visual & Motion Polish`
+
+## [2026-09-01] WP #3D.2: Modern Editorial Market-Fit Visual & Motion Polish
+
+### Reason and scope
+
+Polished only `src/modules/theme/themes/modern-editorial/` against File 05A after visual/motion acceptance was reopened. R3 Composition, Hybrid Responsive Canvas, theme-owned fonts/tokens, shared functional primitives, GSAP controller ownership, and semantic section order remain unchanged.
+
+### Visual, photography, and ornament changes
+
+- Cover is now a layered publication scene with an offset paper frame, clipped primary photograph, optional secondary crop, folio label, crop marks, and intentional typography-only fallback.
+- Couple portraits use asymmetric placement, directional rectangular masks, paper framing, and quieter supporting copy while preserving canonical focal points through the shared Portrait primitive.
+- Events retain shared Countdown/EventActions but use a dark program spread and distinct title/data choreography. Story uses chapter movement and rule drawing rather than event grammar.
+- Gallery is a selected-hero composition with a manually controlled contact strip, mixed 4:3 and 3:4 crops, focus-aware thumbnails, `aria-pressed` selection, and the shared Lightbox for the hero.
+- Closing echoes the cover with oversized issue typography, serif names, rule, and colophon. All ornament is self-authored CSS; SVG/raster additions and third-party asset licenses: NONE.
+
+### Motion map and runtime
+
+| Section | Motion |
+|---|---|
+| Cover | Paper-frame shift, photo clip reveal, photo scale settlement, name line stagger, metadata stagger |
+| Opening | Existing calm shared pull-quote reveal |
+| Couple | Opposing portrait masks plus directional name/supporting-copy entrance |
+| Events | Title clip plus staggered program metadata |
+| Story | Alternating chapter shift plus local rule draw |
+| Gallery | Hero mask entrance, contact-strip stagger, user-selected hero replacement |
+| Closing | Calm generic reveal with oversized static issue-mark echo |
+
+Playwright Chromium verified `no-preference` and `reduce`. Under reduce, representative Cover/Couple/Event/Gallery/Closing targets computed to `opacity: 1`, `transform: none`, and `clip-path: none`. There are no continuous loops, timers, autoplay, or ambient motion, so document-hidden/offscreen loop handling is not applicable. ScrollTrigger animations are one-shot and scoped to the Modern root.
+
+### Responsive, accessibility, and gallery evidence
+
+- Viewports 320x568, 393x852, 768x1024, 1024x768, and 1440x900 retain one H1, R3 `.me-composition`, gallery controls, and equal document/client width.
+- Bounds exceptions are intentional/local: inverse event background bleed, horizontally scrollable gallery strip children, and decorative closing issue mark. No root/page overflow mask was added and no meaningful content overflow was found.
+- Gallery keyboard activation changes the selected hero, updates `aria-pressed`, preserves visible focus, and remains usable in reduced motion. Shared Lightbox behavior was not duplicated.
+- Heading order and shared form/control behavior remain unchanged. Decorative imagery uses empty alt text; meaningful images retain invitation captions/fallback alt text.
+
+### Static validation and boundaries
+
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS with 0 errors and 44 existing warnings.
+- Modern font test: PASS as part of full run.
+- `npm run test`: 303 PASS, 4 FAIL (43/46 files). Failures are the unchanged out-of-scope checkout/editor label expectations recorded by #3D.1.
+- `npm run build`: PASS on Next.js 16.3.3 with existing middleware/Edge Runtime/metadataBase warnings.
+- Database impact: NONE. Migration impact: NONE. Supabase mutation: NONE.
+- Dependency impact: NONE. `package.json` and `package-lock.json` unchanged.
+- Bundle, memory, FPS: NOT MEASURED.
+- CI/deployment: NOT RUN. Push: NO.
+- Known limitation: demo fixture contains only two gallery photographs and no story entries; source/runtime behavior was verified for available sections, while long-content and richer-media permutations remain covered structurally rather than by this fixture.
+
+### Status
+
+#3D.2 MODERN EDITORIAL MARKET-FIT POLISH: ACCEPTED
+#3E LUXURY MIDNIGHT: READY

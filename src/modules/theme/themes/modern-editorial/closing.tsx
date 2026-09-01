@@ -8,6 +8,7 @@ export function Closing({ invitation }: SectionRendererProps) {
     <section
       className="me-section me-closing"
     >
+      <span className="me-closing-mark" aria-hidden="true">ME / 01</span>
       <p className="me-closing-note me-reveal">
         Terima kasih telah menjadi bagian dari hari bahagia kami.
       </p>

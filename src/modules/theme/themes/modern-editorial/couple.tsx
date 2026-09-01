@@ -9,7 +9,7 @@ export function Couple({ invitation }: SectionRendererProps) {
     <section className="me-section me-couple" aria-labelledby="couple-title">
       <header className="me-section-heading me-reveal"><span>01</span><h2 id="couple-title">Mempelai</h2></header>
       <div className="me-couple-container">
-        <article className="me-person me-person-groom me-reveal">
+        <article className="me-person me-person-groom">
           <span className="me-person-index" aria-hidden="true">01</span>
           <div className="me-person-photo-wrapper">
             <Portrait invitation={invitation} mediaId={groom?.photoMediaId} name={groom?.name} variant="arch" />
@@ -22,7 +22,7 @@ export function Couple({ invitation }: SectionRendererProps) {
           )}
         </article>
         <span className="me-couple-and" aria-hidden="true">&amp;</span>
-        <article className="me-person me-person-bride me-reveal">
+        <article className="me-person me-person-bride">
           <span className="me-person-index" aria-hidden="true">02</span>
           <div className="me-person-photo-wrapper">
             <Portrait invitation={invitation} mediaId={bride?.photoMediaId} name={bride?.name} variant="arch" />

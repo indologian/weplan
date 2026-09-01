@@ -59,7 +59,7 @@ export function Events({ invitation }: SectionRendererProps) {
           return (
             <article
               key={event.eventId}
-              className="me-event-card me-reveal"
+              className="me-event-card"
             >
               <span className="me-event-index">{String(index + 1).padStart(2, "0")}</span>
               <h3>{event.title}</h3>
