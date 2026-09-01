@@ -3256,3 +3256,25 @@ Cloudflare/OpenNext image optimization is deferred. Vercel remains primary produ
   - `lint` PASS.
   - `test` FAIL (pre-existing editor tests).
   - `build` PASS.
+
+## 2026-09-01 — Addendum: #2D Mobile Menu Visual Correction
+
+**Status:** COMPLETE
+
+- **Goal:** Correct the mobile navigation menu drawer visual rhythm, gutters, and touch targets discovered during the #2D browser testing at 393×852.
+- **Evidence:** 
+  - The shared `SheetContent` correctly defaults to `w-[min(20rem,calc(100vw-2rem))]` which safely limits the drawer width and guarantees visible backdrop.
+  - `mobile-menu.tsx` previously overrode the width to `w-[300px] sm:w-[350px]` and lacked an inner padded container, causing text to hit the left edge and buttons to hit both edges.
+- **Fixes:**
+  - Removed the width override from `SheetContent` to let the shared primitive handle responsive sizing safely.
+  - Added an inner container `<div className="flex h-full flex-col px-6 py-8">` to establish a consistent 24px gutter and clear the absolutely positioned close button.
+  - Added `min-h-[44px]` to the navigation links.
+  - Added `min-h-[44px]` to the CTA buttons.
+  - Increased button gap slightly (`gap-3` to `gap-4`) for better rhythm.
+  - Kept natural top alignment.
+- **Validation:** 
+  - Playwright evaluation measured: Gutter is exactly 24px, Button target is 272x44px.
+  - `typecheck` PASS.
+  - `lint` PASS.
+  - `test` FAIL — pre-existing/outside mobile-menu scope.
+  - `build` PASS.
