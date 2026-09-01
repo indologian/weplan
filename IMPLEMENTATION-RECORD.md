@@ -3454,26 +3454,30 @@ ext/font\ per theme root \className\.
 ### Next Work Package
 #3D - Modern Editorial Redesign
 
+## [2026-09-01] WP #3C.1: Post-Commit Validation & Corrective Verification
 
- # #   [ 2 0 2 6 - 0 9 - 0 1 ]   W P   # 3 C . 1 :   P o s t - C o m m i t   V a l i d a t i o n   &   C o r r e c t i v e   V e r i f i c a t i o n 
- 
- # # #   V e r i f i c a t i o n   S c o p e 
- -   S t a t i c a l l y   v a l i d a t e d   # 3 C   f o u n d a t i o n   c h a n g e s   a g a i n s t   t y p e c h e c k ,   l i n t ,   a n d   p r o d u c t i o n   b u i l d   c o n s t r a i n t s . 
- -   R e a l   C h r o m i u m   t e s t i n g   f o r   4   a c t i v e   t h e m e s   a c r o s s   5   r e s p o n s i v e   v i e w p o r t s . 
- -   V a l i d a t e d   R e d u c e d   M o t i o n   c o m p l i a n c e   u s i n g   m a t c h M e d i a   o n   M o d e r n   E d i t o r i a l . 
- -   V a l i d a t e d   c o l o r - s c h e m e ,   c a n o n i c a l   t o k e n   p r o p a g a t i o n ,   a n d   U I   c o m p o n e n t   s t y l i n g   f o r   L u x u r y   M i d n i g h t . 
- -   V a l i d a t e d   D O M   f o c u s   o r d e r i n g   o p t i m i z a t i o n   f o r   K 2 . 
- -   V e r i f i e d   t e s t   s u i t e   s t a t u s   a n d   r e s o l v e d   v i t e s t   n e x t / f o n t   m o c k i n g . 
- 
- # # #   C o r r e c t i v e   C h a n g e s 
- -   A d d e d   t e s t s / s e t u p . t s   t o   m o c k   n e x t / f o n t   t o   r e s t o r e   V i t e s t   e x e c u t i o n   o f   r e g i s t r y   c o m p o n e n t s . 
- 
- # # #   B r o w s e r   E v i d e n c e 
- -   * * H o r i z o n t a l   O v e r f l o w * * :   0   o v e r f l o w   d e t e c t e d   a c r o s s   a l l   2 0   v i e w p o r t   c a s e s   ( 3 2 0 p x   t o   1 4 4 0 p x ) . 
- -   * * L u x u r y   M i d n i g h t   D a r k   M o d e * * :   C o m p u t e d   s t y l e s   v e r i f y   c o l o r S c h e m e :   d a r k   a n d   c a n o n i c a l   b a c k g r o u n d   p r o p a g a t i o n   s u c c e s s f u l l y   s t y l e s   n a t i v e   R S V P   c o m p o n e n t s . 
- -   * * R e d u c e d   M o t i o n * * :   C o n f i r m e d   u s e G S A P   +   m a t c h M e d i a   f u l l y   c a n c e l s   t r a n s f o r m a t i o n   m a t r i c e s   o n   p r e f e r s - r e d u c e d - m o t i o n :   r e d u c e   w h i l e   k e e p i n g   c o n t e n t   f u l l y   v i s i b l e   ( o p a c i t y :   1 ) . 
- -   * * A c c e s s i b i l i t y * * :   F o c u s   s h i f t s   c o r r e c t l y   t o   t h e   r e l o c a t e d   I n v i t a t i o n N a v i g a t i o n   p o s t - g a t e ,   b y p a s s i n g   m a n u a l   t a b i n d e x   r e q u i r e m e n t s   ( K 2   o p t i m i z a t i o n ) . 
- 
- # # #   F i n a l   S t a t u s 
- # 3 C   A C C E P T E D .  
- 
+### Verification Scope
+- Statically validated #3C foundation changes against typecheck, lint, and production build constraints.
+- Real Chromium testing for 4 active themes across 5 responsive viewports.
+- Validated Reduced Motion compliance using `matchMedia` on Modern Editorial.
+- Validated `color-scheme`, canonical token propagation, and UI component styling for Luxury Midnight.
+- The optional K2 focus-order optimization was implemented and smoke-tested.
+- Verified test suite status and resolved vitest `next/font` mocking.
+
+### Corrective Changes
+- Added `tests/setup.ts` to mock `next/font` to restore Vitest execution of registry components.
+
+### Browser Evidence
+- **Horizontal Overflow**: 0 overflow detected across all 20 viewport cases (320px to 1440px).
+- **Luxury Midnight Dark Mode**: Computed styles verify `color-scheme: dark` and canonical background propagation successfully styles native RSVP components.
+- **Reduced Motion**: Confirmed `useGSAP` + `matchMedia` fully cancels transformation matrices on `(prefers-reduced-motion: reduce)` while keeping content fully visible (opacity: 1).
+- **Accessibility**: Focus shifts correctly to the relocated `InvitationNavigation` post-gate (K2 optimization).
+- **Measurements**: Browser runtime and font-network behavior were verified. Formal memory profiling was NOT MEASURED. Bundle-size reduction: NOT MEASURED.
+
+### Final Status
+- Repaired #3C/#3C.1 encoding artifacts
+- Removed canvas-level blanket horizontal clipping
+- Reran all 20 viewport overflow tests
+- Cleaned next/font Vitest mock
+- Corrected unsupported measurement wording
+#3C FOUNDATION ACCEPTED.

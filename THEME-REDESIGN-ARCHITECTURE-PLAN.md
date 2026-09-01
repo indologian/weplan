@@ -352,7 +352,14 @@ The editor remains a data-entry and controlled presentation editor. It is NOT a 
 - **APPROVED:** Option L1 — Subtle.
 
 # AL. Final Architecture Recommendation
-Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes own composition but share behavior. Enforce **Canonical Theme Tokens** with explicit `color-scheme` declarations to fix dark mode propagation. Implement theme-specific GSAP files wrapped in strict `matchMedia` hooks for reduced motion compliance, utilizing `useGSAP` for cleanup. Opt for UX DOM-order improvements for fixed controls over manual tabindexes. Utilize `next/font` at the theme root to secure bespoke typography safely. Future implementation (#3C) is blocked pending user approval of D1–D7.
+Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes own composition but share behavior. Enforce **Canonical Theme Tokens** with explicit `color-scheme` declarations to fix dark mode propagation. Implement theme-specific GSAP files wrapped in strict `matchMedia` hooks for reduced motion compliance, utilizing `useGSAP` for cleanup. Opt for UX DOM-order improvements for fixed controls over manual tabindexes. Utilize `next/font` at the theme root to secure bespoke typography safely.
+
+**Status Pipeline:**
+- D1–D7 → APPROVED
+- #3C → IMPLEMENTED
+- #3C.1 → VALIDATED
+- #3C.2 → COMPLETE
+- #3D → READY
 
 # AM. #3B.1 & #3B.2 Corrections Applied
 - **Section-order ownership:** Corrected to explicitly allow themes to alter composition; it is not a business invariant.
