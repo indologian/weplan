@@ -66,7 +66,7 @@ createRenderer({
 ```
 
 # I. Responsibility Matrix
-| Concern | Global (Platform) | Shared Primitive | Theme | DB Token / Config |
+| Concern | Global (Platform) | Shared Primitive | Theme | Config / Override |
 | :--- | :---: | :---: | :---: | :---: |
 | RSVP submission logic | X | | | |
 | RSVP form shell | | X | | |
@@ -77,11 +77,11 @@ createRenderer({
 | Motion choreography | | | X | |
 | Section order | | | X | |
 
-*Note: Base Font Family is owned by the Theme Author/Admin. The owner/user MUST NOT freely override font families via `designTokens` to protect the theme's art direction.*
+*Note: Base Font Family is owned by the Theme Author/Admin. The owner/user MUST NOT freely override font families to protect the theme's art direction.*
 
 # J. Canonical Theme Token System
 The dependency graph must be strictly: **Canonical Token → Theme Alias (if needed) → Shared Primitive**.
-Themes MUST declare canonical tokens at their root:
+Themes MUST declare canonical tokens at their root to support shared primitive controls:
 ```css
 .wedding-theme.luxury-midnight {
   --theme-bg: #0a0f1a;
@@ -89,10 +89,16 @@ Themes MUST declare canonical tokens at their root:
   --theme-text: #f5f0e8;
   --theme-muted: #a0a8b8;
   --theme-accent: #c9a84c;
+  --theme-accent-contrast: #0a0f1a;
   --theme-border: #2a3040;
 }
 ```
-Canonical defaults must work perfectly when DB `designTokens` are empty. DB tokens only serve as allowed owner-editable overrides.
+Canonical defaults must work perfectly when there are no configuration overrides. 
+
+**Configuration Ownership:**
+1. **Theme Code Defaults:** The authored canonical CSS variables.
+2. **Theme-Author/Admin Config:** (`design_tokens`, `layout_config`) Authorized configuration for the theme.
+3. **Owner Presentation Override:** Only explicitly allowlisted invitation-level configuration (e.g., color overrides mapped to canonical tokens). `designTokens` are NOT generic unrestricted owner CSS overrides.
 
 # K. Color-Scheme Strategy
 Light themes → light color-scheme; Dark themes → dark color-scheme.
@@ -128,7 +134,9 @@ Ornaments are **Theme-Owned Assets**. Located in `themes/<name>/ornaments/`. The
 Motion must be explicitly choreographed per theme, removing the monolithic global `ThemeAnimator`.
 - **CSS Transitions:** Hover states and ambient micro-interactions.
 - **GSAP:** Scroll-linked narrative orchestration.
-- **Implementation:** Themes will define motion in `themes/<name>/motion.tsx`. `useGSAP()` provides scoped GSAP context lifecycle handling; effects must still be authored correctly and verified. Limit simultaneous animations and avoid offscreen ambient work.
+- **Implementation:** Themes will define motion in `themes/<name>/motion.tsx`.
+  - `useGSAP()`: Provides scoped React lifecycle integration and cleanup/revert handling on unmount. Note: animations still require correct authoring and verification.
+  - `gsap.matchMedia()`: Exclusively handles media-condition-specific choreography, specifically enforcing `prefers-reduced-motion` and responsive animation breakpoints.
 
 # S. Reduced Motion Architecture
 Reduced motion compliance is mandatory.
@@ -149,9 +157,9 @@ For Level C themes (Modern Editorial, Luxury Midnight):
 - Use `transform`/`opacity` over layout-triggering properties.
 
 # V. Accessibility Strategy
-- **K2 Focus-Order Optimization:** Moving `<InvitationNavigation>` earlier in the React tree while keeping its visual `position: fixed` CSS is an OPTIONAL/SHOULD UX enhancement. The controls are already fully keyboard reachable. Manual `tabindex` is strictly rejected.
 - Maintain strict heading hierarchy (H1 Cover, H2 Sections) independent of visual text scaling.
 - Focus visibility and touch targets remain shared platform responsibilities.
+- **K2 Focus-Order Optimization:** Moving `<InvitationNavigation>` earlier in the React tree while keeping its visual `position: fixed` CSS is an **OPTIONAL / SHOULD** UX enhancement. The controls are already fully keyboard reachable. Manual `tabindex` is strictly rejected. This is not a mandatory accessibility foundation task.
 
 # W. Demo / Preview / Public Parity
 `/demo/[slug]`, `/preview/[id]`, and `/(wedding)/[slug]` MUST all render using the identical `WeddingRenderer` theme architecture. While their outer UI may differ (demo toolbar, preview publish controls), the theme behavior must not diverge. If Hybrid Canvas is approved, it must be applied consistently across all three boundaries.
@@ -282,14 +290,30 @@ The proposed redesign architecture strictly utilizes existing `designTokens` and
 # AH. Editor Impact
 **Minimal.**
 The editor remains a data-entry and controlled presentation editor. It is NOT a free-form theme builder.
-- Font family → Theme-owned
-- Motion grammar → Theme-owned
-- Layout composition → Theme-owned
-- Ornament family → Theme-owned
-Owner-editable presentation is strictly limited to existing allowlisted properties (e.g., color overrides mapped to canonical tokens).
+**Theme Author / Admin May Own:**
+- Font family
+- Palette defaults
+- Typography tokens
+- Geometry
+- Ornament system
+- Photo treatment
+- Composition
+- Motion preset/grammar
+- Renderer presentation configuration
+
+**Invitation Owner Must NOT Freely Override:**
+- `renderer_key`
+- Font family
+- Ornament family
+- Photo mask
+- Motion grammar
+- Section composition/order
+- Arbitrary CSS
+
+**Owner-editable presentation is strictly limited to explicitly allowlisted overrides already supported by the schema.**
 
 # AI. Migration Strategy
-1. **Foundation:** Implement layout primitives, accessibility DOM reordering, `next/font` setup, and Canonical Token updates.
+1. **Foundation:** Implement canvas/layout primitives, `next/font` architecture, color-scheme ownership, shared-control theming contract, motion/reduced-motion foundation, and Canonical Token updates. *(K2 Focus-Order optimization is an optional enhancement, not mandatory foundation).*
 2. **Modern Editorial:** Redesign trailblazer (proves CSS spatial depth and GSAP cleanup).
 3. **Luxury Midnight:** Redesign trailblazer (proves Dark Mode context and color-scheme).
 4. **Javanese & Romantic:** Final redesigns leveraging the proven foundation.
@@ -297,12 +321,13 @@ Owner-editable presentation is strictly limited to existing allowlisted properti
 
 # AJ. Future Work Packages
 *Note: #3C is NOT READY and remains blocked until product decisions (D1-D7) are approved.*
-- `#3C` — Theme Foundation Architecture (Tokens, Layout Primitives, Accessibility)
+- `#3C` — Theme Foundation Architecture (Tokens, Layout Primitives, Typography, Motion Setup)
 - `#3D` — Modern Editorial Redesign
 - `#3E` — Luxury Midnight Redesign
 - `#3F` — Javanese Heritage Redesign
 - `#3G` — Romantic Floral Redesign
 - `#3H` — Cross-Theme Verification / Polish
+*(K2 focus-order optimization can be addressed alongside #3H or as an optional enhancement).*
 
 # AK. Product Decision Gates
 
@@ -331,8 +356,8 @@ Owner-editable presentation is strictly limited to existing allowlisted properti
 - **Alternative:** Completely distinct RSVP components per theme (maintenance nightmare).
 
 **D5 — GSAP Motion choreography**
-- **Recommendation:** Extracted to `themes/<name>/motion.tsx` with mandatory `matchMedia`.
-- **Reason:** Crucial for reduced-motion accessibility and memory leak prevention.
+- **Recommendation:** Extracted to `themes/<name>/motion.tsx` utilizing `useGSAP` (lifecycle integration) and `matchMedia` (media/reduced-motion handling).
+- **Reason:** Crucial for reduced-motion accessibility and reliable memory cleanup on unmount.
 - **Tradeoff:** Motion code cannot be easily shared globally.
 - **Alternative:** Keep generic `ThemeAnimator` (proven ineffective for distinct themes).
 
@@ -343,19 +368,21 @@ Owner-editable presentation is strictly limited to existing allowlisted properti
 - **Alternative:** Option J1 (Strictly Traditional) or J2 (Abstracted Contemporary).
 
 **D7 — Luxury Spatial Intensity**
-- **Recommendation:** Option L1 — Subtle (Lighting, overlap, gentle parallax).
+- **Recommendation:** Option L1 — Subtle (Lighting, overlap, gentle parallax, small foil effects).
 - **Reason:** Achieves premium feel without WebGL or risking mobile performance issues.
-- **Tradeoff:** Less "flashy" than deep cinematic 3D.
-- **Alternative:** Option L2 (Expressive) or L3 (Cinematic WebGL).
+- **Tradeoff:** Less "flashy" than deep cinematic depth.
+- **Alternative:** Option L2 (Expressive: stronger depth, sticky transitions) or L3 (Cinematic CSS/DOM + GSAP: large scene transitions, strong perspective). **NO WEBGL** for any option under the current scope.
 
 # AL. Final Architecture Recommendation
-Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes own composition but share behavior. Enforce **Canonical Theme Tokens** with explicit `color-scheme` declarations to fix dark mode propagation. Implement theme-specific GSAP files wrapped in strict `matchMedia` hooks for reduced motion compliance. Opt for UX DOM-order improvements for fixed controls over manual tabindexes. Utilize `next/font` at the theme root to secure bespoke typography safely. Future implementation (#3C) is blocked pending user approval of D1–D7.
+Transition to a **Hybrid Canvas, Slot-Based Renderer** architecture where themes own composition but share behavior. Enforce **Canonical Theme Tokens** with explicit `color-scheme` declarations to fix dark mode propagation. Implement theme-specific GSAP files wrapped in strict `matchMedia` hooks for reduced motion compliance, utilizing `useGSAP` for cleanup. Opt for UX DOM-order improvements for fixed controls over manual tabindexes. Utilize `next/font` at the theme root to secure bespoke typography safely. Future implementation (#3C) is blocked pending user approval of D1–D7.
 
-# AM. #3B.1 Corrections Applied
+# AM. #3B.1 & #3B.2 Corrections Applied
 - **Section-order ownership:** Corrected to explicitly allow themes to alter composition; it is not a business invariant.
-- **K2 focus order:** Reclassified as a UX DOM-order enhancement, not a broken accessibility defect. Positive `tabindex` strictly rejected.
+- **K2 focus order:** Reclassified as a UX DOM-order enhancement (OPTIONAL/SHOULD), not a broken accessibility defect. Removed from mandatory foundation blockers.
 - **480px ownership:** Reassigned from `InvitationShell` to outer routing/canvas boundaries.
-- **next/font wording:** Clarified as static, build-time font integration, not a runtime downloader.
-- **Font ownership:** Explicitly marked as Theme Author/Admin owned; not freely overridable by owner via `designTokens`.
-- **Romantic bloom:** Corrected origin from SVG to CSS radial-gradients; marked for replacement with authored botanical SVGs.
-- **WebGL wording:** Limited to "Not justified for current redesign scope" rather than a definitive permanent ban.
+- **next/font wording:** Clarified as static, build-time font integration.
+- **Config Ownership:** Explicitly demarcated Theme Author/Admin config (fonts, grammar, layout) vs Owner-editable presentation (allowlisted color overrides only).
+- **Romantic bloom:** Corrected origin from SVG to CSS radial-gradients.
+- **WebGL wording:** Limited to "Not justified for current redesign scope", and completely removed from D7 (L3 is now Cinematic CSS/DOM + GSAP).
+- **Motion Responsibilities:** Clarified that `matchMedia` handles responsive/reduced-motion conditions, while `useGSAP` provides React lifecycle integration and context cleanup.
+- **Canonical Tokens:** Added `--theme-accent-contrast` to complete the contract.
