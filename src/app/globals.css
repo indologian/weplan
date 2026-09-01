@@ -155,6 +155,13 @@ body { margin: 0; background: var(--background); color: var(--foreground); font-
   padding: 1.5rem;
   background: var(--theme-bg, #fff);
   color: var(--theme-text, #222);
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--invitation-gate-duration, 820ms) var(--invitation-gate-ease, cubic-bezier(.76, 0, .24, 1));
+  will-change: transform;
+}
+
+.theme-access-gate[data-state="opening"] {
+  transform: translate3d(0, -100%, 0);
 }
 
 .theme-access-gate-card { max-width: 24rem; text-align: center; }

@@ -3713,3 +3713,33 @@ Playwright Chromium verified `no-preference` and `reduce`. Under reduce, represe
 
 #3D.2 MODERN EDITORIAL MARKET-FIT POLISH: ACCEPTED
 #3E LUXURY MIDNIGHT: READY
+
+## [2026-09-01] WP #3D.3: Shared Invitation Opening Transition & Theme Motion Synchronization
+
+### Reason and scope
+The previous implementation immediately unmounted the invitation access gate on click, offering no visual transition, no theme synchronization, and causing Cover choreography to execute while still hidden. This package introduces a shared opening transition state machine and synchronizes it with theme motion.
+
+### State machine and shared context
+- Introduced InvitationPhase ("closed", "opening", "open") to track the access gate lifecycle.
+- Created InvitationExperienceProvider context to broadcast phase downwards.
+- Modern Editorial motion was updated to initialize only when phase !== "closed", preventing premature Cover choreography execution.
+
+### Shared transition and audio
+- Access gate visually slides upward over 820ms using a smooth cubic-bezier(.76, 0, .24, 1).
+- Primary completion is driven by transitionend, with a 1300ms fallback safety timer.
+- Audio playback request is issued immediately on the initial "Buka Undangan" click.
+- Prevented duplicate clicks during the "opening" phase.
+
+### Content state and accessibility
+- Content remains mounted throughout.
+- While closed or opening, content remains inert and aria-hidden with body scroll locked.
+- After open, interactive state is restored, body scroll is unlocked, and focus is programmatically handed off to the content wrapper (tabIndex=-1) to prevent keyboard focus loss.
+- prefers-reduced-motion: reduce skips the slide and waits, immediately switching to open.
+
+### QA and validation
+- Modern choreography now overlaps with the rising gate as intended.
+- Added tests verifying phase state, audio requests, and fallback timers.
+- Verified on 320x568, 393x852, and 1440x900 viewports; no overflow introduced.
+- Other themes (Luxury Midnight, Javanese Heritage, Romantic Floral) verified to maintain baseline shell functionality with the new gate phase.
+- Static checks: npm run typecheck, npm run lint, npm run test (303 PASS, 4 out-of-scope FAILs remain), and npm run build all pass.
+- Database, migration, and dependency impact: NONE.

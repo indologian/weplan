@@ -392,3 +392,4 @@ It is based on refreshed study of Indoinvite, Wevitation, Our Wedding Link, WebN
 Architecture decisions D1–D7 remain valid. The refresh changes the **quality bar** for photography, clipping/masking, ornament layering, typography hierarchy, gallery behavior, and theme-specific motion. It does not change authorization, persistence, entitlement, payment, RSVP semantics, or database design.
 
 Modern Editorial therefore keeps its architecture acceptance from #3D/#3D.1 but requires #3D.2 visual/motion polish before the redesign program advances to #3E.
+

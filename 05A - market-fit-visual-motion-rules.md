@@ -374,6 +374,17 @@ CTA tap
 
 Jangan menahan user dengan intro panjang yang tidak dapat dilewati.
 
+### 8.1 Shared Opening Transition
+
+Setiap tema wajib mematuhi standar *shared opening transition* agar pengalaman masuk undangan konsisten, responsif, dan accessible:
+
+1. **Phase Lifecycle:** `InvitationShell` memiliki state: `closed` (gate tertutup), `opening` (gate sedang sliding up), `open` (gate hilang, undangan dapat diakses).
+2. **Audio Gesture:** Pemutaran musik latar langsung diminta oleh event handler awal "Buka Undangan" untuk memastikan kebijakan audio gesture-first dari browser.
+3. **Motion Start:** Animasi pembuka spesifik tema (Cover choreography) harus dirancang berlapis di bawah *access gate*. Animasi tema **mulai di-trigger saat fase `opening`** agar elemen cover yang bergerak dapat terlihat segera saat gate perlahan menghilang.
+4. **Interactivity:** Konten undangan (selain tombol gate) tetap `inert=true` dan `aria-hidden=true` (selain elemen live region) sampai fase `open`.
+5. **Body Lock:** `document.body` dikunci scroll-nya selama fase `closed` dan `opening`.
+6. **Reduced Motion:** Bila *prefers-reduced-motion* bernilai `reduce`, hapus fase `opening` sepenuhnya (atau durasi 0), langkau sinkronisasi gerak besar, pindah ke fase `open` seketika. Audio request tetap diproses.
+
 ---
 
 ## 9. Couple Section v2
@@ -606,3 +617,4 @@ performance discipline
 **Motion premium bukan berarti ramai.**
 
 Target: undangan yang terasa seperti **desain pernikahan yang hidup**, bukan landing page SaaS yang diberi foto pasangan.
+

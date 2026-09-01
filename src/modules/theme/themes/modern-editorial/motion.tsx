@@ -3,11 +3,17 @@
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { useInvitationExperience } from "@/modules/theme/primitives/invitation-experience";
 
 if (typeof window !== "undefined") gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 export function ModernEditorialMotion() {
+  const { phase } = useInvitationExperience();
+  const experienceStarted = phase !== "closed";
+
   useGSAP(() => {
+    if (!experienceStarted) return;
+
     const mm = gsap.matchMedia();
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       const cover = gsap.timeline({ defaults: { ease: "power3.out" } });
@@ -39,12 +45,10 @@ export function ModernEditorialMotion() {
       gsap.from(".wedding-theme.modern-editorial .me-gallery-select", { x: 28, opacity: 0, duration: 0.55, stagger: 0.07, ease: "power2.out", scrollTrigger: { trigger: ".wedding-theme.modern-editorial .me-gallery-strip", start: "top 90%", once: true } });
     });
     mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
-      gsap.to(".wedding-theme.modern-editorial .me-cover-visual img", { yPercent: 5, ease: "none", scrollTrigger: { trigger: ".wedding-theme.modern-editorial .me-cover", start: "top top", end: "bottom top", scrub: 0.8 } });
-      gsap.utils.toArray<HTMLElement>(".wedding-theme.modern-editorial .me-gallery-item").slice(0, 6).forEach((item, index) => {
-        gsap.fromTo(item, { y: index % 2 ? 18 : -18 }, { y: index % 2 ? -18 : 18, ease: "none", scrollTrigger: { trigger: ".wedding-theme.modern-editorial .me-gallery-editorial", start: "top bottom", end: "bottom top", scrub: 0.7 } });
-      });
+      gsap.to(".wedding-theme.modern-editorial .me-cover-photo-mask img", { yPercent: 5, ease: "none", scrollTrigger: { trigger: ".wedding-theme.modern-editorial .me-cover", start: "top top", end: "bottom top", scrub: 0.8 } });
     });
     return () => mm.revert();
-  });
+  }, { dependencies: [experienceStarted] });
   return null;
 }
+

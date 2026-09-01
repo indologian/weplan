@@ -1138,3 +1138,4 @@ Rasio kontras minimum antara teks dan background adalah **4.5:1** untuk teks nor
 ### 7.5 Navigasi Keyboard
 
 Semua form harus bisa dinavigasi menggunakan keyboard saja (Tab, Shift+Tab, Enter, Escape). CTA/control penting pada mobile menggunakan target praktis minimal sekitar 44px walaupun WCAG minimum lebih kecil. Tombol dan link harus memiliki focus indicator yang terlihat (outline atau ring). Jangan menghapus focus outline tanpa menyediakan alternatif yang setara jelasnya — pengguna yang mengandalkan keyboard perlu tahu di mana posisi focus mereka. Halaman undangan juga harus bisa di-scroll menggunakan keyboard (Page Up/Down, Space, Arrow keys) tanpa hambatan.
+
